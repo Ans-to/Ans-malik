@@ -21,6 +21,8 @@ export const easeOutQuart: Ease = (t) => 1 - Math.pow(1 - t, 4);
 
 export const easeInOutCubic: Ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
+export const easeOutQuint: Ease = (t) => 1 - Math.pow(1 - t, 5);
+
 export const easeInOutQuint: Ease = (t) => (t < 0.5 ? 16 * t ** 5 : 1 - Math.pow(-2 * t + 2, 5) / 2);
 
 /** Exponential out — the classic "UI snap". Fast attack, long soft landing. */

@@ -1,16 +1,12 @@
 # MOTION / BY CODE
 
-An 8-second, 120 BPM, code-only motion-graphics film — kinetic typography, a
-morphing 3D wireframe, a spline camera move, glitch cuts, bloom/chromatic
-aberration, and a synthesised score that the picture is actually locked to.
-
-No After Effects. No Blender. No GPU. No browser. No external footage, fonts or
-audio samples. The whole thing is TypeScript + math, rendered to PNG frames and
-muxed to H.264 with ffmpeg.
+An 8-second, 120 BPM motion-graphics film made entirely in TypeScript — no After
+Effects, no Blender, no GPU, no browser, no stock footage, fonts or samples.
 
 ```
-motion/out/motion-by-code.mp4     1280×720 · 30 fps · 8.0 s · H.264 + AAC
-motion/out/soundtrack.wav         the generated score (44.1 kHz stereo)
+motion/out/motion-by-code-1080p.mp4   1920×1080 · 30 fps · 8.0 s · H.264 + AAC
+motion/out/contact-sheet.png          24-frame overview of the cut
+motion/out/soundtrack.wav             the generated score (44.1 kHz stereo)
 ```
 
 ---
@@ -18,78 +14,99 @@ motion/out/soundtrack.wav         the generated score (44.1 kHz stereo)
 ## Run it
 
 ```bash
-npm run audio     # synthesise the soundtrack, then analyse it back
-npm run still     # render a handful of stills (fast sanity check)
-npm run render    # 1280×720 @ 30 fps -> motion/out/motion-by-code.mp4
-npm run render:1080   # 1920×1080 @ 30 fps
-npm run render:60     # 1920×1080 @ 60 fps
+npm run audio         # synthesise the score, then analyse it back
+npm run still         # a handful of stills (fast sanity check)
+npm run render:1080   # 1920×1080 @ 30 fps -> motion/out/motion-by-code-1080p.mp4
+npm run render        # 1280×720 preview, ~4x faster
 ```
 
-Requirements: Node ≥ 22.6 (uses native TypeScript stripping — no build step),
-and an `ffmpeg` binary at `./tools/ffmpeg` or on `$PATH` (`FFMPEG=/path/to/ffmpeg`).
+Requires Node ≥ 22.6 (native TypeScript stripping — no build step) and an
+`ffmpeg` binary at `./tools/ffmpeg` or on `$PATH` (`FFMPEG=/path/to/ffmpeg`).
 
-Useful flags: `--w --h --fps --crf --bloom --aberration --grain --out --keep`.
+Flags: `--w --h --fps --crf --bloom --aberration --grain --out --keep`.
 `--stills=1.2,2.9,6.2` renders arbitrary timestamps instead of the movie.
-`--keep` preserves the PNG sequence.
 
 ---
 
-## What is actually implemented
+## Art direction
 
-| Skill you asked about | Where it lives | What it does |
-|---|---|---|
-| **Programmatic video framework** | `motion/src/render.ts` | Deterministic frame graph: `t → render → post → PNG → ffmpeg`. Same time, same pixels, every run. |
-| **Timeline / keyframes** | `motion/src/scene.ts` (`CAMERA_KEYS`, scene phases) | Time-indexed keyframes with per-segment easing; scenes are functions of `t` only, so any frame renders independently (parallelisable, resumable). |
-| **3D engine + camera paths** | `core/math.ts`, `graphics/stage.ts` | Perspective + lookAt matrices, Catmull-Rom/Hermite spline camera with C1 continuity, analytic projection, per-depth stroke width and fog. |
-| **3D geometry & morphing** | `graphics/wire.ts` | Procedural icosphere (subdivided, deduped edges) morphed between sphere → torus → cube → octahedron on the beat. |
-| **"Shaders" (glow, RGB split, glitch, bloom)** | `core/fx.ts` | Bright-pass → multi-scale blur → bloom, radial chromatic aberration, block datamosh, lens distortion, anamorphic streak, scanlines, vignette, grain. |
-| **HDR / tone mapping** | `core/raster.ts` | Additive linear-light Float32 buffer, filmic exponential shoulder, gamma 2.2, ordered dither. |
-| **Easing & physics** | `core/easing.ts` | Expo / quint / back / elastic, analytic damped spring, CSS `cubic-bezier()` with Newton inversion, staggered delays. |
-| **Kinetic typography** | `graphics/font.ts` + `stage.ts` | A single-stroke vector font defined in code; text is driven per-character (scale, rotate, tracking, Z-offset, glow) — plus 3D extrusion and perspective. |
-| **Audio-reactive sync** | `audio/synth.ts`, `audio/analyze.ts` | The score is synthesised sample-by-sample, written to WAV, then re-decoded and analysed: band split, onset detection, autocorrelation tempo estimate, beat-phase snap. Cuts, slams, pulses and camera shake are all driven by that analysis. |
-| **Prompt → parameters** | `scene.ts` | "cinematic", "kinetic type", "morphing", "fluid camera", "glitch transition" are the named knobs (`easeOutExpo`, morph `t`, camera spline, `GLITCH_WINDOWS`). |
+Editorial dark, not neon template:
 
-### Audio → picture contract
+* warm near-black ground, one soft off-centre pool of light;
+* **bone-white display type at architectural scale** — one face, one weight,
+  used big, with generous negative space;
+* **one accent** — hot vermilion — reserved for a single word per scene and for
+  hairline rules;
+* hairline rules, index numerals, leader lines, ticker bands: print/grid
+  furniture rather than glow;
+* a sparse wireframe solid, used only as a depth element and cropped by frame;
+* post: bloom on hot values only, a whisker of chromatic aberration, film grain,
+  gentle vignette. No scanlines, no rainbow split, no lens dirt.
 
-`analyze.ts` does no cheating: it decodes the WAV, splits it into three bands
-(one-pole filters), takes log-energy positive flux, peak-picks onsets, estimates
-tempo by autocorrelation over 70–180 BPM with a musical bias, then snaps the low
-band onsets to that grid to recover the phase. On the generated score it reports:
-
-```
-120.2 BPM · 17 beats · 165 onsets · 8.00 s
-```
-
-Those beats feed `punch(t)`, which every impact scale, glow spike, HUD tick and
-camera micro-shake reads. Swap in your own WAV and the picture re-times itself.
+The type is a **filled monoline display face defined in code**
+(`graphics/type.ts`): heavy capsule stems, butt terminals on axis-aligned cuts,
+per-glyph coverage masks so overlapping strokes union instead of double-adding,
+and per-character state (`scale`, `offset`, `wipe`, `reveal`, `rotZ`) so kinetic
+animation never touches the outline data.
 
 ---
 
 ## The cut
 
-| Time | Scene | Beats |
+| Time | Scene | What happens |
 |---|---|---|
-| 0.0–2.0 | **A** — `MOTION` slams letter-by-letter out of Z depth over a perspective floor grid, tracking settles, hologram ghost behind | camera dolly-in, per-letter `easeOutExpo` + impact streaks |
-| 2.0–3.5 | **B** — camera orbits right; the wireframe morphs sphere → torus → cube inside three counter-rotating orbit rings; `BY CODE` | parallax orbit, spline ease |
-| 3.5–5.56 | **C** — stacked kinetic lines `PIXELS / OVER / TIME`, HUD ticks on the beat, a self-typing prompt, wireframe knot, ghost numeral for depth | staggered per-character slides, frame line draw-on |
-| 5.56–7.12 | **D** — the drop: `MOTION` hits the lens with elastic overshoot while the mesh shatters; light-bar sweep | `easeOutElastic`, shatter noise, punch² |
-| 7.12–8.0 | **E** — end card: counter-rotating rings, mark resolves, camera settles | ring draw-on, exponential out |
+| 0.00–2.00 | **A — statement** | A hairline rule draws across the frame; `MOTION` rises out of it as a bottom-up reveal, tracking tightening from +0.16 to −0.035 em; caption, credit block and a scrubber that fills on the beat |
+| 2.00–3.50 | **B — editorial** | Glitch cut. Index `01`, `KINETIC / TYPOGRAPHY` wiped on character by character, leader rule drawing itself, sparse icosphere→octahedron morph on the right, cropped by frame |
+| 3.50–5.50 | **C — stack** | `PIXELS / OVER / TIME` slams in line by line from alternating directions, accent on the middle line, leader rules, top ticker band, ghost numeral `03` |
+| 5.50–7.00 | **D — drop** | Glitch cut on the beat, `MOTION` lands from 1.34× with elastic settle and a short vertical smear, accent rule snaps out from centre, `BY CODE` sets underneath |
+| 7.00–8.00 | **E — end card** | Wordmark wipes on, accent rule, credit line |
 
-Three glitch transitions (`GLITCH_WINDOWS`) are aligned to the cuts *and* to the
-beat grid, so every hard cut is also a musical event.
+Three glitch transitions, each timed to straddle a detected beat so the edit and
+the music agree.
+
+---
+
+## Audio → picture
+
+`audio/synth.ts` composes the score sample-by-sample (kick, snare, hats, sub,
+pad, riser, impact, small reverb). `audio/analyze.ts` then **re-decodes the WAV
+and measures it** — three-band split, log-flux onset detection, autocorrelation
+tempo estimate with a musical bias, then beat-phase recovery by snapping the
+low-band onsets to the grid. On the generated score it reports:
+
+```
+120.2 BPM · 17 beats · 165 onsets · 8.00 s
+```
+
+Every scale pulse, glow lift, camera micro-shake and HUD tick reads the `punch`
+envelope built from those beats. Swap in your own WAV and the picture re-times
+itself.
+
+---
+
+## What is implemented, by skill
+
+| Skill | Where | Notes |
+|---|---|---|
+| Programmatic video framework | `render.ts` | `t → frame → PNG → ffmpeg`; deterministic, resumable, parallelisable |
+| Keyframes & easing | `scene.ts`, `core/easing.ts` | Hermite camera keys, expo/quint/back/elastic curves, analytic damped spring, CSS `cubic-bezier()` with Newton inversion |
+| 3D engine & camera paths | `core/math.ts`, `graphics/stage.ts` | perspective/lookAt, C1-continuous spline camera, analytic projection, per-depth stroke radius and fog |
+| Procedural 3D | `graphics/wire.ts` | subdivided icosphere with deduped edges, direction-remapped morph targets |
+| Shader-style post | `core/fx.ts` | bright-pass→multi-scale bloom, radial chromatic aberration, block datamosh glitch, lens distortion, anamorphic streak, scanlines, vignette, half-res grain |
+| HDR pipeline | `core/raster.ts` | additive linear-light Float32 buffer, filmic exponential shoulder, gamma 2.2, 8×8 ordered dither |
+| Kinetic typography | `graphics/type.ts` | filled display face baked in code, coverage-mask rasteriser, per-character wipe/reveal/scale/offset |
+| Audio reactivity | `audio/*` | as above |
+| Prompt → parameters | `scene.ts` | the shot list and its vocabulary (wipe, reveal, leader rule, smear, elastic land) are named, tunable functions |
 
 ---
 
 ## Why a from-scratch renderer
 
-The usual stack (Remotion / Motion Canvas + React Three Fiber + GSAP) needs a
-Chromium + WebGL runtime and a Node package tree. This sandbox has neither
-headless Chrome nor a GPU, and third-party binary downloads are blocked — so the
-film is rendered the old, portable way: an HDR software rasteriser and a CPU post
-stack, wrapped in the same architecture you would use with R3F (scene graph →
-camera → draw calls → post → encode). Every module is a drop-in seam: to port to
-Remotion, each `sceneX(frame, t)` becomes a component and the FX stack becomes a
-shader pass, with no change to the timing model.
+Remotion / Motion Canvas + R3F + GSAP need Chromium and WebGL, which this
+environment does not have. So the film is rendered the portable way: an HDR
+software rasteriser plus a CPU post stack, wrapped in the same architecture you
+would use with R3F (scene → camera → draw calls → post → encode). Every module is
+a drop-in seam — see `docs/MOTION-PLAYBOOK.md` for the porting table.
 
 ---
 
@@ -97,17 +114,17 @@ shader pass, with no change to the timing model.
 
 ```
 motion/src/
-  core/math.ts        vec3 / mat4 / projection / splines / noise
+  core/math.ts        vec3 / mat4 / projection / splines / value noise
   core/easing.ts      easing vocabulary + spring + cubic-bezier
-  core/raster.ts      HDR frame buffer, AA lines, glows, tone mapping
+  core/raster.ts      HDR frame buffer, AA lines, glows, tone mapping + dither
   core/fx.ts          bloom, aberration, glitch, streaks, grain, vignette
   core/png.ts         dependency-free PNG encoder
-  graphics/font.ts    single-stroke vector font + layout/tracking
-  graphics/stage.ts   camera, 3D text, meshes, grid, particles
-  graphics/wire.ts    icosphere, shape morphing, particle fields
-  audio/synth.ts      the score (drums, sub, pad, riser, impact, reverb)
+  graphics/type.ts    filled display face + coverage-mask text rasteriser
+  graphics/stage.ts   camera, wireframe mesh drawing, euler transform
+  graphics/wire.ts    icosphere, shape morphing
+  audio/synth.ts      the score
   audio/analyze.ts    band split, onsets, tempo, beat grid, punch envelope
   scene.ts            the film: camera keys, five scenes, post stack
-  render.ts           CLI: frames → ffmpeg
-  build-audio.ts      CLI: synthesise + report analysis
+  render.ts           CLI: frames -> ffmpeg
+  build-audio.ts      CLI: synthesise + report the analysis
 ```

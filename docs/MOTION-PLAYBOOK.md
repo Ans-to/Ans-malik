@@ -18,15 +18,23 @@ implemented somewhere in `motion/src/` — the file is named in the margin.
 
 ## 2. Typography as geometry
 
-- Tracking is animated, not static: `lerp(0.34 → 0.16, easeOutExpo)` reads as the
-  word *tightening* into place. (`stage.ts:drawText` accepts `tracking` per call.)
+- Use **one** face, **one** weight, **big**, with negative space around it. The
+  face here is a filled monoline display typeface defined in code
+  (`graphics/type.ts`): heavy capsule stems, butt caps on axis-aligned cuts,
+  round joins everywhere else.
+- Tracking is animated, not static: `lerp(+0.16 → −0.035, easeOutQuint)` reads as
+  the word *tightening* into place.
 - Per-character state is a pure function of time:
-  `{ opacity, scale, offset[x,y,z], rotZ, glow, track }` — that is the entire
-  vocabulary needed for kinetic type.
-- Depth is a typographic tool: the ghost copy at z = −9.5 behind the word creates
-  parallax without adding a single extra element.
-- Stroke width is projected per-glyph (`cam.scaleAt(depth)`), so a word moving
-  toward the lens thickens the way real neon does.
+  `{ opacity, scale, offset, rotZ, reveal, wipe }` — that is the whole vocabulary
+  needed for kinetic type. `reveal` (bottom-up) and `wipe` (left-to-right) are
+  screen-space masks, so they cost nothing extra.
+- Set type on a **baseline**, not a centre. Boxes that grow upward from a
+  baseline are why real layout looks stable while it animates.
+- Scale is projected per glyph (`cam.scaleAt(depth)`), so type moving toward the
+  lens gains weight the way it does through a real optic.
+- The single strongest motion for display type is the *contrast pair*: a hard
+  cut/wipe in one direction, then a settle in the other with
+  `easeOutQuint`/`easeOutElastic`.
 
 ## 3. Camera choreography
 
@@ -40,13 +48,23 @@ implemented somewhere in `motion/src/` — the file is named in the margin.
 
 ## 4. Light, not paint
 
-- Render into a **linear HDR** buffer and let values exceed 1.0.
-- Bloom = bright-pass → blur → add back. Multi-scale (tight + wide halo) is what
-  separates "glow" from "blurry text". (`core/fx.ts:bloom`)
-- Tone map with an exponential shoulder, not a clamp:
-  `1 − e^(−1.35x)` → highlights roll off, colours keep their hue.
-- Tiny amounts: gain 0.8 bloom, 0.9 streak, 0.005 grain. Restraint reads as
-  expensive; excess reads as a filter pack.
+- Render into a **linear HDR** buffer and let values exceed 1.0 — but only the
+  accent should. If the body colour also blows out, everything reads as "glowing
+  text" and the hierarchy collapses. (Bone type at 0.86, accent at 1.25.)
+- Bloom = bright-pass → blur → add back, with a **high threshold** (0.95) so it
+  touches only the accent. `core/fx.ts:bloom`
+- Tone map with an exponential shoulder, not a clamp: `1 − e^(−1.35x)`.
+- Restraint is the whole trick: 0.32 bloom, 0.35 px aberration, 0.004 grain.
+
+## 4b. Composition
+
+- One accent per frame, and one *job* per frame. If three elements compete, the
+  frame reads as a template.
+- Use print furniture — hairlines, index numerals, leader rules, tickers,
+  credits — to make a moving frame feel *designed* rather than *rendered*.
+- Let large shapes be cropped by the frame edge. Centred, fully-visible, evenly
+  spaced elements are the signature of generated work.
+- Negative space is a material. Aim for roughly a third of the frame empty.
 
 ## 5. Audio-reactive, honestly
 
@@ -66,15 +84,20 @@ implemented somewhere in `motion/src/` — the file is named in the margin.
   shots: the shots already share a black background.
 - Glitch recipe: row-band displacement + per-band RGB split + dropped scanlines
   + hard-edged blocks sampled from elsewhere in the frame (`fx.ts:glitch`).
-- Keep the window under 200 ms; place it so the *cut* happens at peak.
+- Keep the window under 200 ms and **dial the amplitude to 0.5–0.7**: used at
+  full strength it destroys the comp instead of masking the cut.
+- The best transition in an editorial piece is still a hard cut with a 120 ms
+  accent flash. Glitch is a garnish.
 
 ## 7. Making procedural 3D look designed
 
 - One topology, many silhouettes: morph a unit icosphere onto a torus / cube /
   octahedron by remapping its direction vectors (`wire.ts:shapePoint`). Same edge
   count means no popping.
-- Never show a wireframe alone: pair it with orbit rings for silhouette, and put
-  type in front of it with a depth gap for readability.
+- **Use 3D as a supporting element.** A wireframe carrying the whole film reads
+  as a tech demo; the same object at 22 % opacity, cropped by the frame and
+  sitting behind type, reads as art direction.
+- One mesh, one colour, no glow rings, no orbiting planets.
 - Shatter = per-vertex hash noise scaled by the audio punch; the topology stays
   intact, so it reads as an object breaking, not as a mesh error.
 

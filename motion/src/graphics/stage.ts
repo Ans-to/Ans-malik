@@ -21,7 +21,6 @@ import {
   type Vec3,
   lerp,
 } from '../core/math.ts';
-import { glyphFor, layout } from '../graphics/font.ts';
 
 export interface Projected {
   x: number;
@@ -85,139 +84,17 @@ export class Camera {
   }
 }
 
-/* ------------------------------------------------------------------ 3D type */
-
-export interface CharAnim {
-  /** 0..1 visibility */
-  opacity?: number;
-  scale?: number;
-  /** local offset in em units (x right, y up, z toward camera) */
-  offset?: [number, number, number];
-  rotZ?: number;
-  /** extra additive glow for impacts */
-  glow?: number;
-  /** per-character tracking offset in em */
-  track?: number;
-}
-
-export interface TextOptions {
-  text: string;
-  /** world height of one em (cap height) */
-  size: number;
-  position: Vec3;
-  /** euler XYZ in radians */
-  rotation?: Vec3;
-  tracking?: number;
-  align?: 'center' | 'left' | 'right';
-  color: RGB;
-  /** stroke width in pixels at depth 1 */
-  weight?: number;
-  opacity?: number;
-  /** number of extruded wireframe slices along local +Z */
-  extrusion?: number;
-  extrusionDepth?: number;
-  perChar?: (i: number, n: number) => CharAnim;
-  /** multiplier for distance-based attenuation */
-  fog?: number;
-}
-
 /** Transform a point by euler angles (XYZ order). */
-function applyEuler(p: Vec3, r: Vec3): Vec3 {
+export function applyEuler(p: Vec3, r: Vec3): Vec3 {
   const [rx, ry, rz] = r;
   const cx = Math.cos(rx), sx = Math.sin(rx);
   const cy = Math.cos(ry), sy = Math.sin(ry);
   const cz = Math.cos(rz), sz = Math.sin(rz);
-  // X
   let x = p[0], y = p[1] * cx - p[2] * sx, z = p[1] * sx + p[2] * cx;
-  // Y
   const x2 = x * cy + z * sy;
   const z2 = -x * sy + z * cy;
   x = x2; z = z2;
-  // Z
-  const x3 = x * cz - y * sz;
-  const y3 = x * sz + y * cz;
-  return [x3, y3, z];
-}
-
-export function drawText(frame: Frame, cam: Camera, o: TextOptions): void {
-  const tracking = o.tracking ?? 0.16;
-  const weight = o.weight ?? 1.6;
-  const rot = o.rotation ?? [0, 0, 0];
-  const { chars, width } = layout(o.text, tracking);
-  const n = chars.length;
-  let originX = 0;
-  if (o.align === 'center') originX = -width / 2;
-  else if (o.align === 'right') originX = -width;
-
-  const slices = o.extrusion ?? 1;
-  const sliceGap = o.extrusionDepth ?? 0.02;
-  const opacity = o.opacity ?? 1;
-  if (opacity <= 0.002) return;
-
-  for (let ci = 0; ci < n; ci++) {
-    const c = chars[ci];
-    if (c.ch === ' ') continue;
-    const g = glyphFor(c.ch);
-    const a = o.perChar ? o.perChar(ci, n) : {};
-    const op = (a.opacity ?? 1) * opacity;
-    if (op <= 0.002) continue;
-    const s = a.scale ?? 1;
-    const off = a.offset ?? [0, 0, 0];
-    const rz = a.rotZ ?? 0;
-
-    // glyph centre in em space (for scale/rotate about the letter's own centre)
-    const cxc = originX + c.x + a.track! * 0 + c.w * 0.5 + (a.track ?? 0);
-    for (let slice = 0; slice < slices; slice++) {
-      const sliceFade = slices === 1 ? 1 : 0.9 - (slice / slices) * 0.72;
-      for (const stroke of g.strokes) {
-        const pts: Array<[number, number]> = [];
-        let visible = true;
-        for (const [gx, gy] of stroke) {
-          // local em coords, origin bottom-left of glyph
-          let lx = gx - c.w * 0.5;
-          let ly = gy - 0.5;
-          // per-char scale + spin about char centre
-          const cs = Math.cos(rz), sn = Math.sin(rz);
-          const rx2 = lx * cs - ly * sn;
-          const ry2 = lx * sn + ly * cs;
-          lx = rx2 * s;
-          ly = ry2 * s;
-          // to world: y up, z toward viewer
-          const wx = originX + c.x + c.w * 0.5 + lx + off[0];
-          const wy = ly + off[1];
-          const wz = off[2] - slice * sliceGap;
-          const world = applyEuler([wx * o.size, wy * o.size, wz * o.size], rot);
-          const p = cam.project([
-            world[0] + o.position[0],
-            world[1] + o.position[1],
-            world[2] + o.position[2],
-          ]);
-          if (!p.ok) {
-            visible = false;
-            break;
-          }
-          pts.push([p.x, p.y]);
-        }
-        if (!visible || pts.length < 2) continue;
-        const depth = cam.project(
-          ((): Vec3 => {
-            const w = applyEuler(
-              [(originX + c.x + c.w * 0.5) * o.size, (off[1]) * o.size, off[2] * o.size],
-              rot,
-            );
-            return [w[0] + o.position[0], w[1] + o.position[1], w[2] + o.position[2]];
-          })(),
-        ).depth;
-        const pxScale = cam.scaleAt(depth) / 55;
-        const w = Math.max(0.75, weight * pxScale);
-        const fog = o.fog ?? 1;
-        const atten = clamp(1.15 - (depth - 4) * 0.02 * fog);
-        const inten = op * atten * sliceFade * (1 + (a.glow ?? 0) * 2.2) * 0.85;
-        if (inten <= 0.003) continue;
-        frame.polyline(pts, o.color, w, inten);
-      }
-    }
-  }
+  return [x * cz - y * sz, x * sz + y * cz, z];
 }
 
 /* ------------------------------------------------------------- wireframes */

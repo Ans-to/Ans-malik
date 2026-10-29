@@ -1,54 +1,69 @@
 /**
- * scene.ts — the film itself.
+ * scene.ts — the film.
  *
- * One continuous camera move through one small 3D world, cut into five beats.
- * All timing is derived from the *analysed* soundtrack (beat grid + onset
- * envelope), so re-syncing the picture to new music is a re-render, not a
- * re-edit.
+ * Art direction: editorial dark. Warm near-black, bone-white display type at
+ * architectural scale, one hot accent, hairline rules, and a single sparse
+ * wireframe object used as a depth element — not as the subject.
+ *
+ * Everything is a pure function of t, and every beat-driven value comes from
+ * the analysed soundtrack (see audio/analyze.ts), so the cut is musical rather
+ * than merely timed.
  */
 
 import { Frame, type RGB } from './core/raster.ts';
 import * as FX from './core/fx.ts';
-import {
-  clamp,
-  lerp,
-  mix3,
-  noise1,
-  smoothstep,
-  smootherstep,
-  type Vec3,
-} from './core/math.ts';
-import {
-  easeInOutCubic,
-  easeInOutExpo,
-  easeOutBack,
-  easeOutElastic,
-  easeOutExpo,
-  easeInCubic,
-  spring,
-  type Ease,
-} from './core/easing.ts';
-import { Camera, drawGrid, drawMesh, drawParticles, drawText, type CharAnim } from './graphics/stage.ts';
-import { icosphere, morph, particleField, ring, type ShapeName } from './graphics/wire.ts';
+import { clamp, lerp, mix3, noise1, smoothstep, type Vec3 } from './core/math.ts';
+import { easeInOutCubic, easeInOutExpo, easeOutBack, easeOutExpo, easeOutQuint, type Ease } from './core/easing.ts';
+import { Camera, drawMesh } from './graphics/stage.ts';
+import { icosphere, morph, type ShapeName } from './graphics/wire.ts';
+import { drawType, measure, type CharState } from './graphics/type.ts';
 import type { Analysis } from './audio/analyze.ts';
 
 /* ------------------------------------------------------------------ palette */
+/** Values > 1 are intentional: the buffer is linear HDR and only these bloom. */
 export const C = {
-  ice: [0.45, 0.95, 1.25] as RGB,
-  cyan: [0.15, 0.75, 1.2] as RGB,
-  magenta: [1.35, 0.22, 0.62] as RGB,
-  blue: [0.22, 0.4, 1.3] as RGB,
-  white: [1.15, 1.15, 1.25] as RGB,
-  ember: [1.2, 0.55, 0.18] as RGB,
-  grid: [0.10, 0.26, 0.45] as RGB,
-  faint: [0.05, 0.12, 0.2] as RGB,
-  roseDim: [0.9, 0.16, 0.42] as RGB,
+  /** warm charcoal, not blue-black */
+  ink: [0.010, 0.0095, 0.010] as RGB,
+  bone: [0.86, 0.855, 0.83] as RGB,
+  boneDim: [0.5, 0.49, 0.475] as RGB,
+  /** the single accent: hot vermilion */
+  accent: [1.25, 0.30, 0.045] as RGB,
+  accentDim: [0.75, 0.18, 0.04] as RGB,
+  /** used only for the mesh, and only faintly */
+  steel: [0.34, 0.42, 0.52] as RGB,
 };
 
 export const DURATION = 8;
 
-/* --------------------------------------------------------------- keyframes */
+/* ------------------------------------------------------------------- state */
+let ANA: Analysis | null = null;
+let BEATS: Analysis['beats'] = [];
 
+export const GLITCH_WINDOWS: Array<[number, number]> = [
+  [1.98, 2.12],
+  [3.46, 3.6],
+  [5.5, 5.64],
+];
+
+export function glitchAmount(t: number): number {
+  let g = 0;
+  for (const [a, b] of GLITCH_WINDOWS) {
+    if (t >= a && t <= b) g = Math.max(g, Math.sin(((t - a) / (b - a)) * Math.PI) ** 0.7 * 0.7);
+  }
+  return g;
+}
+
+/** 1 at a detected beat onset, decaying. */
+function flash(t: number, decay = 16): number {
+  let v = 0;
+  for (const b of BEATS) {
+    const d = t - b.t;
+    if (d >= 0 && d < 0.9) v = Math.max(v, Math.exp(-d * decay));
+  }
+  return v;
+}
+
+/* --------------------------------------------------------------- camera rig */
 interface Key {
   t: number;
   eye: Vec3;
@@ -57,22 +72,20 @@ interface Key {
 }
 
 const CAMERA_KEYS: Key[] = [
-  { t: 0.0, eye: [0.0, 0.5, 13.6], target: [0, 0.06, 0] },
-  { t: 0.75, eye: [0.0, 0.2, 7.9], target: [0, 0.02, 0], ease: easeOutExpo },
-  { t: 1.55, eye: [0.28, 0.08, 6.9], target: [0, 0.02, 0] },
-  { t: 2.25, eye: [-0.55, 0.42, 5.9], target: [-0.35, 0.0, -1.2] },
-  { t: 3.15, eye: [-1.95, 0.3, 4.6], target: [-0.85, 0.0, -1.4] },
-  { t: 3.68, eye: [-0.25, -0.1, 5.5], target: [0.1, 0.0, -1.1], ease: easeInOutExpo },
-  { t: 4.2, eye: [0.75, 0.12, 5.7], target: [0.25, 0.0, -1.2] },
-  { t: 5.0, eye: [1.85, -0.22, 4.5], target: [0.55, 0.0, -1.3] },
-  { t: 5.6, eye: [1.0, 0.5, 6.4], target: [0.3, 0.0, -0.7] },
-  { t: 6.08, eye: [0.1, 0.22, 4.2], target: [0, 0.04, 0.62], ease: easeInOutExpo },
-  { t: 6.75, eye: [0.0, 0.08, 5.6], target: [0, 0.02, 0.55] },
-  { t: 7.4, eye: [0.0, 0.05, 6.6], target: [0, 0, 0] },
-  { t: 8.0, eye: [0.0, 0.05, 7.2], target: [0, 0, 0] },
+  { t: 0.0, eye: [0, 0, 7.2], target: [0, 0, 0] },
+  { t: 1.05, eye: [0, 0, 6.0], target: [0, 0.02, 0], ease: easeOutQuint },
+  { t: 2.0, eye: [0.22, 0.06, 5.35], target: [0.18, 0.02, 0] },
+  { t: 3.0, eye: [0.9, 0.02, 5.1], target: [0.5, 0.0, 0] },
+  { t: 3.5, eye: [1.0, 0.0, 5.0], target: [0.55, 0.0, 0] },
+  { t: 4.4, eye: [0.35, 0.0, 4.85], target: [0.3, 0.0, 0] },
+  { t: 5.3, eye: [0.05, 0.02, 5.4], target: [0.1, 0, 0] },
+  { t: 5.55, eye: [0.0, 0.02, 5.9], target: [0, 0, 0] },
+  { t: 6.05, eye: [0.0, 0.0, 3.55], target: [0, 0.02, 0.1], ease: easeInOutExpo },
+  { t: 6.9, eye: [0.0, 0.0, 4.9], target: [0, 0.01, 0] },
+  { t: 7.35, eye: [0.0, 0.0, 5.7], target: [0, 0, 0] },
+  { t: 8.0, eye: [0.0, 0.0, 6.1], target: [0, 0, 0] },
 ];
 
-/** Time-parameterised Catmull-Rom: C1-continuous, no stop-start at keys. */
 function keyedVec(keys: Key[], field: 'eye' | 'target', t: number): Vec3 {
   const n = keys.length;
   if (t <= keys[0].t) return keys[0][field];
@@ -84,7 +97,6 @@ function keyedVec(keys: Key[], field: 'eye' | 'target', t: number): Vec3 {
   const h = k1.t - k0.t;
   let u = (t - k0.t) / h;
   if (k1.ease) u = k1.ease(u);
-
   const pm = keys[Math.max(0, i - 1)];
   const pp = keys[Math.min(n - 1, i + 2)];
   const out: Vec3 = [0, 0, 0];
@@ -95,84 +107,13 @@ function keyedVec(keys: Key[], field: 'eye' | 'target', t: number): Vec3 {
     const m1 = ((pp[field][c] - v0) / Math.max(1e-4, pp.t - k0.t)) * h;
     const u2 = u * u;
     const u3 = u2 * u;
-    const h00 = 2 * u3 - 3 * u2 + 1;
-    const h10 = u3 - 2 * u2 + u;
-    const h01 = -2 * u3 + 3 * u2;
-    const h11 = u3 - u2;
-    out[c] = h00 * v0 + h10 * m0 + h01 * v1 + h11 * m1;
+    out[c] =
+      (2 * u3 - 3 * u2 + 1) * v0 +
+      (u3 - 2 * u2 + u) * m0 +
+      (-2 * u3 + 3 * u2) * v1 +
+      (u3 - u2) * m1;
   }
   return out;
-}
-
-/* ----------------------------------------------------------------- helpers */
-
-/** Glitch windows (seconds) — hard cuts, each one lands on a beat. */
-export const GLITCH_WINDOWS: Array<[number, number]> = [
-  [1.97, 2.15],
-  [3.47, 3.65],
-  [5.53, 5.71],
-  [5.98, 6.14],
-];
-
-/** Cut points — each one lands inside a glitch window, on the beat grid. */
-export const CUTS = [2.0, 3.5, 5.56];
-
-export function glitchAmount(t: number): number {
-  let g = 0;
-  for (const [a, b] of GLITCH_WINDOWS) {
-    if (t >= a && t <= b) {
-      const u = (t - a) / (b - a);
-      g = Math.max(g, Math.sin(u * Math.PI) ** 0.85 * 0.82);
-    }
-  }
-  return g;
-}
-
-/** 1 at the exact onset of a detected beat, decaying fast. */
-function hitFlash(t: number, decay = 14): number {
-  let v = 0;
-  for (const b of BEATS) {
-    const d = t - b.t;
-    if (d >= 0 && d < 1.2) v = Math.max(v, Math.exp(-d * decay) * (0.5 + b.strength * 0.5));
-  }
-  return v;
-}
-
-let BEATS: Analysis['beats'] = [];
-let ANA: Analysis | null = null;
-
-/** Per-character entrance driven by a delay, a curve and optional overshoot. */
-function charIn(
-  t: number,
-  start: number,
-  opts: {
-    dur?: number;
-    ease?: Ease;
-    from?: [number, number, number];
-    scaleFrom?: number;
-    rotFrom?: number;
-    fade?: number;
-    glowDecay?: number;
-  } = {},
-): CharAnim & { k: number } {
-  const dur = opts.dur ?? 0.34;
-  const ease = opts.ease ?? easeOutExpo;
-  const dt = t - start;
-  if (dt <= 0) return { opacity: 0, k: 0 };
-  const raw = clamp(dt / dur);
-  const k = ease(raw);
-  const from = opts.from ?? [0, 0, -7];
-  const sf = opts.scaleFrom ?? 1.35;
-  const rf = opts.rotFrom ?? 0;
-  const fade = opts.fade ?? 0.05;
-  return {
-    opacity: clamp((dt - fade * 0.2) / Math.max(1e-3, fade)),
-    scale: lerp(sf, 1, k),
-    offset: [lerp(from[0], 0, k), lerp(from[1], 0, k), lerp(from[2], 0, k)],
-    rotZ: lerp(rf, 0, k),
-    glow: Math.exp(-Math.max(0, dt - dur * 0.55) * (opts.glowDecay ?? 7)) * (raw < 1.35 ? 1 : 0),
-    k: raw,
-  };
 }
 
 /* -------------------------------------------------------------------- film */
@@ -184,12 +125,11 @@ export interface FilmContext {
 }
 
 export class Film {
-  cam = new Camera([0, 0, 13], [0, 0, 0]);
-  private sphere = icosphere(1);
-  private dust: Vec3[];
+  cam = new Camera([0, 0, 7], [0, 0, 0]);
   readonly w: number;
   readonly h: number;
   readonly A: Analysis;
+  private sphere = icosphere(1);
 
   constructor(ctx: FilmContext) {
     this.w = ctx.w;
@@ -198,41 +138,30 @@ export class Film {
     ANA = ctx.analysis;
     BEATS = ctx.analysis.beats;
     this.cam.resize(ctx.w, ctx.h);
-    this.dust = particleField(150, 9, 7);
+    this.cam.fov = (42 * Math.PI) / 180;
   }
 
-  /* ------------------------------------------------------------ camera rig */
+  /** World units -> pixels, used to lay type out in screen space. */
+  private px(): number {
+    return this.cam.scaleAt(6) || 1;
+  }
+
   private updateCamera(t: number): void {
-    const punch = this.A.punch(t, 9);
-    const glitch = glitchAmount(t);
+    const punch = this.A.punch(t, 11);
+    const gl = glitchAmount(t);
     const eye = keyedVec(CAMERA_KEYS, 'eye', t);
     const target = keyedVec(CAMERA_KEYS, 'target', t);
-
-    // hand-held drift + kick shake: high frequencies, tiny amplitudes
-    const shake = punch * 0.035 + glitch * 0.12;
-    const sx = noise1(t * 26) * shake + noise1(t * 61 + 4) * shake * 0.4;
-    const sy = noise1(t * 29 + 11) * shake + noise1(t * 67 + 9) * shake * 0.4;
-    const sz = noise1(t * 21 + 23) * shake * 0.5;
-
-    this.cam.eye = [eye[0] + sx, eye[1] + sy, eye[2] + sz];
-    this.cam.target = [
-      target[0] + sx * 0.6,
-      target[1] + sy * 0.6,
-      target[2],
-    ];
-    // subtle bank into the move
-    this.cam.roll = Math.sin(t * 1.1) * 0.012 + glitch * 0.06 * noise1(t * 40);
+    const sh = punch * 0.012 + gl * 0.05;
+    this.cam.eye = [eye[0] + noise1(t * 23) * sh, eye[1] + noise1(t * 31 + 7) * sh, eye[2]];
+    this.cam.target = [target[0] + noise1(t * 23) * sh * 0.5, target[1] + noise1(t * 31 + 7) * sh * 0.5, target[2]];
+    this.cam.roll = noise1(t * 1.3) * 0.004;
     this.cam.update();
   }
 
-  /* --------------------------------------------------------------- scenes */
   render(t: number): Frame {
     this.updateCamera(t);
     const f = new Frame(this.w, this.h);
     this.background(f, t);
-
-    const energy = this.A.rmsAt(t);
-    this.drawDust(f, t, energy);
     this.sceneA(f, t);
     this.sceneB(f, t);
     this.sceneC(f, t);
@@ -242,502 +171,411 @@ export class Film {
     return f;
   }
 
-  /** Ink-black background with a soft cool key light behind the subject. */
+  /* ----------------------------------------------------------- background */
   private background(f: Frame, t: number): void {
-    const energy = this.A.rmsAt(t);
-    f.clear(0.0035, 0.006, 0.014);
-    // cool pool of light behind the action
-    const cx = f.w * 0.5;
-    const cy = f.h * 0.46;
-    f.glow(cx, cy, f.h * 0.92, [0.016, 0.038, 0.082], 0.75 + energy * 0.3, 2.6);
-    // subtle magenta counter-light from the lower right
-    f.glow(f.w * 0.86, f.h * 0.88, f.h * 0.7, [0.05, 0.008, 0.032], 0.4, 2.8);
-    // horizon bloom where the perspective grid converges
-    const horizon = this.cam.project([0, -1.45, -30]);
-    if (horizon.y > 0 && horizon.y < f.h) {
-      f.glow(cx, horizon.y, f.w * 0.7, [0.012, 0.03, 0.06], 0.35, 2.4);
-    }
+    f.clear(C.ink[0], C.ink[1], C.ink[2]);
+    // a single soft pool of light, off-centre, that drifts with the camera
+    const e = this.A.rmsAt(t);
+    const cx = f.w * (0.5 + (this.cam.eye[0] - 0.3) * 0.06);
+    const cy = f.h * 0.44;
+    f.glow(cx, cy, f.h * 0.95, [0.030, 0.027, 0.024], 0.85 + e * 0.25, 2.6);
+    // warm bounce from below (the accent, heavily diffused)
+    f.glow(f.w * 0.5, f.h * 1.05, f.h * 0.7, [0.045, 0.014, 0.006], 0.5, 2.8);
   }
 
-  private drawDust(f: Frame, t: number, energy: number): void {
-    const pts = this.dust.map((p, i) => {
-      const drift = t * 0.12;
-      const a = drift + i * 0.013;
-      return [
-        p[0] * (1 + Math.sin(a) * 0.02),
-        p[1] + Math.sin(a * 1.7 + i) * 0.05,
-        p[2] + Math.sin(a * 0.6 + i * 2.1) * 0.08,
-      ] as Vec3;
-    });
-    drawParticles(f, this.cam, pts, C.faint.map((x) => x * 1.6) as RGB, {
-      size: 1.5,
-      opacity: 0.35 + energy * 0.35,
-      fog: 1.4,
-    });
+  /* -------------------------------------------------------------- helpers */
+
+  /** A hairline rule in world space. */
+  private rule(f: Frame, a: Vec3, b: Vec3, col: RGB, w = 1, alpha = 1): void {
+    const p = this.cam.project(a);
+    const q = this.cam.project(b);
+    if (!p.ok || !q.ok) return;
+    f.line(p.x, p.y, q.x, q.y, col, w, alpha);
   }
 
-  /** A — the title slams together out of depth. */
+  /* ------------------------------------------------- scene A: the first line */
   private sceneA(f: Frame, t: number): void {
     if (t >= 2.0) return;
-    const out = clamp((t - 1.9) / 0.1);
-    const enter = smoothstep((t - 0.0) / 0.4);
-    // power-on: the frame opens as a hairline that blooms into the picture
-    if (t < 0.24) {
-      const k = clamp(t / 0.2);
-      const w = f.w * (0.04 + 0.96 * (1 - Math.pow(1 - k, 3)));
-      const open = clamp((t - 0.05) / 0.19);
-      const h = f.h * 0.0035 * (1 + 5 * (1 - open));
-      const y = f.h * 0.5;
-      const life = 1 - clamp((t - 0.1) / 0.14);
-      f.line((f.w - w) / 2, y, (f.w + w) / 2, y, C.ice, 1 + 3 * (1 - k), 1.5 * life + 0.25);
-      f.line((f.w - w) / 2, y - h, (f.w + w) / 2, y - h, C.cyan, 1, 0.45 * life);
-      f.line((f.w - w) / 2, y + h, (f.w + w) / 2, y + h, C.cyan, 1, 0.45 * life);
-      f.glow(f.w * 0.5, y, f.w * 0.3 * (0.3 + k), C.ice, 0.4 * life, 2.2);
-    }
-    const punch = this.A.punch(t, 9);
+    const inA = clamp((t - 0.10) / 0.55);
+    const outA = clamp((t - 1.86) / 0.14);
+    const op = (1 - outA);
+    const punch = this.A.punch(t, 12);
+    const beat = ((t % this.A.beat) / this.A.beat);
 
-    // depth ghost: same word, far away, extremely dim — reads as a hologram
-    drawText(f, this.cam, {
-      text: 'MOTION',
-      size: 0.9,
-      position: [0, 0.02, -9.5],
-      align: 'center',
-      tracking: 0.2,
-      color: C.cyan,
-      weight: 1.6,
-      opacity: 0.10 * (1 - out) * enter,
-      fog: 1.2,
-    });
-
-    const start = 0.16;
-    const stepT = 0.115;
-    drawText(f, this.cam, {
-      text: 'MOTION',
-      size: 0.9,
-      position: [0, 0.02, 0],
-      align: 'center',
-      tracking: lerp(0.34, 0.16, easeOutExpo(clamp((t - 0.05) / 1.1))),
-      color: mix3(C.white, C.ice, 0.45),
-      weight: 1.9,
-      opacity: 1 - out,
-      fog: 1,
-      perChar: (i) => {
-        const a = charIn(t, start + i * stepT, {
-          dur: 0.34,
-          ease: easeOutExpo,
-          from: [0, 0, -6.5],
-          scaleFrom: 1.5,
-          rotFrom: (i % 2 === 0 ? -1 : 1) * 0.18,
-        });
-        // idle breathing, plus kick-driven scale pulse
-        const idle = Math.sin(t * 2.2 + i * 0.7) * 0.012;
-        return {
-          ...a,
-          opacity: (a.opacity ?? 0) * (1 - out),
-          scale: (a.scale ?? 1) + idle + punch * 0.03,
-          offset: [(a.offset?.[0] ?? 0), (a.offset?.[1] ?? 0), (a.offset?.[2] ?? 0) + punch * 0.06],
-          glow: (a.glow ?? 0) + punch * 0.35,
-        };
-      },
-    });
-
-    // a short horizontal impact streak beneath each letter as it lands
-    for (let i = 0; i < 6; i++) {
-      const st = start + i * stepT;
-      const dt = t - st - 0.08;
-      if (dt < 0 || dt > 0.5) continue;
-      const k = dt / 0.5;
-      const x = (i - 2.5) * 0.56;
-      const p = this.cam.project([x, -0.26, 0.06]);
-      if (!p.ok) continue;
-      const halfW = 6 + 34 * easeOutExpo(k);
-      const a = (1 - k) ** 1.6;
-      f.line(p.x - halfW, p.y, p.x + halfW, p.y, C.ice, 1.6, a * 0.9);
-      f.glow(p.x, p.y, halfW * 0.9, C.cyan, a * 0.22, 2.5);
-    }
-
-    if (enter > 0) {
-      drawGrid(f, this.cam, {
-        y: -1.45,
-        extent: 13,
-        step: 0.65,
-        color: C.grid,
-        opacity: 0.9 * enter * (1 - out),
-        fadeRadius: 11,
-      });
-    }
-
-    // sub-caption that types itself in, tracking the beat grid
-    const capStart = 1.15;
-    if (t > capStart) {
-      const k = clamp((t - capStart) / 0.5);
-      drawText(f, this.cam, {
-        text: 'CINEMATIC / CODE DRIVEN',
-        size: 0.115,
-        position: [0, -0.72, 0.02],
-        align: 'center',
-        tracking: 0.42,
-        color: C.cyan,
-        weight: 1.1,
-        opacity: easeOutExpo(k) * (1 - out) * 0.95,
-      });
-    }
-  }
-
-  /** B — the camera orbits; the sphere morphs to a torus then a cube. */
-  private sceneB(f: Frame, t: number): void {
-    if (t < 2.0 || t >= 3.5) return;
-    const inK = clamp((t - 2.0) / 0.2);
-    const outK = clamp((t - 3.4) / 0.1);
-    const op = easeOutExpo(inK) * (1 - easeInOutCubic(outK));
-    if (op <= 0.004) return;
-
-    const beatPhase = (((t - (BEATS[0]?.t ?? 0)) % this.A.beat) + this.A.beat) % this.A.beat / this.A.beat;
-    const morphT = smoothstep(clamp((t - 2.05) / 1.1));
-    const shapeB: ShapeName = morphT < 0.5 ? 'torus' : 'cube';
-    const m = morph(this.sphere, 'sphere', shapeB, morphT < 0.5 ? morphT * 2 : (morphT - 0.5) * 2, 1.0);
-
-    const objPos: Vec3 = [1.72, 0.05, -2.55];
-    drawMesh(f, this.cam, m, C.blue, {
-      position: objPos,
-      rotation: [0.55 + t * 0.32, t * 0.62, 0.18],
-      opacity: 0.5 * op,
-      weight: 1.05,
-      fog: 1.25,
-      scale: 1 + Math.sin(beatPhase * Math.PI) * 0.035,
-    });
-
-    // orbit rings: three thin arcs in different planes, spinning at different rates
-    for (let r = 0; r < 3; r++) {
-      const radius = 1.28 + r * 0.17;
-      const pts: Vec3[] = [];
-      const N = 64;
-      const spin = t * (0.45 + r * 0.22) * (r % 2 ? -1 : 1);
-      for (let i = 0; i < N; i++) {
-        const a = (i / N) * Math.PI * 2;
-        let p: Vec3 = [Math.cos(a) * radius, Math.sin(a) * radius, 0];
-        // tilt each ring differently
-        const tilt = 0.9 + r * 0.85;
-        p = [p[0], p[1] * Math.cos(tilt), p[1] * Math.sin(tilt)];
-        // yaw the whole ring
-        const c = Math.cos(spin), sn = Math.sin(spin);
-        p = [p[0] * c + p[2] * sn, p[1], -p[0] * sn + p[2] * c];
-        pts.push([p[0] + objPos[0], p[1] + objPos[1], p[2] + objPos[2]]);
-      }
-      for (let i = 0; i < N; i++) {
-        const p = this.cam.project(pts[i]);
-        const q = this.cam.project(pts[(i + 1) % N]);
-        if (!p.ok || !q.ok) continue;
-        // only draw the front half so it reads as an orbit, not a cage
-        const facing = p.depth;
-        const a = op * 0.38 * (0.45 + 0.55 * (1 - clamp(facing / 9)));
-        f.line(p.x, p.y, q.x, q.y, r === 1 ? C.magenta : C.cyan, 1, a);
-      }
-    }
-
-    const tx = -1.05;
-    drawText(f, this.cam, {
-      text: 'BY CODE',
-      size: 0.5,
-      position: [tx, 0.2, -1.05],
-      rotation: [0, 0.34, 0],
-      align: 'center',
-      tracking: lerp(0.8, 0.15, easeOutBack(1.4)(clamp((t - 1.95) / 0.8))),
-      color: mix3(C.white, C.ice, 0.45),
-      weight: 1.9,
-      opacity: op,
-      perChar: (i) => {
-        const a = charIn(t, 1.95 + i * 0.045, { dur: 0.42, from: [0, 0, -4.5], scaleFrom: 1.3 });
-        return { ...a, opacity: (a.opacity ?? 0) * op, glow: (a.glow ?? 0) + this.A.punch(t) * 0.22 };
-      },
-    });
-
-    drawText(f, this.cam, {
-      text: 'NO KEYFRAME WAS CLICKED',
-      size: 0.082,
-      position: [tx - 0.02, -0.4, -1.02],
-      rotation: [0, 0.34, 0],
-      align: 'center',
-      tracking: 0.32,
-      color: C.roseDim,
-      weight: 1.05,
-      opacity: easeOutExpo(clamp((t - 2.5) / 0.4)) * op * 0.9,
-    });
-
-    // vertical rule that draws itself next to the type block
-    const draw = easeOutExpo(clamp((t - 2.15) / 0.6));
+    // a single hairline rule spans the frame at 1/3 height
+    const ruleY = 0.06;
+    const draw = easeOutQuint(clamp((t - 0.04) / 0.75));
     if (draw > 0) {
-      const a = this.cam.project([tx - 0.86, 0.44, -1.05]);
-      const b = this.cam.project([tx - 0.86, 0.44 - 1.05 * draw, -1.05]);
-      if (a.ok && b.ok) f.line(a.x, a.y, b.x, b.y, C.cyan, 1.2, op * 0.5);
+      this.rule(f, [-6 * draw, ruleY, 0], [6 * draw, ruleY, 0], C.bone, 1, 0.34 * op);
+      this.rule(f, [-6 * draw * 0.999, ruleY - 0.001, 0], [6 * draw * 0.999, ruleY - 0.001, 0], C.accent, 1, 0.5 * op);
     }
-  }
 
-  /** C — stacked kinetic lines, HUD ticks, a knot of light. */
-  private sceneC(f: Frame, t: number): void {
-    if (t < 3.5 || t >= 5.56) return;
-    const out = clamp((t - 5.46) / 0.1);
-    const inK = clamp((t - 3.5) / 0.15);
-    const op = easeOutExpo(inK) * (1 - easeInOutCubic(out));
-    if (op <= 0.004) return;
-    const punch = this.A.punch(t, 10);
+    // MOTION rises out of the rule: the bottom of the glyphs appears first
+    const size = 1.12;
+    const rise = easeOutQuint(clamp((t - 0.12) / 0.95));
+    const track = lerp(0.16, -0.035, easeOutQuint(clamp((t - 0.1) / 1.5)));
+    drawType(f, this.cam, {
+      text: 'MOTION',
+      size,
+      position: [0, ruleY + 0.035, 0],
+      align: 'center',
+      tracking: track,
+      color: C.bone,
+      weight: 1.0,
+      opacity: op,
+      fog: 0.7,
+      emissive: 0.94 + punch * 0.1,
+      perChar: (i) => ({
+        scale: 1 + punch * 0.012,
+        offset: [0, 0, 0],
+        reveal: clamp(rise * 1.15 - i * 0.02),
+      }),
+    });
 
-    const base: Vec3 = [-1.72, 0, -1.0];
-    const rot: Vec3 = [0, 0.36, 0];
-    const lines = ['PIXELS', 'OVER', 'TIME'];
-    const sizes = [0.4, 0.26, 0.4];
-    const colors = [C.white, C.magenta, C.ice];
+    // caption under the baseline, on the second beat
+    const capK = easeOutExpo(clamp((t - 0.92) / 0.5));
+    if (capK > 0) {
+      drawType(f, this.cam, {
+        text: 'A FILM WRITTEN IN TYPESCRIPT',
+        size: 0.115,
+        position: [0, ruleY - 0.235, 0],
+        align: 'center',
+        tracking: 0.14 + (1 - capK) * 0.1,
+        color: C.boneDim,
+        weight: 1.05,
+        opacity: op * capK,
+        condense: 0.94,
+      });
+      // accent tick that rides the beat next to the caption
+      const tw = measure('A FILM WRITTEN IN TYPESCRIPT', 0.14, 0.94) * 0.115;
+      const tickX = tw / 2 + 0.16;
+      this.rule(
+        f,
+        [tickX, ruleY - 0.18, 0],
+        [tickX + 0.045 * (0.4 + 0.6 * (1 - beat)), ruleY - 0.18, 0],
+        C.accent,
+        2,
+        op * capK,
+      );
+    }
 
-    lines.forEach((text, li) => {
-      const lineStart = 3.52 + li * 0.24;
-      const y = 0.5 - li * 0.46;
-      const se = easeOutExpo(clamp((t - lineStart) / 0.45));
-      drawText(f, this.cam, {
-        text,
-        size: sizes[li],
-        position: [base[0] + (1 - se) * 1.1, base[1] + y, base[2]],
-        rotation: rot,
+    // bottom-left credit block: balances the negative space above the headline
+    const credK = easeOutExpo(clamp((t - 1.05) / 0.5));
+    if (credK > 0) {
+      drawType(f, this.cam, {
+        text: 'TYPESCRIPT / NO GPU',
+        size: 0.058,
+        position: [-2.16, -1.12, 0],
         align: 'left',
         tracking: 0.2,
-        color: colors[li],
-        weight: 1.8,
-        opacity: op * clamp((t - lineStart) / 0.08),
-        perChar: (i) => {
-          const st = lineStart + i * 0.038;
-          const dt = t - st;
-          const k = easeOutExpo(clamp(dt / 0.42));
+        color: C.boneDim,
+        weight: 1,
+        opacity: op * credK * 0.75,
+      });
+      drawType(f, this.cam, {
+        text: '2026',
+        size: 0.058,
+        position: [2.16, -1.12, 0],
+        align: 'right',
+        tracking: 0.2,
+        color: C.accent,
+        weight: 1,
+        opacity: op * credK * 0.8,
+      });
+      this.rule(f, [-2.16, -1.19, 0], [2.16, -1.19, 0], C.bone, 1, op * credK * 0.14);
+    }
+
+    // scrubber that fills across the frame as the bar resolves
+    const scrub = clamp((t - 1.15) / 0.7);
+    if (scrub > 0) {
+      this.rule(f, [-2.2, ruleY, 0], [-2.2 + 4.4 * scrub, ruleY, 0], C.accent, 1.6, op * 0.9);
+    }
+  }
+
+  /* ------------------------------------------- scene B: editorial + wireframe */
+  private sceneB(f: Frame, t: number): void {
+    if (t < 2.0 || t >= 3.5) return;
+    const inK = easeOutQuint(clamp((t - 2.02) / 0.5));
+    const out = clamp((t - 3.36) / 0.12);
+    const op = inK * (1 - out);
+    const punch = this.A.punch(t, 12);
+
+    // sparse wireframe: barely-there geometry giving the frame depth
+    const m = morph(this.sphere, 'sphere', 'octa', smoothstep(clamp((t - 2.2) / 1.3)), 1.0);
+    drawMesh(f, this.cam, m, C.steel, {
+      position: [2.45, 0.0, -2.9],
+      rotation: [0.4 + t * 0.18, t * 0.4, 0.1],
+      opacity: 0.22 * op,
+      weight: 1.0,
+      fog: 1.1,
+      scale: 2.0 + punch * 0.02,
+    });
+
+    // index + label, left aligned on a grid
+    const left = -2.16;
+    drawType(f, this.cam, {
+      text: '01',
+      size: 0.1,
+      position: [left, 0.80, 0],
+      align: 'left',
+      tracking: 0.1,
+      color: C.accent,
+      weight: 1.05,
+      opacity: op,
+    });
+    this.rule(f, [left + 0.24, 0.845, 0], [left + 0.24 + 1.5 * inK, 0.845, 0], C.bone, 1, 0.22 * op);
+    drawType(f, this.cam, {
+      text: 'KINETIC',
+      size: 0.44,
+      position: [left, 0.10, 0],
+      align: 'left',
+      tracking: -0.01,
+      color: C.bone,
+      weight: 1.0,
+      opacity: op,
+      emissive: 0.86 + punch * 0.08,
+      perChar: (i): CharState => {
+        const k = easeOutQuint(clamp((t - 2.06 - i * 0.03) / 0.45));
+        return { offset: [lerp(-0.22, 0, k), 0, 0], opacity: clamp((t - 2.04) / 0.12), wipe: k };
+      },
+    });
+    drawType(f, this.cam, {
+      text: 'TYPOGRAPHY',
+      size: 0.44,
+      position: [left, -0.42, 0],
+      align: 'left',
+      tracking: -0.01,
+      color: C.accent,
+      weight: 1.0,
+      opacity: op,
+      perChar: (i): CharState => {
+        const k = easeOutQuint(clamp((t - 2.18 - i * 0.026) / 0.45));
+        return { offset: [lerp(-0.22, 0, k), 0, 0], opacity: clamp((t - 2.16) / 0.12), wipe: k };
+      },
+    });
+
+    // caption block bottom-left
+    drawType(f, this.cam, {
+      text: 'EVERY KEYFRAME IS A FUNCTION OF TIME',
+      size: 0.088,
+      position: [left, -0.78, 0],
+      align: 'left',
+      tracking: 0.1,
+      color: C.boneDim,
+      weight: 1,
+      condense: 0.95,
+      opacity: easeOutExpo(clamp((t - 2.55) / 0.4)) * op,
+    });
+  }
+
+  /* --------------------------------------------- scene C: three-line stack */
+  private sceneC(f: Frame, t: number): void {
+    if (t < 3.5 || t >= 5.5) return;
+    const out = clamp((t - 5.36) / 0.14);
+    const op = (1 - out);
+    const punch = this.A.punch(t, 12);
+
+    const left = -2.16;
+    const lines: Array<{ text: string; size: number; col: RGB; y: number; dir: number; start: number }> = [
+      { text: 'PIXELS', size: 0.62, col: C.bone, y: 0.62, dir: 1, start: 3.54 },
+      { text: 'OVER', size: 0.62, col: C.accent, y: -0.04, dir: -1, start: 3.72 },
+      { text: 'TIME', size: 0.62, col: C.bone, y: -0.70, dir: 1, start: 3.9 },
+    ];
+
+    for (let li = 0; li < lines.length; li++) {
+      const L = lines[li];
+      const k = easeOutQuint(clamp((t - L.start) / 0.5));
+      if (k <= 0) continue;
+      drawType(f, this.cam, {
+        text: L.text,
+        size: L.size,
+        position: [left + (1 - k) * 0.55 * L.dir, L.y, 0],
+        align: 'left',
+        tracking: -0.012,
+        color: L.col,
+        weight: 1.0,
+        opacity: op * clamp((t - L.start) / 0.1),
+        emissive: 0.92 + punch * 0.12,
+        perChar: (i): CharState => {
+          const ck = easeOutQuint(clamp((t - L.start - 0.04 - i * 0.028) / 0.4));
           return {
-            opacity: clamp(dt / 0.07),
-            scale: lerp(1.22, 1, k),
-            offset: [lerp(0.55, 0, k), 0, lerp(-3.4, 0, k)],
-            rotZ: lerp(0.1, 0, k) * (li === 1 ? -1 : 1),
-            glow: Math.exp(-Math.max(0, dt) * 6) * 0.75 + punch * 0.28,
+            offset: [lerp(0.3 * L.dir, 0, ck), 0, 0],
+            opacity: clamp((t - L.start - i * 0.02) / 0.1),
+            wipe: ck,
           };
         },
       });
-    });
+      // leader rule: continues the baseline to the right, like a contents page
+      const lw = measure(L.text, -0.012) * L.size;
+      const ly = L.y + 0.02;
+      this.rule(f, [left + lw + 0.16, ly, 0], [left + lw + 0.16 + 0.85 * k, ly, 0], li === 1 ? C.accent : C.bone, 1, op * (li === 1 ? 0.55 : 0.22));
+      f.glow(
+        ...(() => {
+          const p0 = this.cam.project([left + lw + 0.16, ly, 0]);
+          return [p0.x, p0.y] as [number, number];
+        })(),
+        3.2,
+        li === 1 ? C.accent : C.bone,
+        op * 0.5,
+        2,
+      );
+    }
 
-    // the knot: a thin wireframe object orbiting to the right of the type
-    const m = morph(this.sphere, 'knot', 'knot', 0, 0.52);
-    drawMesh(f, this.cam, m, C.magenta, {
-      position: [0.95, 0.02, -0.55],
-      rotation: [0.9 + t * 0.22, t * 1.15, t * 0.28],
-      opacity: 0.48 * op,
-      weight: 0.95,
-      fog: 1.05,
-    });
+    // ticker across the bottom: small caps sliding left forever
+    const tickerY = 1.28;
+    const tickerText = 'MOTION DESIGN IN CODE   ·   NO TIMELINE   ·   NO PLUGINS   ·   ';
+    const tw = measure(tickerText, 0.16, 0.92) * 0.072;
+    const speed = 0.42;
+    const phase = -(t * speed) % tw;
+    const tickOp = easeOutExpo(clamp((t - 4.15) / 0.4)) * op;
+    if (tickOp > 0.01) {
+      for (let rep = 0; rep < 3; rep++) {
+        const x = -2.4 + phase + rep * tw;
+        if (x > 2.6 || x + tw < -2.6) continue;
+        drawType(f, this.cam, {
+          text: tickerText,
+          size: 0.072,
+          position: [x, tickerY, 0],
+          align: 'left',
+          tracking: 0.16,
+          condense: 0.92,
+          color: C.boneDim,
+          weight: 1,
+          opacity: tickOp * 0.6,
+        });
+      }
+      this.rule(f, [-2.4, tickerY - 0.075, 0], [2.4, tickerY - 0.075, 0], C.bone, 1, tickOp * 0.16);
+    }
 
-    // a big ghost numeral far behind, providing parallax depth
-    drawText(f, this.cam, {
+    // index numeral far right, thin and large, purely compositional
+    drawType(f, this.cam, {
       text: '03',
-      size: 4.0,
-      position: [2.15, -0.55, -15.0],
-      align: 'center',
-      tracking: 0.05,
-      color: C.blue,
-      weight: 1.2,
+      size: 0.9,
+      position: [2.72, 0.62, -1.4],
+      align: 'right',
+      tracking: 0.0,
+      color: C.bone,
+      weight: 0.55,
       opacity: op * 0.07,
-      fog: 1.6,
+      fog: 1.2,
     });
-
-    // HUD ticks riding the beat, along the bottom of the composition
-    const cols = 16;
-    const beatTick = Math.floor((t * 8) % cols);
-    for (let i = 0; i < cols; i++) {
-      const x = -1.15 + i * 0.155;
-      const p = this.cam.project([x, -0.86, -0.95]);
-      const h = 0.05 + (i === beatTick ? 0.16 : ((i * 7) % 5) * 0.018);
-      const q = this.cam.project([x, -0.86 - h, -0.95]);
-      if (!p.ok || !q.ok) continue;
-      f.line(p.x, p.y, q.x, q.y, i === beatTick ? C.ice : C.cyan, 1.1, op * (i === beatTick ? 0.9 : 0.45));
-    }
-
-    // a prompt being typed — the film's own origin story
-    const prompt = 'CREATE A 15 SECOND CINEMATIC ANIMATION';
-    const typeStart = 4.02;
-    const typed = Math.max(0, Math.min(prompt.length, Math.floor((t - typeStart) * 34)));
-    if (typed > 0) {
-      const p0: Vec3 = [-0.05, -0.72, -1.0];
-      drawText(f, this.cam, {
-        text: prompt.slice(0, typed),
-        size: 0.058,
-        position: p0,
-        rotation: [0, 0.36, 0],
-        align: 'left',
-        tracking: 0.2,
-        color: C.white,
-        weight: 1,
-        opacity: op * 0.72,
-      });
-      // caret
-      const caretOn = Math.floor(t * 4) % 2 === 0;
-      if (caretOn && typed < prompt.length) {
-        const { width } = layoutCache(prompt.slice(0, typed), 0.2);
-        const a = this.cam.project([p0[0] + width * 0.058 + 0.03, -0.7, -1.0]);
-        const b = this.cam.project([p0[0] + width * 0.058 + 0.03, -0.75, -1.0]);
-        if (a.ok && b.ok) f.line(a.x, a.y, b.x, b.y, C.ice, 1.4, op * 0.9);
-      }
-    }
-
-    // a thin frame line drawing around the type block
-    const frameK = easeOutExpo(clamp((t - 3.9) / 0.7));
-    if (frameK > 0) {
-      const x0 = -1.78, y0 = 0.72, x1 = -1.78 + 2.12 * frameK, y1 = -0.42;
-      const a = this.cam.project([x0, y0, -1.0]);
-      const b = this.cam.project([x1, y1, -1.0]);
-      if (a.ok && b.ok) {
-        f.line(a.x, a.y, b.x, a.y, C.cyan, 1, op * 0.35);
-        f.line(b.x, a.y, b.x, b.y, C.cyan, 1, op * 0.35);
-        f.line(b.x, b.y, a.x, b.y, C.cyan, 1, op * 0.35);
-      }
-    }
   }
 
-  /** D — the drop: the wordmark hits the lens and the mesh shatters. */
+  /* -------------------------------------------------- scene D: the drop */
   private sceneD(f: Frame, t: number): void {
-    if (t < 5.56 || t >= 7.12) return;
-    const inK = clamp((t - 5.56) / 0.18);
-    const out = clamp((t - 7.02) / 0.1);
-    const op = easeOutExpo(inK) * (1 - easeInOutCubic(out));
+    if (t < 5.5 || t >= 7.05) return;
+    const inK = clamp((t - 5.5) / 0.12);
+    const out = clamp((t - 6.94) / 0.11);
+    const op = easeOutExpo(inK) * (1 - out);
     if (op <= 0.004) return;
-    const punch = this.A.punch(t, 8);
-    const drop = 5.99;
+    const drop = 5.98;
+    const punch = this.A.punch(t, 9);
+    const since = t - drop;
 
-    // shatter intensity spikes on the drop and on every kick
-    const shatter = 0.05 + punch * 0.5 + Math.max(0, 0.9 - (t - drop) * 2.2) * 0.6;
-    const m = morph(this.sphere, 'cube', 'octa', smoothstep(clamp((t - 6.1) / 1.2)), 1.1);
-    drawMesh(f, this.cam, m, C.blue, {
-      position: [0.0, 0.02, -3.1],
-      rotation: [t * 0.6, t * 0.9, t * 0.2],
-      opacity: 0.5 * op,
-      weight: 1.1,
-      fog: 1.0,
-      scale: 2.15,
-      shatter: shatter * 0.9,
-      seed: Math.floor(t * 30),
-    });
+    // impact energy: elastic settle for the first ~0.6 s, then beat pulses
+    const land = clamp(since / 0.7);
+    const elastic = since > 0 ? 1 + 0.14 * Math.exp(-since * 6.5) * Math.cos(since * 26) : 1;
+    const scale = lerp(1.34, 1, easeOutQuint(clamp(since / 0.5))) * elastic * (1 + punch * 0.005);
 
-    drawText(f, this.cam, {
+    // Motion smear: the word redrawn a few times along the vertical axis of the
+    // impact. Offsets only — per-glyph scaling reads as a drop shadow.
+    const trailK = since > 0 ? Math.max(0, 1 - since * 15) : 0;
+    for (let i = 3; i >= 1; i--) {
+      const k = i / 3;
+      drawType(f, this.cam, {
+        text: 'MOTION',
+        size: 0.82,
+        position: [0, 0.04 + k * 0.045, 0],
+        align: 'center',
+        tracking: -0.03,
+        color: C.bone,
+        weight: 1.0,
+        opacity: op * trailK * 0.16 * (1 - k * 0.6),
+        fog: 0.7,
+        emissive: 0.6,
+        perChar: (): CharState => ({ scale }),
+      });
+    }
+
+    drawType(f, this.cam, {
       text: 'MOTION',
-      size: 0.72,
-      position: [0, 0.16, 0.62],
+      size: 0.82,
+      position: [0, 0.04, 0],
       align: 'center',
-      tracking: 0.15,
-      color: mix3(C.white, C.ice, 0.35),
-      weight: 2.1,
+      tracking: -0.03,
+      color: C.bone,
+      weight: 1.0,
       opacity: op,
-      perChar: (i) => {
-        const dt = t - (5.66 + i * 0.05);
-        const k = clamp(dt / 0.55);
-        const sl = easeOutElastic(clamp(dt / 0.7));
-        return {
-          opacity: clamp(dt / 0.06) * (1 - out),
-          scale: lerp(2.6, 1, sl) + punch * 0.04,
-          offset: [0, 0, (1 - easeOutBack(2.2)(k)) * 2.2 + punch * 0.1],
-          rotZ: (1 - k) * (i % 2 ? 0.1 : -0.1),
-          glow: punch * 0.45 + (1 - k) * 0.35,
-        };
-      },
+      fog: 0.7,
+      emissive: 0.86 + punch * 0.08,
+      perChar: (): CharState => ({
+        scale,
+        offset: [0, 0, 0],
+      }),
     });
 
-    drawText(f, this.cam, {
+    // accent rule that snaps in on the drop, under the wordmark
+    const barK = easeOutQuint(clamp(since / 0.35));
+    if (barK > 0) {
+      this.rule(f, [-1.32 * barK, -0.135, 0], [1.32 * barK, -0.135, 0], C.accent, 1.8, op * 0.85);
+    }
+    drawType(f, this.cam, {
       text: 'BY CODE',
-      size: 0.155,
-      position: [0, -0.42, 0.62],
+      size: 0.13,
+      position: [0, -0.30, 0],
       align: 'center',
-      tracking: lerp(1.1, 0.55, easeOutExpo(clamp((t - 6.35) / 0.6))),
-      color: C.magenta,
-      weight: 1.4,
-      opacity: clamp((t - 6.35) / 0.25) * op,
+      tracking: 0.5,
+      color: C.boneDim,
+      weight: 1.05,
+      opacity: easeOutExpo(clamp((since - 0.12) / 0.3)) * op,
     });
 
-    // scanner beam that sweeps through the lockup on the drop
-    const sweep = clamp((t - 5.99) / 0.42);
-    if (sweep > 0 && sweep < 1) {
-      const x = lerp(-2.55, 2.55, easeOutExpo(sweep));
-      const a = this.cam.project([x, 0.42, 0.6]);
-      const b = this.cam.project([x, -0.72, 0.6]);
-      if (a.ok && b.ok) {
-        const fade = Math.sin(sweep * Math.PI) ** 0.5;
-        f.line(a.x, a.y, b.x, b.y, C.white, 2.6, fade * 0.95);
-        for (let i = 0; i < 5; i++) {
-          const yy = a.y + ((b.y - a.y) * (i + 0.5)) / 5;
-          f.glow(a.x, yy, 46, C.ice, fade * 0.12, 2.4);
-        }
-      }
+    // lens flare strip on the initial impact only
+    const flare = Math.max(0, 1 - since * 5);
+    if (flare > 0) {
+      const y = 0.06;
+      this.rule(f, [-6, y, 0.4], [6, y, 0.4], C.accent, 2.2, flare * 0.42);
     }
   }
 
-  /** E — end card: the mark resolves out of the wireframe. */
+  /* ------------------------------------------------------ scene E: end card */
   private sceneE(f: Frame, t: number): void {
-    if (t < 7.08) return;
-    const k = clamp((t - 7.08) / 0.5);
-    const e = easeOutExpo(k);
-    const out = clamp((t - 7.86) / 0.14);
-    const op = e * (1 - out);
-    if (op <= 0.004) return;
+    if (t < 7.0) return;
+    const k = clamp((t - 7.0) / 0.5);
+    const e = easeOutQuint(k);
+    const op = e;
 
-    // outer ring drawing itself on
-    const pts = ring(64, 2.0, 0.95);
-    for (let i = 0; i < pts.length; i++) {
-      const seg = i / pts.length;
-      if (seg > e * 1.05) break;
-      const p = this.cam.project(pts[i]);
-      const q = this.cam.project(pts[(i + 1) % pts.length]);
-      if (!p.ok || !q.ok) continue;
-      f.line(p.x, p.y, q.x, q.y, C.cyan, 1.4, op * 0.55);
-    }
-    // inner ring, counter-rotating slowly
-    const inner = ring(44, 1.52, 0.95).map(([x, y, z]) => [x * Math.cos(t * 0.8), y, z] as Vec3);
-    for (let i = 0; i < inner.length; i++) {
-      const p = this.cam.project(inner[i]);
-      const q = this.cam.project(inner[(i + 1) % inner.length]);
-      if (!p.ok || !q.ok) continue;
-      f.line(p.x, p.y, q.x, q.y, C.magenta, 1, op * 0.26);
-    }
-
-    const c0 = this.cam.project([0, 0, 0]);
-    f.glow(c0.x, c0.y, this.h * 0.22, [0.03, 0.07, 0.14], op * 0.9, 2.2);
-
-    drawText(f, this.cam, {
-      text: 'MOTION',
-      size: 0.42,
-      position: [0, 0.16, 0],
+    drawType(f, this.cam, {
+      text: 'MOTION BY CODE',
+      size: 0.3,
+      position: [0, -0.12, 0],
       align: 'center',
-      tracking: lerp(0.7, 0.3, e),
-      color: C.white,
-      weight: 1.5,
+      tracking: lerp(0.34, 0.16, e),
+      color: C.bone,
+      weight: 1.0,
       opacity: op,
-      perChar: (i) => ({ glow: 0.3 + Math.sin(t * 3 + i) * 0.1 }),
+      perChar: (i): CharState => ({ wipe: clamp(k * 1.3 - i * 0.02) }),
     });
-    drawText(f, this.cam, {
-      text: 'BY CODE',
-      size: 0.16,
-      position: [0, -0.27, 0],
-      align: 'center',
-      tracking: lerp(1.2, 0.72, e),
-      color: C.ice,
-      weight: 1.1,
-      opacity: op * 0.95,
-    });
-    drawText(f, this.cam, {
+    const w = measure('MOTION BY CODE', lerp(0.34, 0.16, e)) * 0.3;
+    this.rule(f, [-w / 2, -0.24, 0], [w / 2, -0.24, 0], C.accent, 1.4, op * 0.8);
+    drawType(f, this.cam, {
       text: 'ANS MALIK / 2026',
-      size: 0.085,
-      position: [0, -0.92, 0],
+      size: 0.068,
+      position: [0, -0.42, 0],
       align: 'center',
-      tracking: 0.36,
-      color: C.cyan,
+      tracking: 0.28,
+      color: C.boneDim,
       weight: 1,
-      opacity: op * 0.6,
+      opacity: easeOutExpo(clamp((t - 7.25) / 0.4)) * 0.9,
     });
   }
 
-  /** Persistent, very light framing marks — the "monitor" feel. */
+  /* ------------------------------------------------------------------ HUD */
   private hud(f: Frame, t: number): void {
-    const m = 34;
-    const len = 26;
-    const op = 0.28 * smoothstep(clamp(t / 0.6)) * (1 - clamp((t - 7.9) / 0.1));
-    const col = C.cyan;
+    // corner marks: thin, low contrast, giving the frame a print feel
+    const m = 40;
+    const len = 18;
+    const op = 0.16 * smoothstep(clamp(t / 0.5));
     const corners: Array<[number, number, number, number]> = [
       [m, m, 1, 1],
       [this.w - m, m, -1, 1],
@@ -745,79 +583,63 @@ export class Film {
       [this.w - m, this.h - m, -1, -1],
     ];
     for (const [x, y, sx, sy] of corners) {
-      f.line(x, y, x + len * sx, y, col, 1, op);
-      f.line(x, y, x, y + len * sy, col, 1, op);
+      f.line(x, y, x + len * sx, y, C.bone, 1, op);
+      f.line(x, y, x, y + len * sy, C.bone, 1, op);
     }
-    // bottom-left running timecode
+    // frame counter, bottom left
     const frameNo = Math.round(t * 30);
-    const s = `${String(Math.floor(frameNo / 30)).padStart(2, '0')}:${String(frameNo % 30).padStart(2, '0')}`;
-    const p = this.cam.project([0, 0, 0]);
-    drawTextHud(f, s, m + 8, this.h - m - 26, 0.7 * op);
-    // top-right label
-    drawTextHud(f, 'MOTION / BY CODE', this.w - m - 150, m + 10, 0.5 * op);
-    void p;
+    const label = `${String(Math.floor(frameNo / 30)).padStart(2, '0')}:${String(frameNo % 30).padStart(2, '0')}`;
+    this.hudText(f, label, m + 1, this.h - m - 13, 0.55 * op + 0.08);
+    this.hudText(f, `${this.A.bpm.toFixed(0)} BPM`, this.w - m - measure(`${this.A.bpm.toFixed(0)} BPM`, 0.14) * 9, m + 4, 0.45 * op + 0.06);
+  }
+
+  /**
+   * Screen-space micro type. The camera looks down -Z with no roll, so the
+   * screen -> world mapping on the z=0 plane is exact and cheap.
+   */
+  private hudText(f: Frame, text: string, x: number, y: number, op: number): void {
+    const origin = this.cam.project([0, 0, 0]);
+    const scale = this.cam.scaleAt(origin.depth);
+    const sizeWorld = 9 / scale;
+    const wx = (x - origin.x) / scale;
+    // y is the TOP of the text; the glyph box grows upward from its position
+    const wy = (this.h * 0.5 - (y + 9)) / scale;
+    drawType(f, this.cam, {
+      text,
+      size: sizeWorld,
+      position: [wx, wy, 0],
+      align: 'left',
+      tracking: 0.14,
+      color: C.bone,
+      weight: 1.15,
+      opacity: op,
+    });
   }
 }
 
-/** Screen-space UI text (not part of the 3D world). */
-function drawTextHud(f: Frame, text: string, x: number, y: number, op: number): void {
-  const size = 9;
-  let px = x;
-  for (const ch of text) {
-    const g = ch === ' ' ? null : glyph(ch);
-    if (g) {
-      for (const stroke of g.strokes) {
-        for (let i = 1; i < stroke.length; i++) {
-          f.line(
-            px + stroke[i - 1][0] * size,
-            y + (1 - stroke[i - 1][1]) * size,
-            px + stroke[i][0] * size,
-            y + (1 - stroke[i][1]) * size,
-            C.cyan,
-            1,
-            op,
-          );
-        }
-      }
-    }
-    px += (g ? g.w : 0.34) * size + 2;
-  }
-}
-
-import { glyphFor as glyph, layout as layoutCache } from './graphics/font.ts';
-
-/* --------------------------------------------------------------- finishing */
+/* ------------------------------------------------------------- finishing */
 
 export interface PostOptions {
   bloom?: number;
   aberration?: number;
-  letterbox?: number;
   grain?: number;
   vignette?: number;
 }
 
+/**
+ * Post stack, tuned for editorial clarity rather than neon:
+ * light bloom on hot values only, a whisker of aberration, film grain,
+ * and a gentle vignette. No scanlines, no chromatic mess.
+ */
 export function postProcess(f: Frame, t: number, glitchAmt: number, o: PostOptions = {}): Frame {
   let out = f;
   const gl = glitchAmt;
-  if (gl > 0.001) out = FX.glitch(out, { amount: gl, t });
-  out = FX.lensDistort(out, -0.03);
-  out = FX.chromaticAberration(out, (o.aberration ?? 0.7) + gl * 6);
-  out = FX.bloom(out, { threshold: 0.34, radius: 4, intensity: o.bloom ?? 0.8, wide: 0.42 });
-  FX.streak(out, 0.9 + gl * 1.4);
-  FX.scanlines(out, t, 3, 0.07);
-  FX.vignette(out, 0.7, 2.1);
-  FX.grain(out, t, o.grain ?? 0.005);
-  if (o.letterbox) {
-    const bar = Math.round(out.h * o.letterbox);
-    for (let y = 0; y < out.h; y++) {
-      if (y >= bar && y < out.h - bar) continue;
-      for (let x = 0; x < out.w; x++) {
-        const i = (y * out.w + x) * 3;
-        out.data[i] = 0;
-        out.data[i + 1] = 0;
-        out.data[i + 2] = 0;
-      }
-    }
-  }
+  if (gl > 0.001) out = FX.glitch(out, { amount: gl * 0.75, t });
+  out = FX.chromaticAberration(out, (o.aberration ?? 0.35) + gl * 5);
+  out = FX.bloom(out, { threshold: 0.95, radius: 5, intensity: o.bloom ?? 0.32, wide: 0.3 });
+  FX.vignette(out, o.vignette ?? 0.5, 2.3);
+  FX.grain(out, t, o.grain ?? 0.004);
   return out;
 }
+
+export { mix3, easeInOutCubic, easeOutBack };
