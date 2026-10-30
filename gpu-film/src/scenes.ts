@@ -207,6 +207,18 @@ export class Film {
   }
 
   private camera(eye: Vec3, target: Vec3, fov = 34, roll = 0): void {
+    // Portrait crops the sides off a landscape composition. Pulling the camera
+    // back (instead of widening the lens) keeps the subject whole without the
+    // barrel distortion a 50-degree fov would introduce.
+    const aspect = this.w / this.h;
+    if (aspect < 1) {
+      const k = clamp(Math.pow(1.78 / aspect, 0.62), 1, 2.6);
+      eye = [
+        target[0] + (eye[0] - target[0]) * k,
+        target[1] + (eye[1] - target[1]) * k,
+        target[2] + (eye[2] - target[2]) * k,
+      ] as Vec3;
+    }
     this.cam.eye = eye;
     this.cam.target = target;
     this.cam.fov = (fov * Math.PI) / 180;
@@ -496,7 +508,8 @@ export class Film {
       const cx = lx + (sg.w * SC * grow) / 2;
       // project the segment's front face so the label lands under its segment
       const [xf, yf] = this.projFrac([cx, -0.24, 0.32]);
-      const labelY = Math.min(yf - 0.34, -0.14);
+      // stagger alternate labels: in portrait the row is tight enough to collide
+      const labelY = Math.min(yf - 0.34, -0.14) - (i % 2) * 0.085;
       const tick = this.projFrac([cx, -0.24, 0.32]);
       this.rule(
         this.r3d.frame,

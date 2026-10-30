@@ -37,7 +37,6 @@ const CRF = num('crf', 20);
 const POST: PostOptions = {
   bloom: num('bloom', 1.05),
   aberration: num('aberration', 1.4),
-  letterbox: num('letterbox', 0),
   grain: num('grain', 0.005),
 };
 

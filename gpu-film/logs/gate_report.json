@@ -36,7 +36,7 @@
           "maxFailShare": 0.2
         },
         "notes": [
-          "proxy: true \u2014 OpenCLIP weights unreachable in this sandbox (ENV_AUDIT.md)"
+          "proxy: true — OpenCLIP weights unreachable in this sandbox (ENV_AUDIT.md)"
         ]
       },
       {
@@ -69,7 +69,7 @@
         "pass": true,
         "metrics": {
           "meandB": -14.3,
-          "maxdB": -1.0
+          "maxdB": -1
         },
         "thresholds": {
           "minMeanDB": -30,
@@ -80,5 +80,86 @@
       }
     ],
     "deliverable": "gpu-film/out/explainer_1080p.mp4 (1920x1080, 60fps, 60.000s, CRF23 + AAC 192k)"
+  },
+  {
+    "tag": "vertical",
+    "pass": 5,
+    "at": "2026-10-30T20:28:06.686Z",
+    "results": [
+      {
+        "name": "slideshow (Part H step 9)",
+        "pass": true,
+        "metrics": {
+          "staticFraction": 0,
+          "longestStaticRun": 0,
+          "medianFrameDelta": 0.003165305010893246,
+          "frames": 1799
+        },
+        "thresholds": {
+          "maxStaticFraction": 0.18,
+          "maxStaticRunFrames": 24,
+          "minMedianMotion": 0.0015
+        },
+        "notes": []
+      },
+      {
+        "name": "aesthetic gate (Part F, proxy)",
+        "pass": true,
+        "metrics": {
+          "avgPremium": 0.802,
+          "avgSlop": 0.018,
+          "avgGap": 0.784,
+          "framesScored": 28,
+          "failShare": 0.036,
+          "proxy": 1
+        },
+        "thresholds": {
+          "minAvgGap": 0.08,
+          "maxFailShare": 0.2
+        },
+        "notes": [
+          "proxy: true — OpenCLIP weights unreachable in this sandbox (ENV_AUDIT.md)"
+        ]
+      },
+      {
+        "name": "freezedetect (Part H step 20)",
+        "pass": true,
+        "metrics": {
+          "freezes": 0
+        },
+        "thresholds": {
+          "maxFreezes": 2
+        },
+        "notes": []
+      },
+      {
+        "name": "transition_audit (Part H step 16)",
+        "pass": true,
+        "metrics": {
+          "distinctTypes": 7,
+          "totalTransitions": 7,
+          "maxSingleShare": 0.143
+        },
+        "thresholds": {
+          "minTypes": 5,
+          "maxSingleShare": 0.45
+        },
+        "notes": []
+      },
+      {
+        "name": "audio level (Part H step 18)",
+        "pass": true,
+        "metrics": {
+          "meandB": -14.3,
+          "maxdB": -1
+        },
+        "thresholds": {
+          "minMean": -30,
+          "maxMean": -12,
+          "maxPeak": -0.5
+        },
+        "notes": []
+      }
+    ]
   }
 ]

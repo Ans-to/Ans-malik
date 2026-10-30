@@ -270,7 +270,7 @@ export function analyzeAudio(path: string): Analysis {
       }
       return v;
     },
-    beatIndex: (t) => Math.floor((t - beats[0]?.t ?? 0) / beat),
+    beatIndex: (t) => Math.floor((t - (beats[0]?.t ?? 0)) / beat),
     beatPhase: (t) => (((t - (beats[0]?.t ?? 0)) % beat) + beat) % beat / beat,
   };
   return analysis;
