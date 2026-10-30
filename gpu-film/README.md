@@ -12,11 +12,12 @@
 | File | Spec | Size |
 |---|---|---|
 | [`out/explainer_1080p.mp4`](./out/explainer_1080p.mp4) | 1920×1080 · 60 fps · 60.000 s · H.264 High + AAC 192k | 86 MB |
-| [`out/explainer_vertical.mp4`](./out/explainer_vertical.mp4) | 1080×1920 · 60 fps · 60.000 s · H.264 + AAC (pass 5) | 50 MB |
+| [`out/explainer_vertical.mp4`](./out/explainer_vertical.mp4) | 1080×1920 · 60 fps · 60.000 s · H.264 + AAC (pass 5) | 67 MB |
 | [`out/stills_4k/`](./out/stills_4k) | 3840×2160 hero stills, one per scene + `hero_sheet.png` | 8 × 5 MB |
 | [`out/explainer_draft_960.mp4`](./out/explainer_draft_960.mp4) | 960×540 · 60 fps (pass 1, not in git — regenerable) | 61 MB |
 | [`out/soundtrack.wav`](./out/soundtrack.wav) | 44.1 kHz stereo, 60.000 s, synthesised at 120 BPM | 10 MB |
-| [`out/contact_sheet.png`](./out/contact_sheet.png) | one frame per second, 8×8 | 7 MB |
+| [`out/contact_sheet.png`](./out/contact_sheet.png) | one frame per second, 8×8 (landscape) | 7 MB |
+| [`out/contact_sheet_vertical.png`](./out/contact_sheet_vertical.png) | one frame per second (portrait) | 19 MB |
 | [`logs/gate_report.json`](./logs/gate_report.json) | every gate, every pass, real numbers | — |
 | [`logs/iteration_log.json`](./logs/iteration_log.json) | iterations per scene | — |
 | [`logs/motion_curves.svg`](./logs/motion_curves.svg) | the curves that drive every camera move | — |
@@ -51,8 +52,9 @@ python gpu-film/gates/clip_real.py --frames gpu-film/out/frames_hd
 ```
 
 Pass 1 (960×540): static fraction 0.000 · median Δ 0.004910 · freezes 0 · 7 types.
-Pass 5 (1080×1920): static fraction 0.000 · median Δ 0.003165 · freezes 0 · 7 types ·
-aesthetic gap 0.784 (fail share 3.6 %) · audio mean −14.3 dB, peak −1.0 dB.
+Pass 5 (1080×1920, 68.0 min): static fraction 0.000 · median Δ 0.002760 · freezes 0 ·
+7 transition types · aesthetic gap 0.788 (fail share 3.4 %) · audio mean −14.3 dB,
+peak −1.0 dB — all **PASS**.
 
 Portrait is not a crop: the graphics layer fits every line to the frame width
 (`fit()`), and the world camera pulls back by `(1.78/aspect)^0.62` so the whole
