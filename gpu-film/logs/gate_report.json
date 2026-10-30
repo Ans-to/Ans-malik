@@ -1,0 +1,84 @@
+[
+  {
+    "tag": "hd",
+    "pass": 3,
+    "at": "2026-10-30T18:54:41.365Z",
+    "results": [
+      {
+        "name": "slideshow (Part H step 9)",
+        "pass": true,
+        "metrics": {
+          "staticFraction": 0,
+          "longestStaticRun": 0,
+          "medianFrameDelta": 0.0036629448075526506,
+          "frames": 1799
+        },
+        "thresholds": {
+          "maxStaticFraction": 0.18,
+          "maxStaticRunFrames": 24,
+          "minMedianMotion": 0.0015
+        },
+        "notes": []
+      },
+      {
+        "name": "aesthetic gate (Part F, proxy)",
+        "pass": true,
+        "metrics": {
+          "avgPremium": 0.798,
+          "avgSlop": 0.017,
+          "avgGap": 0.781,
+          "framesScored": 30,
+          "failShare": 0.033,
+          "proxy": 1
+        },
+        "thresholds": {
+          "minAvgGap": 0.08,
+          "maxFailShare": 0.2
+        },
+        "notes": [
+          "proxy: true \u2014 OpenCLIP weights unreachable in this sandbox (ENV_AUDIT.md)"
+        ]
+      },
+      {
+        "name": "freezedetect (Part H step 20)",
+        "pass": true,
+        "metrics": {
+          "freezes": 0
+        },
+        "thresholds": {
+          "maxFreezes": 2
+        },
+        "notes": []
+      },
+      {
+        "name": "transition_audit (Part H step 16)",
+        "pass": true,
+        "metrics": {
+          "distinctTypes": 7,
+          "totalTransitions": 7,
+          "maxSingleShare": 0.143
+        },
+        "thresholds": {
+          "minTypes": 5,
+          "maxSingleShare": 0.45
+        },
+        "notes": []
+      },
+      {
+        "name": "audio level (Part H step 18)",
+        "pass": true,
+        "metrics": {
+          "meandB": -14.3,
+          "maxdB": -1.0
+        },
+        "thresholds": {
+          "minMeanDB": -30,
+          "maxMeanDB": -12,
+          "maxPeakDB": -0.5
+        },
+        "notes": []
+      }
+    ],
+    "deliverable": "gpu-film/out/explainer_1080p.mp4 (1920x1080, 60fps, 60.000s, CRF23 + AAC 192k)"
+  }
+]

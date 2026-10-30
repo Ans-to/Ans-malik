@@ -1,0 +1,12 @@
+node_modules/
+motion/out/frames/
+motion/out/stills/
+
+# rendered frame sequences and intermediate stills — regenerable, and huge
+gpu-film/out/frames_*/
+gpu-film/out/stills/
+gpu-film/out/*.wav.tmp
+*.log
+
+# deliverables that stay out of git are listed in README (none: the mp4s are
+# committed so the film can actually be downloaded)
