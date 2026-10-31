@@ -84,4 +84,5 @@ jobs:
           fi
           python3 -m pip install --break-system-packages -q numpy pillow 2>&1 | tail -1
           python3 blender-film/diag.py --frames blender-film/out/probe \
-            --manifest blender-film/out/manifest_preview.json --label stills
+            --manifest blender-film/out/manifest_preview.json --label stills \
+            --boxes blender-film/out/probe/boxes.json

@@ -968,15 +968,18 @@ def build(preset, out_dir):
     return scene, cams, manifest
 
 
-def probe(scene, frames):
-    """Print where every text object actually is at the given frames.
+def probe(scene, frames, boxes_out=""):
+    """Print where every text object actually is at the given frames, and optionally its pixel box.
 
     The type gate can only say 'this line never produced a sharp frame'. It cannot say whether the
-    words were hidden, off-screen, behind geometry, or just dark, so this answers that directly:
-    hide flag, screen position, distance, and whether the object is in front of the camera at all.
+    words were hidden, off-screen, behind geometry, dark, or blown out into a smooth blob, so this
+    answers that directly: hide flag, screen position, distance, emission strength, and the corners
+    of its projected bounding box so a measurement can be taken inside the words themselves.
     """
     from bpy_extras.object_utils import world_to_camera_view
 
+    w, h = scene.render.resolution_x, scene.render.resolution_y
+    boxes = {}
     for f in frames:
         scene.frame_set(f)
         bpy.context.view_layer.update()
@@ -984,14 +987,20 @@ def probe(scene, frames):
         cam = scene.camera
         print(f"[probe] frame {f}: camera {cam.name} at "
               f"{tuple(round(v, 2) for v in cam.location)}")
+        boxes[str(f)] = {}
         for ob in scene.objects:
             if ob.type != "FONT":
                 continue
             eo = ob.evaluated_get(dg)
-            bb = [eo.matrix_world @ Vector(c) for c in eo.bound_box]
-            centre = sum(bb, Vector()) / 8.0
+            corners = [eo.matrix_world @ Vector(c) for c in eo.bound_box]
+            centre = sum(corners, Vector()) / 8.0
             co = world_to_camera_view(scene, cam, centre)
             in_view = 0.0 <= co.x <= 1.0 and 0.0 <= co.y <= 1.0 and co.z > 0.0
+            px = [world_to_camera_view(scene, cam, c) for c in corners]
+            xs, ys = [p.x for p in px], [p.y for p in px]
+            box = [int(min(xs) * w), int((1.0 - max(ys)) * h),
+                   int(max(xs) * w), int((1.0 - min(ys)) * h)]
+            boxes[str(f)][ob.name] = box
             mat = ob.active_material
             emis = None
             if mat is not None and mat.use_nodes:
@@ -1000,7 +1009,14 @@ def probe(scene, frames):
                         emis = round(float(n.inputs["Emission Strength"].default_value), 2)
             print(f"[probe]   {ob.name:14s} hidden={int(bool(eo.hide_render))} "
                   f"in_view={int(in_view)} ndc=({co.x:.2f},{co.y:.2f}) depth={co.z:.2f} "
-                  f"pos={tuple(round(v, 2) for v in centre)} emis={emis}")
+                  f"pos={tuple(round(v, 2) for v in centre)} emis={emis} box={box}")
+
+    if boxes_out:
+        os.makedirs(os.path.dirname(boxes_out) or ".", exist_ok=True)
+        with open(boxes_out, "w") as fh:
+            json.dump(boxes, fh, indent=1)
+        print(f"[probe] boxes -> {boxes_out}")
+    return boxes
 
 
 def main():
@@ -1032,7 +1048,9 @@ def main():
         out = os.path.join(args.out, "probe")
         os.makedirs(out, exist_ok=True)
         scene.render.use_motion_blur = False
-        for f in [int(x) for x in args.probe_render.split(",") if x.strip()]:
+        frames = [int(x) for x in args.probe_render.split(",") if x.strip()]
+        probe(scene, frames, os.path.join(out, "boxes.json"))
+        for f in frames:
             scene.frame_set(f)
             scene.render.filepath = os.path.join(out, f"f_{f:04d}.png")
             bpy.ops.render.render(write_still=True)
