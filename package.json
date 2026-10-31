@@ -1,0 +1,30 @@
+{
+  "name": "motion-by-code",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Programmatic motion-graphics film: software 3D rasteriser, procedural typography, GLSL-free post FX, synthesised + analysed soundtrack, ffmpeg encode.",
+  "engines": {
+    "node": ">=22.6"
+  },
+  "scripts": {
+    "audio": "node --experimental-strip-types motion/src/build-audio.ts",
+    "still": "node --experimental-strip-types motion/src/render.ts --stills=1.2,2.9,4.4,6.2,7.6",
+    "render": "node --experimental-strip-types motion/src/render.ts",
+    "render:1080": "node --experimental-strip-types motion/src/render.ts --w=1920 --h=1080 --fps=30",
+    "render:60": "node --experimental-strip-types motion/src/render.ts --w=1920 --h=1080 --fps=60 --out=motion/out/motion-by-code-60fps.mp4",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "sheet": "bash tools/contact-sheet.sh",
+    "film:audio": "node --experimental-strip-types gpu-film/src/audio.ts",
+    "film:stills": "node --experimental-strip-types gpu-film/src/render.ts --stills=3.2,9,18,26,34,42,50,57",
+    "film:draft": "node --experimental-strip-types gpu-film/src/render.ts --w=960 --h=540 --pass=1 --tag=draft",
+    "film:review": "node --experimental-strip-types gpu-film/src/render.ts --w=1920 --h=1080 --pass=3 --tag=hd --gates",
+    "film:final": "node --experimental-strip-types gpu-film/src/render.ts --w=3840 --h=2160 --pass=4 --tag=4k --crf=15 --gates",
+    "film:vertical": "node --experimental-strip-types gpu-film/src/render.ts --w=1080 --h=1920 --tag=vertical",
+    "film:refcurve": "node --experimental-strip-types gpu-film/src/refcurve-cli.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "typescript": "5.6"
+  }
+}
