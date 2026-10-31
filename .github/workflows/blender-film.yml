@@ -10,6 +10,12 @@ name: blender-film
 # per-frame-range shards that render in parallel and are stitched by a final job.
 
 on:
+  # The token available in this environment cannot dispatch workflows (it has no `workflow` scope),
+  # so a push is the trigger. Which preset runs is read from blender-film/run_preset.
+  push:
+    paths:
+      - "blender-film/**"
+      - ".github/workflows/blender-film.yml"
   workflow_dispatch:
     inputs:
       preset:
@@ -40,7 +46,11 @@ jobs:
     steps:
       - id: p
         run: |
-          P="${{ inputs.preset || 'preview' }}"
+          P="${{ inputs.preset }}"
+          if [ -z "$P" ]; then
+            P=$(cat blender-film/run_preset 2>/dev/null | tr -d '[:space:]')
+            [ -z "$P" ] && P=preview
+          fi
           # 2 vCPU runners: shard even the preview, or iteration takes an hour per look
           if [ "$P" = "final" ]; then N=8; else N=4; fi
           echo "preset=$P" >> "$GITHUB_OUTPUT"
