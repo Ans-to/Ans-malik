@@ -273,7 +273,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--vo", default="blender-film/out/vo.wav")
     ap.add_argument("--out", default="blender-film/out/score.wav")
-    ap.add_argument("--bed", type=float, default=1.10)
+    ap.add_argument("--bed", type=float, default=0.70)
     args = ap.parse_args()
 
     total = int(FC.DURATION * SR)

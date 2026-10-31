@@ -116,6 +116,51 @@ Mixed at −17.9 LUFS, −1.76 dBTP before the loudnorm pass that brings it to �
 
 ---
 
+## Gates
+
+Every number below is measured from the delivered file by `gates.py`, not asserted: it decodes the
+MP4, decodes the WAV, reads the render manifest, and prints a verdict per check. The first real
+render (a 960x540 preview, 4 shards) came back **17/21**:
+
+| gate | measured | limit | verdict |
+|---|---|---|---|
+| duration | 15.0 s | 15.0 +/- 0.12 | PASS |
+| resolution / fps / codec | 960x540, 30.0, h264 yuv420p | matches preset | PASS |
+| cuts_detected | 0.993, 0.980, 0.966, 0.987 | each cut in top 15 % of frame deltas | PASS |
+| motion_median / p95 | 0.0142 / 0.164 | > 0.0015 / > 0.008 | PASS |
+| frozen_run | 0 frames | <= 6 | PASS |
+| black_fraction | 0.020 | <= 0.12 | PASS |
+| mean_saturation | 0.341 | <= 0.45 | PASS |
+| copper_presence | 43.7 % | >= 0.15 % | PASS |
+| neon_blues | 0.487 % | <= 1.5 % | PASS |
+| lufs | -16.22 | -16 +/- 2 | PASS |
+| true_peak | -1.03 dBTP | <= -1.0 | PASS |
+| audio_length | 15.0 s | matches picture | PASS |
+| voice_over_bed | 9.96 dB | >= 4 | PASS |
+| timeline | 5 shots / 450 frames | tiles 1..450 | PASS |
+| **mean_luma** | **0.3757** | 0.045–0.34 | FAIL |
+| **type_resolved** | **0.473, 0.473** | each line >= 0.72 | FAIL |
+| **spectrum** | **sub 3.0, low 70.0, mid 20.1, top 5.0** | sub 10–42, low+mid 30–80 | FAIL |
+| **clipped_samples** | **57** | 0 | FAIL |
+
+What each failure turned out to be:
+
+- **mean_luma** — the film was simply 0.6 of a stop bright. The exposure curve got a trim; the
+  lighting design did not change.
+- **type_resolved** — shot D's camera racked focus from 2.35 m to 4.30 m while its lettering sat on
+  a plane 3.0 m out, at 100 mm and f/1.8. Depth of field there is about 15 cm, so the two shot-D
+  lines were never in focus. The rack now lands on the type plane and holds.
+- **spectrum** — the voice was the spectrum. Dry Kokoro output is almost all 120–600 Hz, and with
+  the voice 10 dB over the bed it owned 90 % of the mix. The voice now gets an EQ (high-pass at
+  95 Hz, −5 dB at 280 Hz, +4 dB above 3.5 kHz) and the bed's sub band is weighted up to match.
+- **clipped_samples** — two separate bugs, and neither was a loud master. The master was shaped with
+  `tanh()`, which hits the loudest thing in the file hardest and the loudest thing was the sub band.
+  And `gates.py` decoded mono with `-ac 1`, whose matrix is 1/sqrt2 per channel, so a soundtrack
+  peaking at 0.808 was measured at 1.036. The master is now a linear trim with a real limiter after
+  `loudnorm`, and the gate averages the channels itself.
+
+---
+
 ## Running it
 
 ### GitHub Actions

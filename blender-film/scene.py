@@ -793,7 +793,7 @@ def shot_d(scene, cam, rig):
                    lambda f, st=start, s0=ob.scale[2]: s0 * (1.14 - 0.14 * ease(
                        f, st, st + 14, "emphasized")), index=2)
         bake_emis(m.name, sample(start - 1, start + 10),
-                    lambda f, st=start: 2.5 * ease(f, st, st + 10, "decelerate"))
+                    lambda f, st=start: 3.5 * ease(f, st, st + 10, "decelerate"))
         hide_except(ob, f0, f1)
 
     # Focus rack that lands on the lettering and stays there. These are 100 mm frames: at f/2 the
@@ -801,12 +801,14 @@ def shot_d(scene, cam, rig):
     # at 3.0 m guarantees the words are soft for the whole shot -- which is what the type gate
     # caught. Rack from the near slab onto the type plane, hold, then close down for the exit.
     bake_float(cam.data, "dof.focus_distance", sample(f0, f1),
-               lambda f: lerp(2.60, 3.00, ease(f, f0, f0 + 16, "decelerate")))
+               lambda f: lerp(2.45, 2.10, ease(f, f0, f0 + 16, "decelerate")))
     bake_float(cam.data, "dof.aperture_fstop", sample(f0, f1),
                lambda f: lerp(2.2 + 0.8 * ease(f, f0, f0 + 30, "linear"),
                               16.0, ease(f, f1 - 8, f1, "accelerate")))
+    # a small lateral drift only: the type plane is 2.1 m out now, so the old 0.25 m slide would
+    # read as the words skating across the frame rather than as parallax
     bake_vec(cam, "location", sample(f0, f1), lambda f: (
-        lerp(0.95, 0.70, ease(f, f0, f1, "linear")), -2.30, 0.55))
+        lerp(0.95, 0.86, ease(f, f0, f1, "linear")), -2.30, 0.55))
 
 
 # --------------------------------------------------------------------------- shot E
@@ -917,7 +919,7 @@ def build(preset, out_dir):
     scene.camera = cams["A"]
 
     bpy.context.view_layer.update()
-    rigs = {k: Rig(c, 5.0 if k != "D" else 3.0, scene) for k, c in cams.items()}
+    rigs = {k: Rig(c, 5.0 if k != "D" else 2.10, scene) for k, c in cams.items()}
 
     # ---- the die spans shots B and C, so it is built once and driven twice
     die, pads, base, _ = build_die(scene)
