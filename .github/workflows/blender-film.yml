@@ -206,6 +206,16 @@ jobs:
           echo "frames this shard: $(ls "blender-film/out/frames_${P}" | wc -l)"
           du -sh "blender-film/out/frames_${P}"
 
+      - name: Detail diagnostics
+        if: ${{ needs.setup.outputs.preset == 'preview' }}
+        run: |
+          python3 -m pip install --break-system-packages -q numpy pillow 2>&1 | tail -2
+          P="${{ needs.setup.outputs.preset }}"
+          python3 blender-film/diag.py \
+            --frames "blender-film/out/frames_${P}" \
+            --manifest "blender-film/out/manifest_${P}.json" \
+            --label "shard ${{ matrix.shard }}"
+
       - uses: actions/upload-artifact@v5
         if: always()
         with:
