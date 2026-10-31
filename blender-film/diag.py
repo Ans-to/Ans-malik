@@ -32,6 +32,11 @@ FPS = 30.0
 TYPE_NAMES = ("A_type", "B_cap", "C_line", "D_type", "E_letter", "E_tag")
 
 
+def lap_abs(gray: np.ndarray) -> np.ndarray:
+    g = gray.astype(np.float32)
+    return np.abs(g[:-2, 1:-1] + g[2:, 1:-1] + g[1:-1, :-2] + g[1:-1, 2:] - 4.0 * g[1:-1, 1:-1])
+
+
 def laplacian(gray: np.ndarray) -> float:
     g = gray.astype(np.float32)
     lap = (g[:-2, 1:-1] + g[2:, 1:-1] + g[1:-1, :-2] + g[1:-1, 2:] - 4.0 * g[1:-1, 1:-1])
@@ -107,9 +112,11 @@ def main() -> int:
                     out.append(f"{name} f{frame}: box off-frame")
                     continue
                 patch = a[y0:y1, x0:x1]
+                lap = lap_abs(patch)
                 out.append(f"{name} f{frame}: {x1 - x0}x{y1 - y0}px mean {patch.mean():.3f} "
                            f"max {patch.max():.3f} blown {(patch > 0.90).mean() * 100:.0f}% "
-                           f"detail {laplacian(patch):.4f}")
+                           f"detail {lap.mean():.4f} p99 {np.percentile(lap, 99):.3f} "
+                           f"p999 {np.percentile(lap, 99.9):.3f}")
 
     # shot/type summary first, then the boxes; the whole thing still has to fit the cap
     print(f"::notice title={args.label}::" + escape(" | ".join(out))[:6000])
