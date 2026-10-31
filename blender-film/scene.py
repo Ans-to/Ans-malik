@@ -1013,6 +1013,8 @@ def main():
     ap.add_argument("--frame-start", type=int, default=1)
     ap.add_argument("--frame-end", type=int, default=FC.FRAMES)
     ap.add_argument("--probe", default="", help="comma separated frames: report type placement and exit")
+    ap.add_argument("--probe-render", default="",
+                    help="comma separated frames: render stills to out/probe/ at preview size, then exit")
     args = ap.parse_args(argv)
 
     scene, cams, manifest = build(args.preset, args.out)
@@ -1024,6 +1026,17 @@ def main():
         return
 
     if args.no_render:
+        return
+
+    if args.probe_render:
+        out = os.path.join(args.out, "probe")
+        os.makedirs(out, exist_ok=True)
+        scene.render.use_motion_blur = False
+        for f in [int(x) for x in args.probe_render.split(",") if x.strip()]:
+            scene.frame_set(f)
+            scene.render.filepath = os.path.join(out, f"f_{f:04d}.png")
+            bpy.ops.render.render(write_still=True)
+            print(f"[probe-render] frame {f} -> {scene.render.filepath}")
         return
 
     if args.smoke:
