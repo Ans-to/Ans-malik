@@ -56,7 +56,12 @@ jobs:
               echo "::warning::could not install $p"
             fi
           done
-          ffmpeg -version | head -1
+          # `| head` under the runner's pipefail kills the step with SIGPIPE 141
+          if command -v ffmpeg >/dev/null; then
+            ffmpeg -version > /tmp/ffv.txt 2>&1; head -1 /tmp/ffv.txt
+          else
+            echo "::error::ffmpeg is not present on this runner image"
+          fi
 
       - name: Cache Blender
         id: blender-cache
