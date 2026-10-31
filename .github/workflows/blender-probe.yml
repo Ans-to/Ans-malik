@@ -1,0 +1,64 @@
+name: blender-probe
+
+# Answers "where is that text, actually?" in about four minutes, without rendering anything.
+#
+# The full film workflow takes half an hour per iteration because it renders 450 frames. When the
+# only question is whether a text object is hidden, off-screen, behind geometry or too dark, that
+# is far too slow a loop: building the scene and reading the objects' screen positions back costs
+# a fraction of that. Prints one line per text object per probed frame.
+
+on:
+  push:
+    paths:
+      - "blender-film/**"
+      - ".github/workflows/blender-probe.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  BLENDER_URL: "https://download.blender.org/release/Blender4.2/blender-4.2.19-linux-x64.tar.xz"
+  BLENDER_KEY: "blender-4.2.19-linux-x64"
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: System libraries
+        run: |
+          sudo apt-get -qq update || true
+          for p in libx11-6 libxi6 libxrender1 libxfixes3 libxxf86vm1 libsm6 libice6 libxt6 \
+                   libgl1 libegl1 libgomp1 libxkbcommon0 libx11-xcb1 libxcb1; do
+            sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq "$p" >/dev/null 2>&1 \
+              && echo "ok   $p" || echo "::warning::could not install $p"
+          done
+
+      - name: Cache Blender
+        uses: actions/cache@v5
+        with:
+          path: /opt/blender
+          key: ${{ env.BLENDER_KEY }}
+
+      - name: Install Blender
+        run: |
+          if [ ! -x /opt/blender/blender ]; then
+            curl -sSL --retry 3 -o /tmp/blender.tar.xz "$BLENDER_URL"
+            mkdir -p /opt/blender
+            tar -xf /tmp/blender.tar.xz -C /opt/blender --strip-components=1
+          fi
+          /opt/blender/blender --version | head -2
+
+      - name: Probe text placement
+        run: |
+          bash blender-film/ci_run.sh "probe" \
+            /opt/blender/blender -b --python-exit-code 1 -P blender-film/scene.py -- \
+            --preset preview --out blender-film/out --probe 200,307,316,385 2>&1 | tee /tmp/probe.log
+          # Job logs are unreachable from where this is watched, so the lines that matter become
+          # annotations. GitHub caps these per step, hence the tail of the list, not the head.
+          grep "\[probe\]" /tmp/probe.log | tail -28 | while IFS= read -r line; do
+            echo "::notice title=probe::$(echo "$line" | tr -d '[]' | sed 's/^probe *//')"
+          done

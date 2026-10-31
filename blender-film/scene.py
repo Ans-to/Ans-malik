@@ -968,6 +968,41 @@ def build(preset, out_dir):
     return scene, cams, manifest
 
 
+def probe(scene, frames):
+    """Print where every text object actually is at the given frames.
+
+    The type gate can only say 'this line never produced a sharp frame'. It cannot say whether the
+    words were hidden, off-screen, behind geometry, or just dark, so this answers that directly:
+    hide flag, screen position, distance, and whether the object is in front of the camera at all.
+    """
+    from bpy_extras.object_utils import world_to_camera_view
+
+    for f in frames:
+        scene.frame_set(f)
+        bpy.context.view_layer.update()
+        dg = bpy.context.evaluated_depsgraph_get()
+        cam = scene.camera
+        print(f"[probe] frame {f}: camera {cam.name} at "
+              f"{tuple(round(v, 2) for v in cam.location)}")
+        for ob in scene.objects:
+            if ob.type != "FONT":
+                continue
+            eo = ob.evaluated_get(dg)
+            bb = [eo.matrix_world @ Vector(c) for c in eo.bound_box]
+            centre = sum(bb, Vector()) / 8.0
+            co = world_to_camera_view(scene, cam, centre)
+            in_view = 0.0 <= co.x <= 1.0 and 0.0 <= co.y <= 1.0 and co.z > 0.0
+            mat = ob.active_material
+            emis = None
+            if mat is not None and mat.use_nodes:
+                for n in mat.node_tree.nodes:
+                    if n.type == "BSDF_PRINCIPLED" and "Emission Strength" in n.inputs:
+                        emis = round(float(n.inputs["Emission Strength"].default_value), 2)
+            print(f"[probe]   {ob.name:14s} hidden={int(bool(eo.hide_render))} "
+                  f"in_view={int(in_view)} ndc=({co.x:.2f},{co.y:.2f}) depth={co.z:.2f} "
+                  f"pos={tuple(round(v, 2) for v in centre)} emis={emis}")
+
+
 def main():
     argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
     ap = argparse.ArgumentParser()
@@ -977,11 +1012,16 @@ def main():
     ap.add_argument("--no-render", action="store_true")
     ap.add_argument("--frame-start", type=int, default=1)
     ap.add_argument("--frame-end", type=int, default=FC.FRAMES)
+    ap.add_argument("--probe", default="", help="comma separated frames: report type placement and exit")
     args = ap.parse_args(argv)
 
     scene, cams, manifest = build(args.preset, args.out)
     print(f"[scene] built {manifest['objects']} objects, {manifest['frames']} frames, "
           f"{manifest['resolution'][0]}x{manifest['resolution'][1]} @ {manifest['samples']} spp")
+
+    if args.probe:
+        probe(scene, [int(x) for x in args.probe.split(",") if x.strip()])
+        return
 
     if args.no_render:
         return
