@@ -97,6 +97,39 @@ def reverb(x, sr, decay=0.55, seed=3):
     return (0.82 * x + 0.34 * wet.astype(np.float32))
 
 
+def voice_eq(x, sr):
+    """Shape the dry Kokoro line towards a voice track that sits on top of a sub-rich bed.
+
+    Kokoro's output has its energy piled into the fundamental and first formant. Mixed in dry it
+    measured 3 % sub / 70 % low-mid across the delivered file, which reads as muffled and left the
+    sub band empty. This is the ordinary fix, applied in the frequency domain: high-pass the rumble,
+    take a little boxiness out around 300 Hz, and lift the presence band so consonants exist.
+    """
+    n = len(x)
+    if n < 64:
+        return x
+    freqs = np.fft.rfftfreq(n, 1.0 / sr)
+    g = np.ones_like(freqs)
+
+    # high-pass: everything below ~95 Hz is the bed's job, not the voice's
+    hp = (freqs / 95.0) ** 2
+    g *= hp / (1.0 + hp)
+
+    # -5 dB bell at 280 Hz, one octave wide: the boxy region
+    with np.errstate(divide="ignore"):
+        bell = np.exp(-(np.log2(np.maximum(freqs, 1.0) / 280.0) ** 2) / (2.0 * 0.95 ** 2))
+    g *= 1.0 - 0.44 * bell
+
+    # -1.5 dB shelf under 150 Hz, so the fundamental stops competing with the sub band
+    g *= 1.0 - 0.16 / (1.0 + (np.maximum(freqs, 1.0) / 150.0) ** 2)
+
+    # +4 dB shelf above 3.5 kHz for sibilance and type-word crispness
+    shelf = 1.0 + 0.58 / (1.0 + (3500.0 / np.maximum(freqs, 1.0)) ** 2)
+    g *= shelf
+
+    return np.fft.irfft(np.fft.rfft(x) * g, n).astype(np.float32)
+
+
 def build_bed(total):
     bed_l = np.zeros(total, dtype=np.float32)
     bed_r = np.zeros(total, dtype=np.float32)
@@ -118,14 +151,17 @@ def build_bed(total):
         n = want
         tt = np.arange(n, dtype=np.float32) / SR
         sub = np.sin(2 * np.pi * CHORDS[shot["key"]][0][1] / 2.0 * tt) * env_adsr(
-            n, SR, 0.30, 0.50, n / SR) * 0.052
+            n, SR, 0.30, 0.50, n / SR) * 0.240
+        # an octave below the pad's sub: this is what gives the film its floor
+        sub = sub + np.sin(2 * np.pi * CHORDS[shot["key"]][0][1] / 4.0 * tt) * env_adsr(
+            n, SR, 0.45, 0.60, n / SR) * 0.340
         chunk_l += sub
         chunk_r += sub
         bed_l[s0:s1] += fit(chunk_l, want)
         bed_r[s0:s1] += fit(chunk_r, want)
 
-    bed_l = fft_shape(bed_l, SR, lo=70.0, hi=4200.0)
-    bed_r = fft_shape(bed_r, SR, lo=70.0, hi=4200.0)
+    bed_l = fft_shape(bed_l, SR, lo=30.0, hi=4200.0)
+    bed_r = fft_shape(bed_r, SR, lo=30.0, hi=4200.0)
 
     # ---- sub pulse on every bar (2 s at 120 BPM)
     for bar in range(int(FC.DURATION / 2.0) + 1):
@@ -134,8 +170,8 @@ def build_bed(total):
             break
         n = min(int(0.75 * SR), total - s0)
         t = np.arange(n, dtype=np.float32) / SR
-        pulse = np.sin(2 * np.pi * 55.0 * t) * np.exp(-t * 6.0) * 0.115
-        click = np.sin(2 * np.pi * 110.0 * t) * np.exp(-t * 40.0) * 0.10
+        pulse = np.sin(2 * np.pi * 55.0 * t) * np.exp(-t * 6.0) * 0.260
+        click = np.sin(2 * np.pi * 110.0 * t) * np.exp(-t * 40.0) * 0.120
         bed_l[s0:s0 + n] += (pulse + click)
         bed_r[s0:s0 + n] += (pulse + click)
 
@@ -182,7 +218,7 @@ def build_bed(total):
 
 
 def duck_envelope(vo_mono, total, sr):
-    """1.0 when the voice is silent, ~0.45 under it.
+    """1.0 when the voice is silent, ~0.62 under it.
 
     Computed on a 240 Hz envelope, not per sample: the same shape for a fraction of the work.
     The release is symmetric, which gives a little pre-duck before each line — musically that is
@@ -197,7 +233,7 @@ def duck_envelope(vo_mono, total, sr):
     k = max(3, int(0.20 * 240))
     kernel = np.ones(k, dtype=np.float32) / k
     smooth = np.convolve(gate, kernel, mode="same")
-    env_ds = 1.0 - 0.55 * np.clip(smooth * 1.8, 0.0, 1.0)
+    env_ds = 1.0 - 0.38 * np.clip(smooth * 1.8, 0.0, 1.0)
     env = np.interp(np.arange(total), np.arange(len(env_ds)) * ds, env_ds)
     return env.astype(np.float32)
 
@@ -237,7 +273,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--vo", default="blender-film/out/vo.wav")
     ap.add_argument("--out", default="blender-film/out/score.wav")
-    ap.add_argument("--bed", type=float, default=0.62)
+    ap.add_argument("--bed", type=float, default=1.10)
     args = ap.parse_args()
 
     total = int(FC.DURATION * SR)
@@ -249,6 +285,7 @@ def main():
         if len(vo) < total:
             vo = np.pad(vo, (0, total - len(vo)))
         vo = vo[:total]
+        vo = voice_eq(vo, SR)
     else:
         print(f"[score] no voice-over at {args.vo}; mixing bed only", file=sys.stderr)
 
@@ -264,11 +301,14 @@ def main():
         mix_l = mix_l + vo
         mix_r = mix_r + vo
 
-    # master: gentle soft clip rather than a limiter with lookahead
+    # master: a linear trim, not a tapering one. tanh() was the reason the sub band kept
+    # disappearing: the sub pulses are the loudest thing in the mix, so a taper hit them hardest
+    # and left the 20-120 Hz share near zero. A limiter belongs after loudnorm, in the ffmpeg
+    # chain, where it can look ahead instead of shaving the waveform in place.
     peak = float(max(np.max(np.abs(mix_l)), np.max(np.abs(mix_r))) + 1e-9)
     if peak > 0.89:
-        mix_l = np.tanh(mix_l * (1.35 / peak)) * 0.89
-        mix_r = np.tanh(mix_r * (1.35 / peak)) * 0.89
+        mix_l = mix_l * (0.89 / peak)
+        mix_r = mix_r * (0.89 / peak)
 
     os.makedirs(os.path.dirname(args.out) or ".", exist_ok=True)
     write_wav_stereo(args.out, mix_l, mix_r, SR)

@@ -796,12 +796,15 @@ def shot_d(scene, cam, rig):
                     lambda f, st=start: 2.5 * ease(f, st, st + 10, "decelerate"))
         hide_except(ob, f0, f1)
 
-    # focus rack from the near slab to the far one, then defocus out
+    # Focus rack that lands on the lettering and stays there. These are 100 mm frames: at f/2 the
+    # depth of field is about 15 cm, so a rack that runs from 2.35 m to 4.30 m through a type plane
+    # at 3.0 m guarantees the words are soft for the whole shot -- which is what the type gate
+    # caught. Rack from the near slab onto the type plane, hold, then close down for the exit.
     bake_float(cam.data, "dof.focus_distance", sample(f0, f1),
-               lambda f: lerp(2.35, 4.30, ease(f, f0 + 10, f1 - 20, "standard")))
+               lambda f: lerp(2.60, 3.00, ease(f, f0, f0 + 16, "decelerate")))
     bake_float(cam.data, "dof.aperture_fstop", sample(f0, f1),
-               lambda f: lerp(1.8 + 1.0 * ease(f, f0, f0 + 30, "linear"),
-                              22.0, ease(f, f1 - 8, f1, "accelerate")))
+               lambda f: lerp(2.2 + 0.8 * ease(f, f0, f0 + 30, "linear"),
+                              16.0, ease(f, f1 - 8, f1, "accelerate")))
     bake_vec(cam, "location", sample(f0, f1), lambda f: (
         lerp(0.95, 0.70, ease(f, f0, f1, "linear")), -2.30, 0.55))
 
@@ -926,10 +929,13 @@ def build(preset, out_dir):
     shot_d(scene, cams["D"], rigs["D"])
     shot_e(scene, cams["E"], rigs["E"])
 
-    # ---- global exposure: a soft fade up out of black, and a fade down to black at the end
+    # ---- global exposure: a soft fade up out of black, and a fade down to black at the end.
+    # The delivered preview measured mean luma 0.3757 against a 0.34 ceiling, so the whole curve
+    # sits 0.6 of a stop lower. This is a trim on the curve, not a change to the lighting design.
+    EXPOSURE_TRIM = -0.6
     for f, val in ((1, -9.0), (10, 0.0), (376, 0.0), (382, -3.2), (390, 0.0),
                    (440, 0.0), (450, -10.0)):
-        scene.view_settings.exposure = val
+        scene.view_settings.exposure = val + EXPOSURE_TRIM
         scene.keyframe_insert(data_path="view_settings.exposure", frame=f)
 
     scene.camera = cams["A"]

@@ -4,8 +4,11 @@ Fifteen seconds, five shots, one idea: a GPU begins as sand. Built in Blender Py
 Kokoro, scored by a synthesiser written for this film, cut to a 120 BPM grid, and gated by numbers
 measured from the delivered file rather than by opinion.
 
-**Status: the pipeline is complete and validated; GitHub will not start the job.**
-See [Blocked: Actions billing](#blocked-actions-billing) before expecting a video.
+**Status: the pipeline runs in GitHub Actions.** Blender 4.2.19, Kokoro and the synthesiser all
+install and run on a stock `ubuntu-latest` runner; the film is split into four parallel shards for
+the preview and eight for the final, because a standard runner has two cores and a single-job
+1080p render takes hours. Numbers for the delivered file are in [Gates](#gates) and in
+[`out/gates_*.json`](out).
 
 ```
 blender-film/
@@ -145,25 +148,36 @@ python3 blender-film/gates.py --video blender-film/out/silicon_preview.mp4 \
 
 ---
 
-## Blocked: Actions billing
+## Getting Actions to actually run it
 
-The first run did not execute a single step. GitHub refused to start the job:
+Five separate things were broken between "the YAML is valid" and "there are frames", and each cost a
+run. They are recorded here because they are all silent failures:
 
-```
-The job was not started because recent account payments have failed or your spending
-limit needs to be increased. Please check the 'Billing & plans' section in your settings
-```
+1. **Billing.** The first runs never started a step: *"The job was not started because recent account
+   payments have failed or your spending limit needs to be increased."* Account-level, fixed in
+   Settings → Billing & plans. A failed step with every later step `skipped` is a step bug; a job with
+   `steps: []` is this.
+2. **SIGPIPE.** `some_command | head` under Actions' `pipefail` exits 141 and kills the step. Write to
+   a file, then `head` the file.
+3. **`apt` in bulk.** A long package list aborts on the first `t64` rename. Install one package at a
+   time with `|| echo "::warning::"`.
+4. **No `ffmpeg`.** `ubuntu-latest` does not ship it, and the score mix, the loudness measurement and
+   the encode all need it. `apt` first, johnvansickle's static build as the fallback.
+5. **`blender -b -P script.py` exits 0 even when the script raises.** A render step that finishes in
+   one second and reports success is this bug. Every Blender call now passes `--python-exit-code 1`.
 
-That is account-level, not about this workflow: `Ans-to/Ans-malik` is private, so its Actions minutes
-are billable, and the account's billing state currently prevents any job from being scheduled. The
-fix is on the account owner's side — GitHub → Settings → Billing & plans — and then either resolve
-the failed payment or raise the spending limit above $0.
+One Blender-4.2 API trap too: the compositor socket is `Lensdist.inputs["Distortion"]`, not `"Distort"`,
+so sockets are resolved by candidate name instead of by one hard-coded key.
 
-Nothing in the repository can work around it, and the token available here cannot create a public
-repository to route around it either (`Resource not accessible by integration`).
+Because the job log is not reachable from everywhere, `ci_run.sh` re-emits the tail of any failed
+command as a check-run annotation, and `report.py` re-emits every gate's value and verdict the same
+way. A red step there always says why.
 
-**A cheaper alternative that needs no billing:** `colab/silicon_render.ipynb` runs the same five
-scripts in Google Colab, where `bpy` installs with `pip` and a free T4 renders 1080p on Cycles GPU.
+**To run it:** push a change under `blender-film/`, or `gh workflow run blender-film -f preset=final`.
+The preset is read from `blender-film/run_preset` when the trigger is a push.
+
+**A no-billing alternative:** `colab/silicon_render.ipynb` runs the same five scripts in Google Colab,
+where `bpy` installs with `pip` and a free T4 renders 1080p on Cycles GPU.
 
 ---
 
@@ -184,12 +198,22 @@ Verified by running, in this environment:
   this way (the EBU R128 JSON block, and a frozen-frame metric that was a regex over a joined string).
 - **The YAML.** Parses; 14 steps.
 
-Not verified, because it needs a runner:
+Verified in Actions, on a stock `ubuntu-latest` runner:
 
-- A real `bpy` import and any Cycles render. The scene has never produced a pixel.
-- Kokoro's actual output. The phonemiser works here (`ɪt bɪɡˈɪnz æz sˈænd`), but the 310 MB ONNX
-  model is served from `release-assets.githubusercontent.com`, which this sandbox blocks.
-- Whether the shots *look* right. Layout and timing are computed and gated; taste is not. Expect one
-  or two iterations after the first preview frames exist — that is why the preview pass is separate.
-- Estimated render times (~12 min preview, ~45 min final) are estimates from object and sample counts,
-  not measurements.
+- **Blender installs and runs.** 4.2.19 LTS unpacks to `/opt/blender`; the smoke test renders five
+  frames of the real scene under Cycles CPU and exits 0.
+- **Kokoro produces the voice-over in CI.** The 310 MB ONNX model downloads and caches on the runner,
+  and the five lines are synthesised and placed on their beats.
+- **The score mixes and measures.** `score.py` plus `loudnorm` produce `soundtrack.wav` and the
+  loudness numbers.
+- **The film renders.** 450 frames across four shards, around thirty minutes wall clock.
+- **The encode and the contact sheet** come out of the same job, with the frames stitched from the
+  four artifacts.
+
+Not verified from the authoring sandbox:
+
+- **How the shots look.** Layout, timing, palette share and type placement are measured; taste is not.
+  The contact sheet in the artifact is the thing to look at, and this is why the preview pass exists
+  separately from the 1080p final.
+- **Anything about the 1080p final's timing** until a `final` run has finished; the preview numbers do
+  not predict it, and eight shards on two cores each is a different load.

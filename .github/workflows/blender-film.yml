@@ -114,7 +114,7 @@ jobs:
             python3 blender-film/score.py --vo blender-film/out/vo.wav --out blender-film/out/mix.wav
           bash blender-film/ci_run.sh "loudnorm" \
             ffmpeg -y -v error -i blender-film/out/mix.wav \
-              -af "loudnorm=I=-16:TP=-1.0:LRA=11" -ar 48000 -ac 2 \
+              -af "loudnorm=I=-16:TP=-1.0:LRA=11,alimiter=limit=0.891:attack=4:release=80:level=false" -ar 48000 -ac 2 \
               blender-film/out/soundtrack.wav
 
       - uses: actions/upload-artifact@v5

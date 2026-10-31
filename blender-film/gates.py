@@ -81,8 +81,18 @@ def decode_video(path, fps=10, w=AN_W, h=AN_H):
 
 
 def decode_audio(path, sr=48000):
-    r = run([FFMPEG, "-v", "error", "-i", path, "-f", "f32le", "-ac", "1", "-ar", str(sr), "-"])
-    return np.frombuffer(r.stdout, dtype="<f4").astype(np.float32)
+    """Decode to mono by averaging the channels in numpy, not with -ac 1.
+
+    ffmpeg's stereo-to-mono matrix sums the channels with a 1/sqrt(2) coefficient each, so material
+    that is identical in both channels comes out 3 dB hot: the delivered preview's 0.808-peak
+    soundtrack decoded at 1.036 and tripped the clipping gate with 57 phantom samples. Averaging
+    here keeps the decoded peak equal to the peak in the file.
+    """
+    r = run([FFMPEG, "-v", "error", "-i", path, "-f", "f32le", "-ac", "2", "-ar", str(sr), "-"])
+    a = np.frombuffer(r.stdout, dtype="<f4").astype(np.float32)
+    if a.size % 2:
+        a = a[:-1]
+    return a.reshape(-1, 2).mean(axis=1).astype(np.float32)
 
 
 def loudness(path):
