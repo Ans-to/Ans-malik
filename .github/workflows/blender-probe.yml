@@ -59,6 +59,6 @@ jobs:
             --preset preview --out blender-film/out --probe 200,307,316,385 2>&1 | tee /tmp/probe.log
           # Job logs are unreachable from where this is watched. GitHub also keeps only the last
           # few annotations per step, so everything goes into exactly one.
-          { grep -E "\[probe\] (frame|  D_)" /tmp/probe.log || true; } \
+          { grep -E "\[probe\] +(frame|D_)" /tmp/probe.log || true; } \
             | sed 's/\[probe\] *//' | tr '\n' '|' | cut -c1-6000 > /tmp/probe_ann.txt
           echo "::notice title=probe::$(cat /tmp/probe_ann.txt)"
