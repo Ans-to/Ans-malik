@@ -967,6 +967,8 @@ def main():
     ap.add_argument("--out", default="blender-film/out")
     ap.add_argument("--smoke", default="", help="comma separated frames to render at low res instead")
     ap.add_argument("--no-render", action="store_true")
+    ap.add_argument("--frame-start", type=int, default=1)
+    ap.add_argument("--frame-end", type=int, default=FC.FRAMES)
     args = ap.parse_args(argv)
 
     scene, cams, manifest = build(args.preset, args.out)
@@ -995,6 +997,10 @@ def main():
     os.makedirs(out, exist_ok=True)
     scene.render.filepath = os.path.join(out, "f_")
     scene.render.use_overwrite = False
+    # shards: a 1080p Cycles pass on a 2 vCPU runner is hours; split it across runners instead
+    scene.frame_start = max(1, args.frame_start)
+    scene.frame_end = min(FC.FRAMES, args.frame_end)
+    print(f"[render] frames {scene.frame_start}..{scene.frame_end} of {FC.FRAMES}")
     bpy.ops.render.render(animation=True)
     print(f"[render] {args.preset} frames -> {out}")
 

@@ -16,7 +16,7 @@ BEAT = 15                             # frames per beat at 120 BPM
 # Render presets. `preview` exists to be looked at cheaply before spending 40 minutes on `final`.
 PRESETS = {
     "preview": dict(width=960, height=540, samples=12, motion_blur=False),
-    "final":   dict(width=1920, height=1080, samples=64, motion_blur=True),
+    "final":   dict(width=1920, height=1080, samples=16, motion_blur=True),
 }
 
 # --------------------------------------------------------------------------- shots

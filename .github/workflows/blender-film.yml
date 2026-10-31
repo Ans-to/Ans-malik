@@ -1,10 +1,13 @@
 name: blender-film
 
-# Renders SILICON (15 s) on a GitHub-hosted runner: Blender headless for picture, Kokoro for the
+# Renders SILICON (15 s) on GitHub-hosted runners: Blender headless for picture, Kokoro for the
 # voice-over, a synthesised score, then an ffmpeg master and an objective gate pass on the result.
 #
-#   gh workflow run blender-film -f preset=preview     # 540p / 12 spp, ~12 min, for looking at
-#   gh workflow run blender-film -f preset=final       # 1080p / 64 spp, ~45 min, for delivery
+#   gh workflow run blender-film -f preset=preview   # 960x540 / 12 spp, 4 shards,  ~20 min
+#   gh workflow run blender-film -f preset=final     # 1920x1080 / 16 spp, 8 shards, ~60 min
+#
+# A standard runner is 2 vCPU. One 1080p Cycles pass takes hours on that, so the final is split into
+# per-frame-range shards that render in parallel and are stitched by a final job.
 
 on:
   workflow_dispatch:
@@ -18,87 +21,58 @@ on:
         description: "Skip Kokoro (tests the pipeline without the model download)"
         type: boolean
         default: false
-  push:
-    paths:
-      - "blender-film/**"
-      - ".github/workflows/blender-film.yml"
 
 permissions:
   contents: read
 
 env:
-  BLENDER_VERSION: "4.2.19"
   BLENDER_URL: "https://download.blender.org/release/Blender4.2/blender-4.2.19-linux-x64.tar.xz"
+  BLENDER_KEY: "blender-4.2.19-linux-x64"
   KOKORO_TAG: "model-files-v1.0"
 
 jobs:
-  render:
+  setup:
     runs-on: ubuntu-latest
-    timeout-minutes: 300
-    defaults:
-      run:
-        shell: bash
+    outputs:
+      preset: ${{ steps.p.outputs.preset }}
+      shards: ${{ steps.p.outputs.shards }}
+      matrix: ${{ steps.p.outputs.matrix }}
+    steps:
+      - id: p
+        run: |
+          P="${{ inputs.preset || 'preview' }}"
+          # 2 vCPU runners: shard even the preview, or iteration takes an hour per look
+          if [ "$P" = "final" ]; then N=8; else N=4; fi
+          echo "preset=$P" >> "$GITHUB_OUTPUT"
+          echo "shards=$N" >> "$GITHUB_OUTPUT"
+          M=$(python3 -c "import json; print(json.dumps({'shard': list(range($N))}))")
+          echo "matrix=$M" >> "$GITHUB_OUTPUT"
+          echo "preset=$P shards=$N matrix=$M"
 
+  # ---- sound first: it is cheap, and the picture is timed to it
+  audio:
+    needs: setup
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v5
 
-      # Blender links the X11/GL stack even in background mode; without these it exits on load.
-      # Installed one at a time so a renamed package (the t64 transition) cannot kill the job.
-      - name: System libraries
+      - name: ffmpeg
         run: |
-          grep -E "^(PRETTY_NAME|VERSION_ID)" /etc/os-release || true
-          sudo apt-get -qq update || true
-          for p in ffmpeg libx11-6 libxi6 libxrender1 libxfixes3 libxxf86vm1 libsm6 libice6 libxt6 \
-                   libgl1 libegl1 libgomp1 libxkbcommon0 libx11-xcb1 libxcb1; do
-            if sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq "$p" >/dev/null 2>&1; then
-              echo "ok   $p"
-            else
-              echo "::warning::could not install $p"
-            fi
-          done
-          # the runner image does not ship ffmpeg; apt is preferred, a static build is the fallback
           if ! command -v ffmpeg >/dev/null; then
-            echo "apt had no ffmpeg, fetching a static build"
+            sudo apt-get -qq update || true
+            sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq ffmpeg >/dev/null 2>&1 || true
+          fi
+          if ! command -v ffmpeg >/dev/null; then
             curl -sSL --retry 3 -o /tmp/ff.tar.xz \
               https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz
             mkdir -p /tmp/ffstatic && tar -xf /tmp/ff.tar.xz -C /tmp/ffstatic --strip-components=1
             sudo cp /tmp/ffstatic/ffmpeg /tmp/ffstatic/ffprobe /usr/local/bin/
           fi
-          if command -v ffmpeg >/dev/null; then
-            ffmpeg -version > /tmp/ffv.txt 2>&1; head -1 /tmp/ffv.txt
-            ffprobe -version > /tmp/fpv.txt 2>&1; head -1 /tmp/fpv.txt
-          else
-            echo "::error::ffmpeg could not be installed"; exit 1
-          fi
-
-      - name: Cache Blender
-        id: blender-cache
-        uses: actions/cache@v5
-        with:
-          path: /opt/blender
-          key: blender-${{ env.BLENDER_VERSION }}-linux-x64
-
-      - name: Install Blender
-        run: |
-          if [ ! -x /opt/blender/blender ]; then
-            echo "downloading $BLENDER_URL"
-            curl -sSL --retry 3 -o /tmp/blender.tar.xz "$BLENDER_URL"
-            mkdir -p /opt/blender
-            tar -xf /tmp/blender.tar.xz -C /opt/blender --strip-components=1
-          fi
-          # Blender must actually start: this is the first place a missing shared library shows up
-          if ! /opt/blender/blender --version > /tmp/bv.txt 2>&1; then
-            echo "::error::blender --version failed: $(tr '\n' '|' < /tmp/bv.txt | head -c 600)"
-            ldd /opt/blender/blender 2>/dev/null | grep "not found" | while read -r l; do
-              echo "::error::missing shared library:$l"
-            done
-            exit 1
-          fi
-          head -3 /tmp/bv.txt
+          ffmpeg -version > /tmp/ffv.txt 2>&1; head -1 /tmp/ffv.txt
 
       - name: Cache Kokoro model
         if: ${{ inputs.skip_voice != true }}
-        id: kokoro-cache
         uses: actions/cache@v5
         with:
           path: /opt/kokoro
@@ -114,7 +88,6 @@ jobs:
           ls -lh /opt/kokoro
           python3 -m pip -q install numpy kokoro-onnx
 
-      # ---- audio first: it is cheap, and the picture is timed to it
       - name: Voice-over (Kokoro)
         if: ${{ inputs.skip_voice != true }}
         run: |
@@ -133,34 +106,138 @@ jobs:
             ffmpeg -y -v error -i blender-film/out/mix.wav \
               -af "loudnorm=I=-16:TP=-1.0:LRA=11" -ar 48000 -ac 2 \
               blender-film/out/soundtrack.wav
-          ffmpeg -hide_banner -i blender-film/out/soundtrack.wav \
-            -af loudnorm=print_format=json -f null - > /tmp/loud.txt 2>&1 || true
-          tail -16 /tmp/loud.txt
 
-      # ---- picture
-      - name: Smoke test (build + 5 frames)
+      - uses: actions/upload-artifact@v5
+        with:
+          name: audio
+          retention-days: 7
+          path: |
+            blender-film/out/soundtrack.wav
+            blender-film/out/vo_times.json
+            blender-film/out/score_stats.json
+
+  # ---- picture, split by frame range
+  shard:
+    needs: [setup, audio]
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.setup.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v5
+
+      # Blender links the X11/GL stack even in background mode; without these it exits on load.
+      # One package at a time: a renamed package (the t64 transition) must not kill the job.
+      - name: System libraries
+        run: |
+          sudo apt-get -qq update || true
+          for p in libx11-6 libxi6 libxrender1 libxfixes3 libxxf86vm1 libsm6 libice6 libxt6 \
+                   libgl1 libegl1 libgomp1 libxkbcommon0 libx11-xcb1 libxcb1; do
+            sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq "$p" >/dev/null 2>&1 \
+              && echo "ok   $p" || echo "::warning::could not install $p"
+          done
+
+      - name: Cache Blender
+        uses: actions/cache@v5
+        with:
+          path: /opt/blender
+          key: ${{ env.BLENDER_KEY }}
+
+      - name: Install Blender
+        run: |
+          if [ ! -x /opt/blender/blender ]; then
+            curl -sSL --retry 3 -o /tmp/blender.tar.xz "$BLENDER_URL"
+            mkdir -p /opt/blender
+            tar -xf /tmp/blender.tar.xz -C /opt/blender --strip-components=1
+          fi
+          if ! /opt/blender/blender --version > /tmp/bv.txt 2>&1; then
+            echo "::error::blender --version failed: $(tr '\n' '|' < /tmp/bv.txt | head -c 600)"
+            ldd /opt/blender/blender 2>/dev/null | grep "not found" | while read -r l; do
+              echo "::error::missing shared library:$l"
+            done
+            exit 1
+          fi
+          head -3 /tmp/bv.txt
+
+      - name: Frame range for this shard
+        id: r
+        run: |
+          P="${{ needs.setup.outputs.preset }}"
+          N="${{ needs.setup.outputs.shards }}"
+          I="${{ matrix.shard }}"
+          read -r S E <<< $(python3 -c "
+          total=450; n=$N; i=$I
+          per=-(-total//n)
+          s=i*per+1; e=min(total,(i+1)*per)
+          print(s,e)")
+          echo "start=$S" >> "$GITHUB_OUTPUT"
+          echo "end=$E" >> "$GITHUB_OUTPUT"
+          echo "preset=$P shard=$I/$N frames $S..$E"
+
+      - name: Smoke test (build + 3 frames)
+        if: ${{ matrix.shard == 0 }}
         run: |
           # --python-exit-code: without it Blender exits 0 even when the script throws
           bash blender-film/ci_run.sh "smoke" \
             /opt/blender/blender --background --factory-startup --python-exit-code 1 \
               --python blender-film/scene.py -- \
-              --preset preview --out blender-film/out --smoke 1,90,200,340,445
-          ls -la blender-film/out/smoke/ || true
+              --preset "${{ needs.setup.outputs.preset }}" --out blender-film/out \
+              --smoke "${{ steps.r.outputs.start }},225,${{ steps.r.outputs.end }}"
 
-      - name: Render
+      - name: Render frames ${{ steps.r.outputs.start }}-${{ steps.r.outputs.end }}
         run: |
           bash blender-film/ci_run.sh "render" \
             /opt/blender/blender --background --factory-startup --python-exit-code 1 \
               --python blender-film/scene.py -- \
-              --preset "${{ inputs.preset || 'preview' }}" --out blender-film/out
-          P="${{ inputs.preset || 'preview' }}"
-          echo "frames written: $(ls "blender-film/out/frames_${P}" | wc -l)"
+              --preset "${{ needs.setup.outputs.preset }}" --out blender-film/out \
+              --frame-start "${{ steps.r.outputs.start }}" --frame-end "${{ steps.r.outputs.end }}"
+          P="${{ needs.setup.outputs.preset }}"
+          echo "frames this shard: $(ls "blender-film/out/frames_${P}" | wc -l)"
           du -sh "blender-film/out/frames_${P}"
+
+      - uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: frames-${{ matrix.shard }}
+          retention-days: 3
+          path: |
+            blender-film/out/frames_*/
+            blender-film/out/manifest_*.json
+          if-no-files-found: warn
+          compression-level: 0
+
+  # ---- stitch, encode, gate
+  deliver:
+    needs: [setup, shard, audio]
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: ffmpeg
+        run: |
+          if ! command -v ffmpeg >/dev/null; then
+            sudo apt-get -qq update || true
+            sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq ffmpeg >/dev/null 2>&1 || true
+          fi
+          ffmpeg -version > /tmp/ffv.txt 2>&1; head -1 /tmp/ffv.txt
+
+      - uses: actions/download-artifact@v5
+        with:
+          name: audio
+          path: blender-film/out
+
+      - uses: actions/download-artifact@v5
+        with:
+          pattern: frames-*
+          path: blender-film/out
+          merge-multiple: true
 
       - name: Encode master
         run: |
-          P="${{ inputs.preset || 'preview' }}"
-          ls "blender-film/out/frames_${P}" | head -2
+          P="${{ needs.setup.outputs.preset }}"
+          echo "frames: $(ls blender-film/out/frames_${P} | wc -l)"
           bash blender-film/ci_run.sh "encode" \
           ffmpeg -y -v error -framerate 30 -start_number 1 \
             -i "blender-film/out/frames_${P}/f_%04d.png" \
@@ -171,13 +248,16 @@ jobs:
             -movflags +faststart -shortest \
             "blender-film/out/silicon_${P}.mp4"
           ls -lh "blender-film/out/silicon_${P}.mp4"
-          ffprobe -v error -show_entries format=duration,size,bit_rate \
-            -show_entries stream=codec_name,width,height,r_frame_rate,pix_fmt \
-            -of default=noprint_wrappers=1 "blender-film/out/silicon_${P}.mp4" || true
 
       - name: Gates
         run: |
-          P="${{ inputs.preset || 'preview' }}"
+          P="${{ needs.setup.outputs.preset }}"
+          M="blender-film/out/manifest_${P}.json"
+          if [ ! -f "$M" ]; then
+            echo "::error::no manifest arrived from the shards, so the layout and type gates cannot run"
+            ls -R blender-film/out | head -20
+            exit 1
+          fi
           python3 blender-film/gates.py \
             --video "blender-film/out/silicon_${P}.mp4" \
             --audio blender-film/out/soundtrack.wav \
@@ -187,24 +267,21 @@ jobs:
       - name: Contact sheet
         if: always()
         run: |
-          P="${{ inputs.preset || 'preview' }}"
+          P="${{ needs.setup.outputs.preset }}"
           V="blender-film/out/silicon_${P}.mp4"
           [ -f "$V" ] && ffmpeg -y -v error -i "$V" \
             -vf "fps=1,scale=480:-1,tile=4x4" -frames:v 1 \
             "blender-film/out/contact_${P}.png" || true
-          ls -lh blender-film/out/ || true
+          ls -lh blender-film/out/*.mp4 blender-film/out/*.png 2>/dev/null || true
 
       - uses: actions/upload-artifact@v5
         if: always()
         with:
-          name: silicon-${{ inputs.preset || 'preview' }}
+          name: silicon-${{ needs.setup.outputs.preset }}
           retention-days: 7
           path: |
             blender-film/out/silicon_*.mp4
             blender-film/out/gates_*.json
             blender-film/out/manifest_*.json
             blender-film/out/contact_*.png
-            blender-film/out/vo_times.json
-            blender-film/out/score_stats.json
-            blender-film/out/smoke/*.png
           if-no-files-found: warn
