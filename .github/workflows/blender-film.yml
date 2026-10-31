@@ -259,6 +259,11 @@ jobs:
             "blender-film/out/silicon_${P}.mp4"
           ls -lh "blender-film/out/silicon_${P}.mp4"
 
+      - name: Analysis deps
+        run: |
+          python3 -m pip install --break-system-packages -q numpy 2>&1 | tail -3
+          python3 -c "import numpy; print('numpy', numpy.__version__)"
+
       - name: Gates
         run: |
           P="${{ needs.setup.outputs.preset }}"
