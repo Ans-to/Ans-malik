@@ -90,7 +90,9 @@ def loudness(path):
              "loudnorm=I=-16:TP=-1.0:LRA=11:print_format=json", "-f", "null", "-"])
     err = r.stderr.decode("utf-8", "replace")
     try:
-        block = json.loads(err[err.rindex("{"):])
+        # take the JSON object that follows the loudnorm filter, and nothing after it
+        m = re.search(r"\{\s*\"input_i\".*?\}", err, re.S)
+        block = json.loads(m.group(0))
         return dict(lufs=float(block["input_i"]), tp=float(block["input_tp"]),
                     lra=float(block["input_lra"]), thresh=float(block["input_thresh"]))
     except Exception:
