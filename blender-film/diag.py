@@ -36,6 +36,13 @@ def main() -> int:
     ap.add_argument("--boxes", default="", help="boxes.json written by scene.py --probe-render")
     args = ap.parse_args()
 
+    out_lines: list[str] = []
+
+    def say(msg: str) -> None:
+        # GitHub keeps only a handful of annotations per step, so they are collected and emitted
+        # once at the end instead of one at a time.
+        out_lines.append(msg)
+
     files = sorted(glob.glob(os.path.join(args.frames, "f_*.png")))
     if not files:
         print(f"::warning title={args.label}::no frames in {args.frames}")
@@ -54,12 +61,12 @@ def main() -> int:
                 x0, y0 = max(0, x0), max(0, y0)
                 x1, y1 = min(a.shape[1], x1), min(a.shape[0], y1)
                 if x1 <= x0 or y1 <= y0:
-                    print(f"::notice title={args.label} box::{name} at {frame}: off-frame")
+                    say(f"{name} at {frame}: off-frame")
                     continue
                 patch = a[y0:y1, x0:x1]
-                print(f"::notice title={args.label} box::{name} at {frame}: box {x1 - x0}x{y1 - y0}, "
-                      f"mean {patch.mean():.3f} max {patch.max():.3f} "
-                      f"blown {(patch > 0.90).mean() * 100:.1f}% detail {laplacian(patch):.4f}")
+                say(f"{name} at {frame}: box {x1 - x0}x{y1 - y0}, mean {patch.mean():.3f}, "
+                    f"max {patch.max():.3f}, blown {(patch > 0.90).mean() * 100:.1f}%, "
+                    f"detail {laplacian(patch):.4f}")
     return 0
     with open(args.manifest) as fh:
         man = json.load(fh)
@@ -81,7 +88,7 @@ def main() -> int:
             continue
         f = np.array([full[k] for k in ks])
         b = np.array([band[k] for k in ks])
-        print(f"::notice title={args.label} shot {sh['key']}::{sh['key']}: frames {min(ks)}-{max(ks)}, "
+        say(f"shot {sh['key']}: frames {min(ks)}-{max(ks)}, "
               f"detail med {np.median(f):.4f} p90 {np.percentile(f, 90):.4f} max {f.max():.4f} | "
               f"band med {np.median(b):.4f} max {b.max():.4f} | luma {np.median([luma[k] for k in ks]):.3f}")
 
@@ -93,9 +100,8 @@ def main() -> int:
             ks = [k for k in full if f10 * 3 <= k < f10 * 3 + 36]  # the gate's 12 x 0.1 s window
             if not ks:
                 continue
-            print(f"::notice title={args.label} type {r['body'][:18]}::"
-                  f"'{r['body'][:22]}' frame {r['frame']}: full max {max(full[k] for k in ks):.4f}, "
-                  f"band max {max(band[k] for k in ks):.4f}, window frames {min(ks)}-{max(ks)}")
+            say(f"type '{r['body'][:22]}' frame {r['frame']}: full max "
+                f"{max(full[k] for k in ks):.4f}, band max {max(band[k] for k in ks):.4f}")
     # Inside the words themselves: is the lettering blown out to a smooth blob, or simply absent?
     if args.boxes and os.path.exists(args.boxes):
         with open(args.boxes) as fh:
@@ -111,12 +117,13 @@ def main() -> int:
                 x0, y0 = max(0, x0), max(0, y0)
                 x1, y1 = min(a.shape[1], x1), min(a.shape[0], y1)
                 if x1 <= x0 or y1 <= y0:
-                    print(f"::notice title={args.label} box::{name} at {frame}: off-frame")
+                    say(f"{name} at {frame}: off-frame")
                     continue
                 patch = a[y0:y1, x0:x1]
-                print(f"::notice title={args.label} box::{name} at {frame}: box {x1 - x0}x{y1 - y0}, "
-                      f"mean {patch.mean():.3f} max {patch.max():.3f} "
-                      f"blown {(patch > 0.90).mean() * 100:.1f}% detail {laplacian(patch):.4f}")
+                say(f"{name} at {frame}: box {x1 - x0}x{y1 - y0}, mean {patch.mean():.3f}, "
+                    f"max {patch.max():.3f}, blown {(patch > 0.90).mean() * 100:.1f}%, "
+                    f"detail {laplacian(patch):.4f}")
+    print(f"::notice title={args.label}::" + " | ".join(out_lines)[:6000])
     return 0
 
 
