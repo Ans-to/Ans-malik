@@ -268,11 +268,17 @@ jobs:
             ls -R blender-film/out | head -20
             exit 1
           fi
+          set +e
           python3 blender-film/gates.py \
             --video "blender-film/out/silicon_${P}.mp4" \
             --audio blender-film/out/soundtrack.wav \
-            --manifest "blender-film/out/manifest_${P}.json" \
-            --json "blender-film/out/gates_${P}.json"
+            --manifest "$M" \
+            --json "blender-film/out/gates_${P}.json" > "blender-film/out/gates_${P}.txt" 2>&1
+          rc=$?
+          set -e
+          # Job logs are unreachable from where this is watched; annotations are not.
+          python3 blender-film/report.py --json "blender-film/out/gates_${P}.json" \
+            --log "blender-film/out/gates_${P}.txt" --rc "$rc" --label "gates ${P}"
 
       - name: Contact sheet
         if: always()
