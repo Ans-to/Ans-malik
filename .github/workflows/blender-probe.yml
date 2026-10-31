@@ -54,9 +54,17 @@ jobs:
 
       - name: Probe text placement
         run: |
-          bash blender-film/ci_run.sh "probe" \
-            /opt/blender/blender -b --python-exit-code 1 -P blender-film/scene.py -- \
-            --preset preview --out blender-film/out --probe 200,307,316,385 2>&1 | tee /tmp/probe.log
+          # Not through ci_run.sh: that captures its command's output and prints a six-line tail,
+          # which is exactly the wrong shape when the whole point is to read the report.
+          set +e
+          /opt/blender/blender -b --python-exit-code 1 -P blender-film/scene.py -- \
+            --preset preview --out blender-film/out --probe 200,307,316,385 > /tmp/probe.log 2>&1
+          rc=$?
+          set -e
+          if [ "$rc" -ne 0 ]; then
+            echo "::error::probe failed (exit $rc): $(tail -c 900 /tmp/probe.log | tr '\n' '|')"
+            exit 1
+          fi
           # Job logs are unreachable from where this is watched. GitHub also keeps only the last
           # few annotations per step, so everything goes into exactly one.
           { grep -E "\[probe\] +(frame|D_)" /tmp/probe.log || true; } \
