@@ -10,3 +10,7 @@ gpu-film/out/*.wav.tmp
 
 # deliverables that stay out of git are listed in README (none: the mp4s are
 # committed so the film can actually be downloaded)
+
+# python
+__pycache__/
+*.pyc
