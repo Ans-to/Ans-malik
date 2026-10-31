@@ -40,20 +40,27 @@ jobs:
         shell: bash
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       # Blender links the X11/GL stack even in background mode; without these it exits on load.
+      # Installed one at a time so a renamed package (the t64 transition) cannot kill the job.
       - name: System libraries
         run: |
-          sudo apt-get -qq update
-          sudo DEBIAN_FRONTEND=noninteractive apt-get -qq install -y \
-            libx11-6 libxi6 libxxf86vm1 libxfixes3 libxrender1 libsm6 libice6 \
-            libgl1 libegl1 libgomp1 libxi6 libxkbcommon0
+          grep -E "^(PRETTY_NAME|VERSION_ID)" /etc/os-release || true
+          sudo apt-get -qq update || true
+          for p in libx11-6 libxi6 libxrender1 libxfixes3 libxxf86vm1 libsm6 libice6 libxt6 \
+                   libgl1 libegl1 libgomp1 libxkbcommon0 libx11-xcb1 libxcb1 libegl-mesa0; do
+            if sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq "$p" >/dev/null 2>&1; then
+              echo "ok   $p"
+            else
+              echo "::warning::could not install $p"
+            fi
+          done
           ffmpeg -version | head -1
 
       - name: Cache Blender
         id: blender-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: /opt/blender
           key: blender-${{ env.BLENDER_VERSION }}-linux-x64
@@ -62,16 +69,24 @@ jobs:
         run: |
           if [ ! -x /opt/blender/blender ]; then
             echo "downloading $BLENDER_URL"
-            curl -sSL -o /tmp/blender.tar.xz "$BLENDER_URL"
+            curl -sSL --retry 3 -o /tmp/blender.tar.xz "$BLENDER_URL"
             mkdir -p /opt/blender
             tar -xf /tmp/blender.tar.xz -C /opt/blender --strip-components=1
           fi
-          /opt/blender/blender --version | head -3
+          # Blender must actually start: this is the first place a missing shared library shows up
+          if ! /opt/blender/blender --version > /tmp/bv.txt 2>&1; then
+            echo "::error::blender --version failed: $(tr '\n' '|' < /tmp/bv.txt | head -c 600)"
+            ldd /opt/blender/blender 2>/dev/null | grep "not found" | while read -r l; do
+              echo "::error::missing shared library:$l"
+            done
+            exit 1
+          fi
+          head -3 /tmp/bv.txt
 
       - name: Cache Kokoro model
         if: ${{ inputs.skip_voice != true }}
         id: kokoro-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: /opt/kokoro
           key: kokoro-${{ env.KOKORO_TAG }}
@@ -152,7 +167,7 @@ jobs:
             "blender-film/out/contact_${P}.png" || true
           ls -lh blender-film/out/ || true
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         if: always()
         with:
           name: silicon-${{ inputs.preset || 'preview' }}
