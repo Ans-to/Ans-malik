@@ -140,20 +140,28 @@ jobs:
       # ---- picture
       - name: Smoke test (build + 5 frames)
         run: |
+          # --python-exit-code: without it Blender exits 0 even when the script throws
           bash blender-film/ci_run.sh "smoke" \
-            /opt/blender/blender --background --factory-startup \
+            /opt/blender/blender --background --factory-startup --python-exit-code 1 \
               --python blender-film/scene.py -- \
               --preset preview --out blender-film/out --smoke 1,90,200,340,445
+          ls -la blender-film/out/smoke/ || true
 
       - name: Render
         run: |
-          /opt/blender/blender --background --factory-startup \
-            --python blender-film/scene.py -- \
-            --preset "${{ inputs.preset || 'preview' }}" --out blender-film/out
+          bash blender-film/ci_run.sh "render" \
+            /opt/blender/blender --background --factory-startup --python-exit-code 1 \
+              --python blender-film/scene.py -- \
+              --preset "${{ inputs.preset || 'preview' }}" --out blender-film/out
+          P="${{ inputs.preset || 'preview' }}"
+          echo "frames written: $(ls "blender-film/out/frames_${P}" | wc -l)"
+          du -sh "blender-film/out/frames_${P}"
 
       - name: Encode master
         run: |
           P="${{ inputs.preset || 'preview' }}"
+          ls "blender-film/out/frames_${P}" | head -2
+          bash blender-film/ci_run.sh "encode" \
           ffmpeg -y -v error -framerate 30 -start_number 1 \
             -i "blender-film/out/frames_${P}/f_%04d.png" \
             -i blender-film/out/soundtrack.wav \
