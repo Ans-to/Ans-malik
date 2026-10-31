@@ -110,26 +110,32 @@ jobs:
       - name: Voice-over (Kokoro)
         if: ${{ inputs.skip_voice != true }}
         run: |
-          python3 blender-film/vo.py \
-            --out blender-film/out/vo.wav \
-            --model /opt/kokoro/kokoro-v1.0.onnx \
-            --voices /opt/kokoro/voices-v1.0.bin
+          bash blender-film/ci_run.sh "voiceover" \
+            python3 blender-film/vo.py \
+              --out blender-film/out/vo.wav \
+              --model /opt/kokoro/kokoro-v1.0.onnx \
+              --voices /opt/kokoro/voices-v1.0.bin
+          ls -lh blender-film/out/vo.wav
 
       - name: Score + mix
         run: |
-          python3 blender-film/score.py --vo blender-film/out/vo.wav --out blender-film/out/mix.wav
-          ffmpeg -y -v error -i blender-film/out/mix.wav \
-            -af "loudnorm=I=-16:TP=-1.0:LRA=11" -ar 48000 -ac 2 \
-            blender-film/out/soundtrack.wav
-          ffmpeg -hide_banner -i blender-film/out/soundtrack.wav -af loudnorm=print_format=json \
-            -f null - 2>&1 | tail -12
+          bash blender-film/ci_run.sh "score" \
+            python3 blender-film/score.py --vo blender-film/out/vo.wav --out blender-film/out/mix.wav
+          bash blender-film/ci_run.sh "loudnorm" \
+            ffmpeg -y -v error -i blender-film/out/mix.wav \
+              -af "loudnorm=I=-16:TP=-1.0:LRA=11" -ar 48000 -ac 2 \
+              blender-film/out/soundtrack.wav
+          ffmpeg -hide_banner -i blender-film/out/soundtrack.wav \
+            -af loudnorm=print_format=json -f null - > /tmp/loud.txt 2>&1 || true
+          tail -16 /tmp/loud.txt
 
       # ---- picture
       - name: Smoke test (build + 5 frames)
         run: |
-          /opt/blender/blender --background --factory-startup \
-            --python blender-film/scene.py -- \
-            --preset preview --out blender-film/out --smoke 1,90,200,340,445
+          bash blender-film/ci_run.sh "smoke" \
+            /opt/blender/blender --background --factory-startup \
+              --python blender-film/scene.py -- \
+              --preset preview --out blender-film/out --smoke 1,90,200,340,445
 
       - name: Render
         run: |
