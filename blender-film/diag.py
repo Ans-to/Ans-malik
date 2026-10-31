@@ -27,7 +27,9 @@ import numpy as np
 from PIL import Image
 
 FPS = 30.0
-PREFIXES = ("A_", "B_", "C_", "D_", "E_")
+# the lines of type, not the odometer digits (C_dNN_-635 and friends), which would fill the
+# annotation cap before the shots that matter are reached
+TYPE_NAMES = ("A_type", "B_cap", "C_line", "D_type", "E_letter", "E_tag")
 
 
 def laplacian(gray: np.ndarray) -> float:
@@ -87,13 +89,16 @@ def main() -> int:
     if args.boxes and os.path.exists(args.boxes):
         with open(args.boxes) as fh:
             boxes = json.load(fh)
-        for frame in sorted(boxes, key=int):
+        # shot D first: it is the one in question, and the annotation is capped
+        wanted = sorted(boxes, key=lambda f: (0 if any(n.startswith("D_") for n in boxes[f]) else 1,
+                                              int(f)))
+        for frame in wanted:
             path = os.path.join(args.frames, f"f_{int(frame):04d}.png")
             if not os.path.exists(path):
                 continue
             a = np.asarray(Image.open(path).convert("L"), dtype=np.float32) / 255.0
-            for name, box in boxes[frame].items():
-                if not name.startswith(PREFIXES):
+            for name, box in sorted(boxes[frame].items(), key=lambda kv: (0 if kv[0].startswith("D_") else 1, kv[0])):
+                if not name.startswith(TYPE_NAMES):
                     continue
                 x0, y0, x1, y1 = box
                 x0, y0 = max(0, int(x0)), max(0, int(y0))
@@ -106,6 +111,7 @@ def main() -> int:
                            f"max {patch.max():.3f} blown {(patch > 0.90).mean() * 100:.0f}% "
                            f"detail {laplacian(patch):.4f}")
 
+    # shot/type summary first, then the boxes; the whole thing still has to fit the cap
     print(f"::notice title={args.label}::" + escape(" | ".join(out))[:6000])
     return 0
 
