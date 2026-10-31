@@ -146,6 +146,18 @@ def socket(node, key):
     return None
 
 
+def set_named(node, names, value):
+    """Set the first input socket that exists under any of `names`. Socket names move between
+    Blender releases (Lens Distortion is "Distort" before 3.0 and "Distortion" after), and a hard
+    KeyError at build time costs a whole CI round trip."""
+    for name in names:
+        if name in node.inputs:
+            node.inputs[name].default_value = value
+            return True
+    print(f"[warn] {node.name if hasattr(node, 'name') else node} has none of {names}")
+    return False
+
+
 def material(name, base=None, rough=0.5, metallic=0.0, emis=None, emis_str=0.0, alpha=1.0):
     mat = bpy.data.materials.new(name)
     mat.use_nodes = True
@@ -391,8 +403,9 @@ def build_compositor(scene):
     glare.size = 8
     glare.mix = -0.88
     lens = nt.nodes.new("CompositorNodeLensdist")
-    lens.inputs["Distort"].default_value = 0.004
-    lens.inputs["Dispersion"].default_value = 0.010
+    # the socket is "Distort" in old releases and "Distortion" from 3.0 on; never index by one name
+    set_named(lens, ("Distortion", "Distort"), 0.004)
+    set_named(lens, ("Dispersion",), 0.010)
 
     mask = nt.nodes.new("CompositorNodeEllipseMask")
     mask.mask_width = 0.92
