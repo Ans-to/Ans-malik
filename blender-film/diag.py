@@ -113,6 +113,12 @@ def main() -> int:
                     continue
                 patch = a[y0:y1, x0:x1]
                 lap = lap_abs(patch)
+                # the gate will measure at a fixed 480x270, so report the number it will see
+                small = np.asarray(Image.fromarray((patch * 255).astype(np.uint8)).resize(
+                    (max(4, (x1 - x0) // 2), max(4, (y1 - y0) // 2)), Image.BILINEAR),
+                    dtype=np.float32) / 255.0
+                lap_half = lap_abs(small)
+                out.append(f"{name} f{frame}@half: p99 {np.percentile(lap_half, 99):.3f}")
                 out.append(f"{name} f{frame}: {x1 - x0}x{y1 - y0}px mean {patch.mean():.3f} "
                            f"max {patch.max():.3f} blown {(patch > 0.90).mean() * 100:.0f}% "
                            f"detail {lap.mean():.4f} p99 {np.percentile(lap, 99):.3f} "
