@@ -14,3 +14,8 @@ gpu-film/out/*.wav.tmp
 # python
 __pycache__/
 *.pyc
+
+# blender film: frames and intermediate audio are regenerable; the deliverables are committed
+blender-film/out/frames_*/
+blender-film/out/smoke/
+blender-film/out/*.wav

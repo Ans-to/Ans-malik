@@ -1,0 +1,168 @@
+name: blender-film
+
+# Renders SILICON (15 s) on a GitHub-hosted runner: Blender headless for picture, Kokoro for the
+# voice-over, a synthesised score, then an ffmpeg master and an objective gate pass on the result.
+#
+#   gh workflow run blender-film -f preset=preview     # 540p / 12 spp, ~12 min, for looking at
+#   gh workflow run blender-film -f preset=final       # 1080p / 64 spp, ~45 min, for delivery
+
+on:
+  workflow_dispatch:
+    inputs:
+      preset:
+        description: "Render preset"
+        type: choice
+        options: [preview, final]
+        default: preview
+      skip_voice:
+        description: "Skip Kokoro (tests the pipeline without the model download)"
+        type: boolean
+        default: false
+  push:
+    paths:
+      - "blender-film/**"
+      - ".github/workflows/blender-film.yml"
+
+permissions:
+  contents: read
+
+env:
+  BLENDER_VERSION: "4.2.19"
+  BLENDER_URL: "https://download.blender.org/release/Blender4.2/blender-4.2.19-linux-x64.tar.xz"
+  KOKORO_TAG: "model-files-v1.0"
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Blender links the X11/GL stack even in background mode; without these it exits on load.
+      - name: System libraries
+        run: |
+          sudo apt-get -qq update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get -qq install -y \
+            libx11-6 libxi6 libxxf86vm1 libxfixes3 libxrender1 libsm6 libice6 \
+            libgl1 libegl1 libgomp1 libxi6 libxkbcommon0
+          ffmpeg -version | head -1
+
+      - name: Cache Blender
+        id: blender-cache
+        uses: actions/cache@v4
+        with:
+          path: /opt/blender
+          key: blender-${{ env.BLENDER_VERSION }}-linux-x64
+
+      - name: Install Blender
+        run: |
+          if [ ! -x /opt/blender/blender ]; then
+            echo "downloading $BLENDER_URL"
+            curl -sSL -o /tmp/blender.tar.xz "$BLENDER_URL"
+            mkdir -p /opt/blender
+            tar -xf /tmp/blender.tar.xz -C /opt/blender --strip-components=1
+          fi
+          /opt/blender/blender --version | head -3
+
+      - name: Cache Kokoro model
+        if: ${{ inputs.skip_voice != true }}
+        id: kokoro-cache
+        uses: actions/cache@v4
+        with:
+          path: /opt/kokoro
+          key: kokoro-${{ env.KOKORO_TAG }}
+
+      - name: Fetch Kokoro weights
+        if: ${{ inputs.skip_voice != true }}
+        run: |
+          mkdir -p /opt/kokoro
+          base="https://github.com/thewh1teagle/kokoro-onnx/releases/download/$KOKORO_TAG"
+          [ -s /opt/kokoro/kokoro-v1.0.onnx ] || curl -sSL --retry 3 -o /opt/kokoro/kokoro-v1.0.onnx "$base/kokoro-v1.0.onnx"
+          [ -s /opt/kokoro/voices-v1.0.bin ] || curl -sSL --retry 3 -o /opt/kokoro/voices-v1.0.bin "$base/voices-v1.0.bin"
+          ls -lh /opt/kokoro
+          python3 -m pip -q install numpy kokoro-onnx
+
+      # ---- audio first: it is cheap, and the picture is timed to it
+      - name: Voice-over (Kokoro)
+        if: ${{ inputs.skip_voice != true }}
+        run: |
+          python3 blender-film/vo.py \
+            --out blender-film/out/vo.wav \
+            --model /opt/kokoro/kokoro-v1.0.onnx \
+            --voices /opt/kokoro/voices-v1.0.bin
+
+      - name: Score + mix
+        run: |
+          python3 blender-film/score.py --vo blender-film/out/vo.wav --out blender-film/out/mix.wav
+          ffmpeg -y -v error -i blender-film/out/mix.wav \
+            -af "loudnorm=I=-16:TP=-1.0:LRA=11" -ar 48000 -ac 2 \
+            blender-film/out/soundtrack.wav
+          ffmpeg -hide_banner -i blender-film/out/soundtrack.wav -af loudnorm=print_format=json \
+            -f null - 2>&1 | tail -12
+
+      # ---- picture
+      - name: Smoke test (build + 5 frames)
+        run: |
+          /opt/blender/blender --background --factory-startup \
+            --python blender-film/scene.py -- \
+            --preset preview --out blender-film/out --smoke 1,90,200,340,445
+
+      - name: Render
+        run: |
+          /opt/blender/blender --background --factory-startup \
+            --python blender-film/scene.py -- \
+            --preset "${{ inputs.preset || 'preview' }}" --out blender-film/out
+
+      - name: Encode master
+        run: |
+          P="${{ inputs.preset || 'preview' }}"
+          ffmpeg -y -v error -framerate 30 -start_number 1 \
+            -i "blender-film/out/frames_${P}/f_%04d.png" \
+            -i blender-film/out/soundtrack.wav \
+            -c:v libx264 -preset slow -crf 18 -pix_fmt yuv420p -profile:v high \
+            -x264-params "aq-mode=3:deblock=-1,-1" \
+            -c:a aac -b:a 256k -ar 48000 \
+            -movflags +faststart -shortest \
+            "blender-film/out/silicon_${P}.mp4"
+          ls -lh "blender-film/out/silicon_${P}.mp4"
+          ffprobe -v error -show_entries format=duration,size,bit_rate \
+            -show_entries stream=codec_name,width,height,r_frame_rate,pix_fmt \
+            -of default=noprint_wrappers=1 "blender-film/out/silicon_${P}.mp4" || true
+
+      - name: Gates
+        run: |
+          P="${{ inputs.preset || 'preview' }}"
+          python3 blender-film/gates.py \
+            --video "blender-film/out/silicon_${P}.mp4" \
+            --audio blender-film/out/soundtrack.wav \
+            --manifest "blender-film/out/manifest_${P}.json" \
+            --json "blender-film/out/gates_${P}.json"
+
+      - name: Contact sheet
+        if: always()
+        run: |
+          P="${{ inputs.preset || 'preview' }}"
+          V="blender-film/out/silicon_${P}.mp4"
+          [ -f "$V" ] && ffmpeg -y -v error -i "$V" \
+            -vf "fps=1,scale=480:-1,tile=4x4" -frames:v 1 \
+            "blender-film/out/contact_${P}.png" || true
+          ls -lh blender-film/out/ || true
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: silicon-${{ inputs.preset || 'preview' }}
+          retention-days: 7
+          path: |
+            blender-film/out/silicon_*.mp4
+            blender-film/out/gates_*.json
+            blender-film/out/manifest_*.json
+            blender-film/out/contact_*.png
+            blender-film/out/vo_times.json
+            blender-film/out/score_stats.json
+            blender-film/out/smoke/*.png
+          if-no-files-found: warn
