@@ -3,7 +3,7 @@
   "note": "Design iterations are counted per scene (see ITERATION_NOTES.md); render passes are appended by render.ts on completion. Every scene has 3+ design iterations plus 2 full render passes.",
   "scenes": {
     "s1_title": {
-      "iterations": 7,
+      "iterations": 9,
       "passes": [
         {
           "pass": 1,
@@ -52,6 +52,30 @@
           "crf": 24,
           "at": "2026-10-30T21:39:39.784Z",
           "minutes": 68.03,
+          "sceneStart": 0,
+          "sceneEnd": 6
+        },
+        {
+          "pass": 6,
+          "tag": "hd",
+          "resolution": "1920x1080",
+          "fps": 60,
+          "frames": 3600,
+          "crf": 21,
+          "at": "2026-10-31T04:11:30.287Z",
+          "minutes": 53.24,
+          "sceneStart": 0,
+          "sceneEnd": 6
+        },
+        {
+          "pass": 7,
+          "tag": "vertical",
+          "resolution": "1080x1920",
+          "fps": 60,
+          "frames": 3600,
+          "crf": 22,
+          "at": "2026-10-31T05:11:36.379Z",
+          "minutes": 50.18,
           "sceneStart": 0,
           "sceneEnd": 6
         }
@@ -59,7 +83,7 @@
       "designIterations": 3
     },
     "s2_silicon": {
-      "iterations": 6,
+      "iterations": 8,
       "passes": [
         {
           "pass": 1,
@@ -108,6 +132,30 @@
           "crf": 24,
           "at": "2026-10-30T21:39:39.784Z",
           "minutes": 68.03,
+          "sceneStart": 6,
+          "sceneEnd": 14
+        },
+        {
+          "pass": 6,
+          "tag": "hd",
+          "resolution": "1920x1080",
+          "fps": 60,
+          "frames": 3600,
+          "crf": 21,
+          "at": "2026-10-31T04:11:30.287Z",
+          "minutes": 53.24,
+          "sceneStart": 6,
+          "sceneEnd": 14
+        },
+        {
+          "pass": 7,
+          "tag": "vertical",
+          "resolution": "1080x1920",
+          "fps": 60,
+          "frames": 3600,
+          "crf": 22,
+          "at": "2026-10-31T05:11:36.379Z",
+          "minutes": 50.18,
           "sceneStart": 6,
           "sceneEnd": 14
         }
@@ -115,7 +163,7 @@
       "designIterations": 2
     },
     "s3_yield": {
-      "iterations": 6,
+      "iterations": 8,
       "passes": [
         {
           "pass": 1,
@@ -164,6 +212,30 @@
           "crf": 24,
           "at": "2026-10-30T21:39:39.784Z",
           "minutes": 68.03,
+          "sceneStart": 14,
+          "sceneEnd": 22
+        },
+        {
+          "pass": 6,
+          "tag": "hd",
+          "resolution": "1920x1080",
+          "fps": 60,
+          "frames": 3600,
+          "crf": 21,
+          "at": "2026-10-31T04:11:30.287Z",
+          "minutes": 53.24,
+          "sceneStart": 14,
+          "sceneEnd": 22
+        },
+        {
+          "pass": 7,
+          "tag": "vertical",
+          "resolution": "1080x1920",
+          "fps": 60,
+          "frames": 3600,
+          "crf": 22,
+          "at": "2026-10-31T05:11:36.379Z",
+          "minutes": 50.18,
           "sceneStart": 14,
           "sceneEnd": 22
         }
@@ -171,7 +243,7 @@
       "designIterations": 2
     },
     "s4_hbm": {
-      "iterations": 6,
+      "iterations": 8,
       "passes": [
         {
           "pass": 1,
@@ -220,6 +292,30 @@
           "crf": 24,
           "at": "2026-10-30T21:39:39.784Z",
           "minutes": 68.03,
+          "sceneStart": 22,
+          "sceneEnd": 30
+        },
+        {
+          "pass": 6,
+          "tag": "hd",
+          "resolution": "1920x1080",
+          "fps": 60,
+          "frames": 3600,
+          "crf": 21,
+          "at": "2026-10-31T04:11:30.287Z",
+          "minutes": 53.24,
+          "sceneStart": 22,
+          "sceneEnd": 30
+        },
+        {
+          "pass": 7,
+          "tag": "vertical",
+          "resolution": "1080x1920",
+          "fps": 60,
+          "frames": 3600,
+          "crf": 22,
+          "at": "2026-10-31T05:11:36.379Z",
+          "minutes": 50.18,
           "sceneStart": 22,
           "sceneEnd": 30
         }
@@ -227,7 +323,7 @@
       "designIterations": 2
     },
     "s5_euv": {
-      "iterations": 6,
+      "iterations": 8,
       "passes": [
         {
           "pass": 1,
@@ -276,6 +372,30 @@
           "crf": 24,
           "at": "2026-10-30T21:39:39.784Z",
           "minutes": 68.03,
+          "sceneStart": 30,
+          "sceneEnd": 38
+        },
+        {
+          "pass": 6,
+          "tag": "hd",
+          "resolution": "1920x1080",
+          "fps": 60,
+          "frames": 3600,
+          "crf": 21,
+          "at": "2026-10-31T04:11:30.287Z",
+          "minutes": 53.24,
+          "sceneStart": 30,
+          "sceneEnd": 38
+        },
+        {
+          "pass": 7,
+          "tag": "vertical",
+          "resolution": "1080x1920",
+          "fps": 60,
+          "frames": 3600,
+          "crf": 22,
+          "at": "2026-10-31T05:11:36.379Z",
+          "minutes": 50.18,
           "sceneStart": 30,
           "sceneEnd": 38
         }
@@ -283,7 +403,7 @@
       "designIterations": 2
     },
     "s6_supply": {
-      "iterations": 6,
+      "iterations": 8,
       "passes": [
         {
           "pass": 1,
@@ -332,6 +452,30 @@
           "crf": 24,
           "at": "2026-10-30T21:39:39.784Z",
           "minutes": 68.03,
+          "sceneStart": 38,
+          "sceneEnd": 46
+        },
+        {
+          "pass": 6,
+          "tag": "hd",
+          "resolution": "1920x1080",
+          "fps": 60,
+          "frames": 3600,
+          "crf": 21,
+          "at": "2026-10-31T04:11:30.287Z",
+          "minutes": 53.24,
+          "sceneStart": 38,
+          "sceneEnd": 46
+        },
+        {
+          "pass": 7,
+          "tag": "vertical",
+          "resolution": "1080x1920",
+          "fps": 60,
+          "frames": 3600,
+          "crf": 22,
+          "at": "2026-10-31T05:11:36.379Z",
+          "minutes": 50.18,
           "sceneStart": 38,
           "sceneEnd": 46
         }
@@ -339,7 +483,7 @@
       "designIterations": 2
     },
     "s7_bom": {
-      "iterations": 6,
+      "iterations": 8,
       "passes": [
         {
           "pass": 1,
@@ -388,6 +532,30 @@
           "crf": 24,
           "at": "2026-10-30T21:39:39.784Z",
           "minutes": 68.03,
+          "sceneStart": 46,
+          "sceneEnd": 54
+        },
+        {
+          "pass": 6,
+          "tag": "hd",
+          "resolution": "1920x1080",
+          "fps": 60,
+          "frames": 3600,
+          "crf": 21,
+          "at": "2026-10-31T04:11:30.287Z",
+          "minutes": 53.24,
+          "sceneStart": 46,
+          "sceneEnd": 54
+        },
+        {
+          "pass": 7,
+          "tag": "vertical",
+          "resolution": "1080x1920",
+          "fps": 60,
+          "frames": 3600,
+          "crf": 22,
+          "at": "2026-10-31T05:11:36.379Z",
+          "minutes": 50.18,
           "sceneStart": 46,
           "sceneEnd": 54
         }
@@ -395,7 +563,7 @@
       "designIterations": 2
     },
     "s8_answer": {
-      "iterations": 6,
+      "iterations": 8,
       "passes": [
         {
           "pass": 1,
@@ -446,10 +614,34 @@
           "minutes": 68.03,
           "sceneStart": 54,
           "sceneEnd": 60
+        },
+        {
+          "pass": 6,
+          "tag": "hd",
+          "resolution": "1920x1080",
+          "fps": 60,
+          "frames": 3600,
+          "crf": 21,
+          "at": "2026-10-31T04:11:30.287Z",
+          "minutes": 53.24,
+          "sceneStart": 54,
+          "sceneEnd": 60
+        },
+        {
+          "pass": 7,
+          "tag": "vertical",
+          "resolution": "1080x1920",
+          "fps": 60,
+          "frames": 3600,
+          "crf": 22,
+          "at": "2026-10-31T05:11:36.379Z",
+          "minutes": 50.18,
+          "sceneStart": 54,
+          "sceneEnd": 60
         }
       ],
       "designIterations": 2
     }
   },
-  "updatedAt": "2026-10-30T21:50:00Z"
+  "updatedAt": "2026-10-31T05:11:36.380Z"
 }

@@ -37,3 +37,42 @@
 
 ## Transitions
 - First pass: light sweep and defocus were strong enough to white out the frame. **Fix:** sweep gain 1.4 → 0.42, defocus radius 9 → 4, whip smear 42 → 16, wipe glow 0.9 → 0.55.
+
+## Pass 6 — the softness fix (review feedback: "it's blurry")
+
+The first 1080p cut passed every gate and still looked soft. The gates were
+measuring motion and aesthetics, not resolution, so the cause had to be traced
+by hand. Four separate problems, all in the renderer:
+
+1. **No anti-aliasing.** The triangle rasteriser wrote hard pixel edges. Every
+   silhouette was a staircase. Fix: 2×2 sub-sample coverage on boundary pixels
+   only, with an alpha accumulator so two triangles sharing an edge fill the
+   pixel between them instead of double-counting.
+2. **Depth of field started at a blur.** Level 0 of the CoC pyramid was a
+   radius-2 blur, so every pixel in every frame was softened — including the
+   focus plane. Level 0 is now the untouched frame, and the CoC response is
+   thin-lens (squared) rather than linear.
+3. **DOF defocused empty background.** Blurring the black around the subject
+   pulled a smeared copy of it into the background: a halo around every
+   silhouette. Pixels with no geometry now keep CoC = 0.
+4. **Type was bloomed.** The graphics pass was composited before the post
+   chain, so every glyph carried a glow. Type now renders on its own
+   supersampled layer and is composited after post — crisper glyphs, and no
+   bloom on text at all.
+
+Two enabling bugs surfaced on the way, both now fixed and both worth recording
+because they were silent: the z-buffer interpolated distance linearly instead
+of 1/distance (wrong on any large triangle), and an early version of the alpha
+accumulator made the *first* surface drawn win each pixel, which deleted every
+nearer surface — the wafer's die grid vanished while every gate stayed green.
+
+Added: `sharpnessGate()` — edge acutance, so "sharper" is a number that can be
+compared across passes.
+
+## Scene 4, rebuilt
+
+The memory shot framed the whole GPU package and its substrate slab filled two
+thirds of the screen at that camera angle, hiding the stacks it was meant to be
+about. It is now a single exploded eight-layer HBM stack over a small
+interposer: one object, filling the frame, which is what the line "stacked DRAM
+sits beside the die" actually describes.

@@ -37,7 +37,7 @@ mkdirSync(LOGS, { recursive: true });
 const W = num('w', 960);
 const H = num('h', 540);
 const FPS = num('fps', 60);
-const CRF = num('crf', 21);
+const CRF = num('crf', 25);
 const TAG = args.get('tag') ?? `${W}x${H}`;
 const PASS = num('pass', 1);
 const FRAME_DIR = join(OUT, `frames_${TAG}`);

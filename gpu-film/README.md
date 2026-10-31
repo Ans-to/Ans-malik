@@ -30,17 +30,40 @@ bloom, aberration, grain and scrim).
 
 ---
 
-## Gate results — pass 3 (1920×1080, final delivery)
+## Gate results — pass 6 (1920×1080, final delivery)
 
 Measured on `explainer_1080p.mp4`, not asserted:
 
 | Gate | Rule | Measured | Result |
 |---|---|---|---|
-| Slideshow (H.9) | static fraction ≤ 0.18 · longest static run ≤ 24 f · median Δ ≥ 0.0015 | **0.000 · 0 f · 0.003663** over 1 799 sampled frames | **PASS** |
+| Slideshow (H.9) | static fraction ≤ 0.18 · longest static run ≤ 24 f · median Δ ≥ 0.0015 | **0.000 · 0 f · 0.003345** over 1 799 sampled frames | **PASS** |
 | Freeze (H.20) | `freezedetect=n=0.001:d=0.4` → ≤ 2 hits | **0 freezes** | **PASS** |
 | Transition audit (H.16) | ≥ 5 distinct types · no type > 45 % | **7 types · max share 14.3 %** | **PASS** |
-| Aesthetic (F) | gap > 0.08 · fail share ≤ 20 % | **premium 0.798 · slop 0.017 · gap 0.781 · fail share 3.3 %** (30 frames) | **PASS** (proxy) |
+| Aesthetic (F) | gap > 0.08 · fail share ≤ 20 % | **premium 0.861 · slop 0.000 · gap 0.861 · fail share 0 %** | **PASS** (proxy) |
 | Audio (H.18) | mean −30…−12 dB · peak < −0.5 dB | **mean −14.3 dB · peak −1.0 dB** | **PASS** |
+| Sharpness | edge acutance at 480 px ≥ 0.055 | **1.277** (was 1.155 → **+10.5 %** on identical content) | **PASS** |
+
+### What was actually wrong with the first cut
+
+The first 1080p delivery passed every gate and still read as soft. Traced to
+four renderer bugs, not to the delivery settings:
+
+1. **No anti-aliasing** in the triangle rasteriser — every silhouette was a
+   staircase.
+2. **Depth of field started at a radius-2 blur**, so the entire frame was
+   softened, focus plane included.
+3. **DOF also defocused empty background**, smearing a copy of the subject
+   around every silhouette: a halo on every edge.
+4. **Type was composited before bloom**, so every glyph carried a glow.
+
+Fixed by: 2×2 sub-sample coverage AA with alpha accumulation on silhouettes; a
+z-buffer that interpolates 1/distance; DOF whose level 0 is the untouched frame,
+with a thin-lens (squared) falloff, graded blending and no defocus of empty
+background; and type on its own **2× supersampled layer composited after post**,
+never bloomed. Edge acutance on identical content: **1.155 → 1.277 (+10.5 %)**.
+
+Because "sharp" is now a gate, a regression of any of those four shows up as a
+number rather than as a note in review.
 
 The aesthetic gate is a **documented proxy**: OpenCLIP `ViT-B-32 / laion2b_s34b_b79k`
 lives on `huggingface.co`, which this sandbox cannot reach. Every result is
