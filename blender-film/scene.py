@@ -949,6 +949,36 @@ def build(preset, out_dir):
         for (body, off, cap) in rows:
             type_rows.append(dict(shot=key, body=body, frame=start + off, cap_frac=cap))
 
+    # ---- project each line of type to a screen box, so the gates can measure the words themselves
+    # rather than the whole frame. A frame-wide edge metric cannot tell a blurred word from a
+    # deliberately sparse shot, which is exactly how shot D failed three times in a row.
+    from bpy_extras.object_utils import world_to_camera_view
+
+    res_x, res_y = cfg["width"], cfg["height"]
+    seen = {"A": 0, "C": 0, "D": 0}
+    for row in type_rows:
+        key = row["shot"]
+        if key == "B":
+            name = "B_cap"
+        else:
+            name = {"A": "A_type{}", "C": "C_line{}", "D": "D_type{}"}[key].format(seen[key])
+            seen[key] += 1
+        ob = scene.objects.get(name)
+        if ob is None:
+            print(f"[scene] WARNING no object {name} for type row '{row['body']}'")
+            row["box"] = None
+            continue
+        scene.frame_set(row["frame"])
+        bpy.context.view_layer.update()
+        dg = bpy.context.evaluated_depsgraph_get()
+        eo = ob.evaluated_get(dg)
+        pts = [world_to_camera_view(scene, scene.camera, eo.matrix_world @ Vector(c))
+               for c in eo.bound_box]
+        xs, ys = [p.x for p in pts], [p.y for p in pts]
+        row["box"] = [round(min(xs), 4), round(1.0 - max(ys), 4),
+                      round(max(xs), 4), round(1.0 - min(ys), 4)]
+    scene.frame_set(1)
+
     manifest = dict(
         preset=preset,
         frames=FC.FRAMES,

@@ -222,20 +222,43 @@ def main():
                         float(cool.mean()) * 100 <= 1.5,
                         "the rejected look was neon-on-navy: keep it out"))
 
-    # ---- typography resolved (crisp detail spikes inside the type windows)
-    edges = np.array([edge_energy(frames[i].mean(axis=-1)) for i in range(len(frames))])
+    # ---- typography resolved: hard edges inside each line's own box
+    #
+    # This used to rank whole-frame edge energy across the film, which conflates two unrelated
+    # things: whether the words are sharp, and how busy the shot around them is. Shot D is a sparse
+    # dark field of defocused slabs; its lettering measured 0.062 inside the word box -- sharper
+    # than shot C's 0.043 -- while the frame-wide metric put it at the 48th percentile and failed it
+    # three times. The manifest now carries each line's projected screen box, and the measurement is
+    # the 99th percentile of the Laplacian inside that box, decoded at a fixed 480x270 so the
+    # threshold means the same thing at preview and final resolution.
+    TYPE_W, TYPE_H = 480, 270
+    hi_res = decode_video(args.video, fps=10, w=TYPE_W, h=TYPE_H)
     type_hits = []
     for row in man.get("type", []):
-        f10 = max(0, int(round((row["frame"] - 1) / float(FC.FPS) * 10)))
-        win = edges[f10:min(len(edges), f10 + 12)]
-        if len(win) == 0:
+        box = row.get("box")
+        if not box:
+            type_hits.append(dict(text=row["body"], edge=0.0, pass_=False,
+                                  detail="no screen box in the manifest"))
             continue
-        best = float(win.max())
-        pct = float((edges < best).mean())
-        type_hits.append(dict(text=row["body"], percentile=round(pct, 3), pass_=pct >= 0.72))
-    results.append(gate("type_resolved", [t["percentile"] for t in type_hits],
+        x0 = max(0, int(round(box[0] * TYPE_W)))
+        y0 = max(0, int(round(box[1] * TYPE_H)))
+        x1 = min(TYPE_W, int(round(box[2] * TYPE_W)))
+        y1 = min(TYPE_H, int(round(box[3] * TYPE_H)))
+        if x1 - x0 < 4 or y1 - y0 < 4:
+            type_hits.append(dict(text=row["body"], edge=0.0, pass_=False,
+                                  detail="box smaller than 4 px"))
+            continue
+        f10 = max(0, int(round((row["frame"] - 1) / float(FC.FPS) * 10)))
+        best = 0.0
+        for i in range(f10, min(len(hi_res), f10 + 12)):
+            g = hi_res[i, y0:y1, x0:x1].mean(axis=-1)
+            lap = np.abs(g[:-2, 1:-1] + g[2:, 1:-1] + g[1:-1, :-2] + g[1:-1, 2:]
+                         - 4.0 * g[1:-1, 1:-1])
+            best = max(best, float(np.percentile(lap, 99)))
+        type_hits.append(dict(text=row["body"], edge=round(best, 3), pass_=best >= 0.15))
+    results.append(gate("type_resolved", [t["edge"] for t in type_hits],
                         bool(type_hits) and all(t["pass_"] for t in type_hits),
-                        "each text line produces frames in the sharpest third"))
+                        "each line hard-edged inside its own box (p99 >= 0.15)"))
 
     # ---- audio
     results.append(gate("lufs", loud["lufs"], loud["lufs"] is not None
