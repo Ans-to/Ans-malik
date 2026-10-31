@@ -48,19 +48,27 @@ jobs:
         run: |
           grep -E "^(PRETTY_NAME|VERSION_ID)" /etc/os-release || true
           sudo apt-get -qq update || true
-          for p in libx11-6 libxi6 libxrender1 libxfixes3 libxxf86vm1 libsm6 libice6 libxt6 \
-                   libgl1 libegl1 libgomp1 libxkbcommon0 libx11-xcb1 libxcb1 libegl-mesa0; do
+          for p in ffmpeg libx11-6 libxi6 libxrender1 libxfixes3 libxxf86vm1 libsm6 libice6 libxt6 \
+                   libgl1 libegl1 libgomp1 libxkbcommon0 libx11-xcb1 libxcb1; do
             if sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq "$p" >/dev/null 2>&1; then
               echo "ok   $p"
             else
               echo "::warning::could not install $p"
             fi
           done
-          # `| head` under the runner's pipefail kills the step with SIGPIPE 141
+          # the runner image does not ship ffmpeg; apt is preferred, a static build is the fallback
+          if ! command -v ffmpeg >/dev/null; then
+            echo "apt had no ffmpeg, fetching a static build"
+            curl -sSL --retry 3 -o /tmp/ff.tar.xz \
+              https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz
+            mkdir -p /tmp/ffstatic && tar -xf /tmp/ff.tar.xz -C /tmp/ffstatic --strip-components=1
+            sudo cp /tmp/ffstatic/ffmpeg /tmp/ffstatic/ffprobe /usr/local/bin/
+          fi
           if command -v ffmpeg >/dev/null; then
             ffmpeg -version > /tmp/ffv.txt 2>&1; head -1 /tmp/ffv.txt
+            ffprobe -version > /tmp/fpv.txt 2>&1; head -1 /tmp/fpv.txt
           else
-            echo "::error::ffmpeg is not present on this runner image"
+            echo "::error::ffmpeg could not be installed"; exit 1
           fi
 
       - name: Cache Blender
