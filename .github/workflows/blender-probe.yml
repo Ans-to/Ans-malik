@@ -58,7 +58,9 @@ jobs:
             /opt/blender/blender -b --python-exit-code 1 -P blender-film/scene.py -- \
             --preset preview --out blender-film/out --probe 200,307,316,385 2>&1 | tee /tmp/probe.log
           # Job logs are unreachable from where this is watched, so the lines that matter become
-          # annotations. GitHub caps these per step, hence the tail of the list, not the head.
-          grep "\[probe\]" /tmp/probe.log | tail -28 | while IFS= read -r line; do
-            echo "::notice title=probe::$(echo "$line" | tr -d '[]' | sed 's/^probe *//')"
-          done
+          # annotations. GitHub caps those per step, so it is one annotation per probed frame.
+          awk '/\[probe\] frame/ { if (b != "") print b; gsub(/\[probe\] +/, ""); b = $0; next }
+               /\[probe\]/ { gsub(/\[probe\] +/, ""); b = b " ; " $0 }
+               END { if (b != "") print b }' /tmp/probe.log | cut -c1-1200 > /tmp/probe_ann.txt
+          wc -l /tmp/probe_ann.txt
+          while IFS= read -r line; do echo "::notice title=probe::$line"; done < /tmp/probe_ann.txt
