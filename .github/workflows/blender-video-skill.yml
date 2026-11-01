@@ -16,6 +16,7 @@ on:
 
 permissions:
   contents: read
+  statuses: write   # publish render metrics where an API client can read them
 
 concurrency:
   group: blender-video-${{ github.ref }}
@@ -144,8 +145,12 @@ jobs:
           rep = json.loads(subprocess.run(
               [sys.executable, "hermes-workbench/skills/blender-video/scripts/qa_check.py",
                "--check-frame", sys.argv[1]], capture_output=True, text=True).stdout)
+          import json, os
           assert rep["ok"], rep
           assert rep["width"] >= 640 and rep["height"] >= 360, rep
+          json.dump({"pw": rep["width"], "ph": rep["height"], "pbytes": rep["bytes"],
+                     "bpp": rep["bytes_per_pixel"]},
+                    open(os.path.join(os.environ["RUNNER_TEMP"], "preview_stats.json"), "w"))
           print(f"frame {rep['width']}x{rep['height']} {rep['bytes']} bytes, bpp={rep['bytes_per_pixel']}")
           PY
 
@@ -168,7 +173,28 @@ jobs:
           assert m["resolution"] == [320, 180], m
           assert m["engine"] == "CYCLES", m
           print(f"mp4 {size} bytes | frames={m['frames']} fps={m['fps']} {m['resolution']}")
+          prev = json.load(open(os.path.join(os.environ["RUNNER_TEMP"], "preview_stats.json")))
+          line = (f"OK preview {prev['pw']}x{prev['ph']} {prev['pbytes']//1024}KB bpp{prev['bpp']} | "
+                  f"mp4 {size}B {m['frames']}f {m['fps']}fps {m['resolution'][0]}x{m['resolution'][1]}")
+          open(os.path.join(os.environ["RUNNER_TEMP"], "metrics.txt"), "w").write(line[:140])
+          print("METRICS " + line)
           PY
+
+      - name: Publish metrics (commit status)
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          DESC="failed - see job log"
+          if [ -f "$RUNNER_TEMP/metrics.txt" ]; then DESC=$(cat "$RUNNER_TEMP/metrics.txt"); fi
+          STATE=failure
+          if [ "${{ job.status }}" = "success" ] && [ -f "$RUNNER_TEMP/metrics.txt" ]; then STATE=success; fi
+          echo "state=$STATE desc=$DESC"
+          gh api -X POST "repos/${{ github.repository }}/statuses/${{ github.sha }}" \
+            -f state="$STATE" \
+            -f context="blender-video/renders" \
+            -f description="$DESC" > /dev/null
 
       - name: Summary
         if: always()
