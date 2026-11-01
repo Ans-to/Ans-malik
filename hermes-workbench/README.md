@@ -270,3 +270,32 @@ Two things the first CI attempt caught that local runs had not:
    than assert a green tick with no numbers, the workflow publishes dimensions,
    byte counts and duration to an API-readable surface. That pattern generalises:
    in a locked-down environment, make CI the reporting channel, not just the gate.
+
+---
+
+# 4. Renders
+
+| File | What |
+|---|---|
+| `renders/donut_turntable_960x540_3s.mp4` | **hero demo** — Cycles CPU, 72 frames, 960×540, 24 fps, 3.00 s, 16 samples, denoised, H.264 High ~504 kb/s |
+| `renders/donut_turntable_960x540_3s.manifest.json` | the manifest the script writes for QA |
+| `renders/sample_studio_suzanne.png` | 640×360 preview still, studio look |
+| `renders/sample_tech_cube.mp4` | 1 s preview-tier loop, tech look (the CI parity render) |
+
+Rendered with:
+
+```bash
+python hermes-workbench/skills/blender-video/templates/turntable.py -- \
+  --subject torus --look studio --seconds 3 --fps 24 \
+  --width 960 --height 540 --samples 16 --out renders/donut.mp4
+```
+
+Verified with `ffmpeg -i`: `Duration 00:00:03.00`, `h264 (High) ... 960x540, 24 fps`,
+and a decoded mid-frame inspected for banding/noise.
+
+Download:
+`https://github.com/Ans-to/Ans-malik/raw/arena/722a4af3-ans-malik/hermes-workbench/renders/donut_turntable_960x540_3s.mp4`
+
+> Release assets are not usable from this environment: the release itself is created
+> over `api.github.com`, but asset upload goes to `uploads.github.com`, which is outside
+> the egress allowlist. Committing the file and linking `raw/` is the working path here.
