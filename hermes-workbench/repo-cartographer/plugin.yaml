@@ -1,0 +1,14 @@
+name: repo-cartographer
+version: 1.0.0
+description: >-
+  Model-free repository profiling for Hermes. Adds repo_profile and
+  hotspot_scan tools (language mix, LOC, largest files, entry points,
+  manifests, git state read straight from .git), a /cartographer slash
+  command, and a bundled repo-audit skill. Stdlib only — no network, no
+  third-party imports, works in a bare sandbox.
+author: ans-malik/arena
+provides_tools:
+  - repo_profile
+  - hotspot_scan
+provides_hooks:
+  - post_tool_call

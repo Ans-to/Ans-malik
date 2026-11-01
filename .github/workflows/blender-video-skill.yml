@@ -1,0 +1,201 @@
+name: blender-video skill QA
+
+# Exercises the skill as a user would receive it:
+#   lint -> static contract check -> negative control -> smoke render -> video render
+# The renders are real: Blender 4.2 (bpy) on CPU, Cycles.
+
+on:
+  push:
+    paths:
+      - "hermes-workbench/skills/blender-video/**"
+      - ".github/workflows/blender-video-skill.yml"
+  pull_request:
+    paths:
+      - "hermes-workbench/skills/blender-video/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: blender-video-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  skill-qa:
+    name: lint + render
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    env:
+      SKILL_DIR: hermes-workbench/skills/blender-video
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Cache pip (bpy wheel is ~330 MB)
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-bpy-4.2.0-${{ runner.os }}-py311
+
+      - name: Install Blender's runtime libraries
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            libxrender1 libxi6 libxfixes3 libxxf86vm1 libgl1 libxkbcommon0 libsm6 libice6
+
+      - name: Install bpy 4.2.0
+        run: |
+          python -m pip install --upgrade pip pyyaml
+          pip install bpy==4.2.0
+
+      - name: Blender imports
+        run: python -c "import bpy; print('bpy', bpy.app.version_string, '| cycles:', 'CYCLES' in dir(bpy.types))"
+
+      # Mirrors the linter Hermes runs inside skill_manage: name matches the
+      # directory, description fits the 60-char index, referenced files exist.
+      - name: Skill frontmatter lint (Hermes rules)
+        run: |
+          python - <<'PY'
+          import os, re, sys, yaml, pathlib
+
+          d = pathlib.Path(os.environ["SKILL_DIR"])
+          text = (d / "SKILL.md").read_text(encoding="utf-8")
+          if not text.startswith("---"):
+              sys.exit("SKILL.md must start with YAML frontmatter")
+          fm_raw = text.split("---", 2)[1]
+          body = text.split("---", 2)[2]
+          fm = yaml.safe_load(fm_raw) or {}
+
+          problems = []
+          if fm.get("name") != d.name:
+              problems.append(f"name {fm.get('name')!r} must match directory {d.name!r}")
+
+          desc = fm.get("description", "")
+          if len(desc) > 60:
+              problems.append(f"description is {len(desc)} chars, cap is 60")
+          if not desc.endswith("."):
+              problems.append("description must end with a period")
+
+          for heading in ("## When to Use", "## When NOT to Use"):
+              if heading not in body:
+              # Hermes requires both sections so the skill has a negative space.
+                  problems.append(f"missing section: {heading}")
+
+          # dangling-reference: every bare path the body names must exist.
+          # Anchored on a path-with-no-spaces so a backticked command line like
+          # `scripts/qa_check.py --check-frame <png>` is not read as a filename.
+          for m in re.finditer(r"`((?:templates|scripts|references)/[A-Za-z0-9_./-]+)`", body):
+              rel = m.group(1)
+              if not (d / rel).exists():
+                  problems.append(f"body references {rel} but the file is missing")
+
+          print(f"name={fm.get('name')} len(description)={len(desc)} files={sorted(p.name for p in d.rglob('*') if p.is_file())}")
+          if problems:
+              print("\n".join("  ✗ " + p for p in problems))
+              sys.exit(1)
+          print("frontmatter OK")
+          PY
+
+      - name: Static contract check (template must pass)
+        run: |
+          set -euo pipefail
+          python "$SKILL_DIR/scripts/qa_check.py" "$SKILL_DIR/templates/turntable.py" | tee static-qa.log
+          echo "rc=0 as expected"
+
+      - name: Negative control (broken script must fail)
+        run: |
+          set -euo pipefail
+          cat > "$RUNNER_TEMP/bad_scene.py" <<'PY'
+          import bpy
+          bpy.ops.mesh.primitive_cube_add()
+          bpy.context.object.rotation_euler = (45, 0, 30)
+          bpy.ops.view3d.view_all()
+          scene = bpy.context.scene
+          scene.render.resolution_x = 1921
+          scene.render.fps = 24
+          scene.frame_start = 1
+          scene.frame_end = 24
+          scene.render.filepath = "out.mp4"
+          PY
+          set +e
+          OUT=$(python "$SKILL_DIR/scripts/qa_check.py" "$RUNNER_TEMP/bad_scene.py" 2>&1)
+          RC=$?
+          set -e
+          echo "$OUT" | tee negative-qa.log
+          if [ "$RC" -eq 0 ]; then echo "::error::qa_check passed a broken script"; exit 1; fi
+          for rule in factory_reset radians ui_only_op; do
+            echo "$OUT" | grep -q "$rule" || { echo "::error::missing expected finding: $rule"; exit 1; }
+          done
+          echo "rc=$RC and all expected findings present"
+
+      - name: Smoke render (one still)
+        run: |
+          set -euo pipefail
+          python "$SKILL_DIR/templates/turntable.py" -- --preview \
+            --out "$RUNNER_TEMP/preview.png" --samples 8
+          python "$SKILL_DIR/scripts/qa_check.py" --check-frame "$RUNNER_TEMP/preview.png" \
+            | tee frame-qa.log
+          python - "$RUNNER_TEMP/preview.png" <<'PY'
+          import json, subprocess, sys
+          rep = json.loads(subprocess.run(
+              [sys.executable, "hermes-workbench/skills/blender-video/scripts/qa_check.py",
+               "--check-frame", sys.argv[1]], capture_output=True, text=True).stdout)
+          assert rep["ok"], rep
+          assert rep["width"] >= 640 and rep["height"] >= 360, rep
+          print(f"frame {rep['width']}x{rep['height']} {rep['bytes']} bytes, bpp={rep['bytes_per_pixel']}")
+          PY
+
+      - name: Video render (1s, 12fps)
+        run: |
+          set -euo pipefail
+          python "$SKILL_DIR/templates/turntable.py" -- \
+            --seconds 1 --fps 12 --width 320 --height 180 --samples 4 \
+            --look neon --subject torus --out "$RUNNER_TEMP/loop.mp4" | tee video-render.log
+          python - "$RUNNER_TEMP/loop.mp4" "$RUNNER_TEMP/loop.manifest.json" <<'PY'
+          import json, os, sys
+          mp4, man = sys.argv[1], sys.argv[2]
+          assert os.path.exists(mp4), "no mp4 produced"
+          size = os.path.getsize(mp4)
+          assert size > 5000, f"mp4 is only {size} bytes"
+          m = json.load(open(man))
+          assert m["frames"] == 12, m
+          assert m["fps"] == 12, m
+          assert m["seconds"] == 1.0, m
+          assert m["resolution"] == [320, 180], m
+          assert m["engine"] == "CYCLES", m
+          print(f"mp4 {size} bytes | frames={m['frames']} fps={m['fps']} {m['resolution']}")
+          PY
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "### blender-video skill QA"
+            echo ""
+            echo '```'
+            head -3 static-qa.log 2>/dev/null || true
+            grep -E '"bytes"|"width"|"height"' frame-qa.log 2>/dev/null | head -3 || true
+            grep -E "^DONE" video-render.log 2>/dev/null || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY" || true
+
+      - name: Upload renders and reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: blender-video-renders
+          path: |
+            ${{ runner.temp }}/preview.png
+            ${{ runner.temp }}/loop.mp4
+            ${{ runner.temp }}/loop.manifest.json
+            ${{ runner.temp }}/preview.manifest.json
+            static-qa.log
+            frame-qa.log
+            negative-qa.log
+            video-render.log
+          if-no-files-found: warn
+          retention-days: 14
