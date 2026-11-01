@@ -222,3 +222,51 @@ Two findings worth keeping, both from `skill_manage`'s linter rather than from m
    trips a false positive on a single-batch create. Harmless, but it means a batch that
    creates a skill and its files together always reports one warning. Splitting the batch
    (create, then write_file) would avoid it.
+
+---
+
+# 3. CI: the skill, tested by GitHub Actions
+
+`.github/workflows/blender-video-skill.yml` runs the skill the way a user would
+receive it — on a clean `ubuntu-22.04` runner, no sandbox tricks:
+
+| Step | What it proves |
+|---|---|
+| frontmatter lint | mirrors Hermes' rules: name matches dir, description ≤60 chars ending in a period, `When to Use` / `When NOT to Use` present, no dangling `templates/`·`scripts/`·`references/` paths |
+| static contract check | `qa_check.py` on `templates/turntable.py` → rc 0, all 10 rules satisfied |
+| **negative control** | a deliberately broken script → rc 1 **and** the specific findings `factory_reset`, `radians`, `ui_only_op` must appear |
+| smoke render | one 640×360 still via Cycles CPU, then `--check-frame` must pass |
+| video render | 1 s @ 12 fps H.264; asserts mp4 > 5 KB and manifest `frames=12 fps=12 seconds=1.0 resolution=[320,180] engine=CYCLES` |
+| artifacts | still, mp4, manifests, all four QA logs (14-day retention) |
+
+## Result
+
+```
+run 41335910014 · "blender-video skill QA" · lint + render · 50s · all 14 steps ✓
+```
+
+The job publishes its own evidence, because this environment cannot reach the
+hosts that serve Actions logs (`results-receiver.actions.githubusercontent.com`)
+or artifacts (`*.blob.core.windows.net`) — so the final step POSTs a commit status
+that is readable over `api.github.com`:
+
+```
+$ gh api repos/Ans-to/Ans-malik/commits/661577d/statuses
+context:     blender-video/renders
+state:       success
+description: OK preview 640x360 345KB bpp1.535 | mp4 15100B 12f 12fps 320x180
+```
+
+`bpp 1.535` is the frame-sanity metric: a black or empty render compresses below
+0.05 bytes/pixel and fails the gate. The CI preview is 345 KB against 353 KB
+locally — same scene, different CPU, 8-sample noise differing by design.
+
+Two things the first CI attempt caught that local runs had not:
+
+1. **My lint mirror false-positived** on `` `scripts/qa_check.py --check-frame <png>` ``
+   — a backticked *command*, not a filename. The path pattern is now anchored on
+   spaceless paths. Hermes' own `dangling-reference` rule does not have this bug.
+2. **Actions logs and artifacts are unreachable from a restricted sandbox.** Rather
+   than assert a green tick with no numbers, the workflow publishes dimensions,
+   byte counts and duration to an API-readable surface. That pattern generalises:
+   in a locked-down environment, make CI the reporting channel, not just the gate.
