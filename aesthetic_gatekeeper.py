@@ -101,6 +101,11 @@ def gatekeep(path,samples=10):
 def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('video');p.add_argument('--samples',type=int,default=10);args=p.parse_args()
     if args.samples<1:p.error('samples must be positive')
-    gatekeep(args.video,args.samples)
-    check_continuity(args.video)
+    errors=[]
+    for check in (lambda: gatekeep(args.video,args.samples), lambda: check_continuity(args.video)):
+        try: check()
+        except ValueError as exc:
+            errors.append(str(exc))
+            print(f'FAIL: {exc}')
+    if errors: raise SystemExit(1)
 if __name__=='__main__':main()
