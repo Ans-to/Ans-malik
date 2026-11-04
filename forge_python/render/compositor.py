@@ -30,9 +30,9 @@ def chart_points(xs, values, left, bottom, width, height):
     return result
 
 class SevenLayerCompositor:
-    def __init__(self,w,h,topic,words,document,hero,finisher=finish_frame):
+    def __init__(self,w,h,topic,words,document,hero,finisher=finish_frame,world=None):
         self.w,self.h=w,h;self.W,self.H=w*2,h*2; self.topic=topic;self.words=words;self.doc=document;self.hero=hero
-        self.finisher=finisher; self.rng=np.random.default_rng(42); self.background=self._background();self.depth=self._depth()
+        self.world=world; self.finisher=finisher; self.rng=np.random.default_rng(42); self.background=self._background();self.depth=self._depth()
         self.particles=np.random.default_rng(18).random((56,4))
         self.spring_curve=spring(np.arange(121,dtype=float)/60)
     def blank(self): return Image.new('RGBA',(self.W,self.H),(0,0,0,0))
@@ -180,6 +180,25 @@ class SevenLayerCompositor:
                 d.text((x,y),z['word'],font=f,fill=(245,158,11,255) if z['word_id']==active['word_id'] else (224,228,233,220));x+=length
         else: d.text((W*.42,H*.91),'FIELD NOTES   /   VISUAL ESSAY',font=font('JetBrainsMono-Medium.ttf',H*.016),fill=(125,153,170,160))
         return img
+    def _world_type(self,t):
+        W,H=self.W,self.H;img=self.blank();d=ImageDraw.Draw(img,'RGBA')
+        d.text((W*.055,H*.055),'CONTINUOUS FIELD / VISUAL ESSAY',font=font('JetBrainsMono-Medium.ttf',H*.019),fill=(130,205,220,210))
+        active=next((word for word in self.words if word['start_ms']<=t*1000<word['end_ms']),None)
+        if active:
+            idx=next(i for i,item in enumerate(self.words) if item['word_id']==active['word_id'])
+            parts=self.words[max(0,idx-2):min(len(self.words),idx+3)]
+            size=H*.023; available=W*.8
+            while True:
+                f=font('JetBrainsMono-Medium.ttf',size); lengths=[d.textlength(z['word']+' ',font=f) for z in parts]; total=sum(lengths)
+                if total<=available or size<=H*.012:break
+                size*=.9
+            x=max(W*.05,(W-total)/2);y=H*.91
+            d.rounded_rectangle((x-H*.02,y-H*.012,x+total+H*.02,y+H*.04),radius=H*.018,fill=(10,15,21,225),outline=(130,156,170,110),width=2)
+            for z,length in zip(parts,lengths):
+                d.text((x,y),z['word'],font=f,fill=(245,158,11,255) if z['word_id']==active['word_id'] else (224,228,233,220));x+=length
+        else:
+            d.text((W*.06,H*.92),'FOLLOW THE EVIDENCE',font=font('JetBrainsMono-Medium.ttf',H*.017),fill=(125,153,170,160))
+        return img
     def _dust(self,t):
         W,H=self.W,self.H;img=self.blank();d=ImageDraw.Draw(img,'RGBA')
         for i,(a,b,c,e) in enumerate(self.particles):
@@ -195,13 +214,13 @@ class SevenLayerCompositor:
         layers.append(ground)
         dx=int(math.sin(t*.11)*W*.002);dy=int(math.sin(t*.09)*H*.002)
         layers.append(self.depth.transform((W,H),Image.Transform.AFFINE,(1,0,dx,0,1,dy),resample=Image.Resampling.BILINEAR))
-        subject=self._subject(act,t,p,rms)
+        subject=self.world.render_layer(t,rms) if self.world else self._subject(act,t,p,rms)
         # Project the subject's actual silhouette into an ambient shadow rather
         # than placing a generic oval under unrelated foreground content.
         silhouette=subject.getchannel('A').filter(ImageFilter.GaussianBlur(max(2,W//350)))
         silhouette=silhouette.point(lambda a: int(a*.28))
         shadow=self.blank(); shadow.paste((2,4,8,255),(max(1,W//250),max(1,H//180),W,H),silhouette.crop((0,0,W-max(1,W//250),H-max(1,H//180))))
-        layers.append(shadow); layers.append(subject); layers.append(self._hud(act,t));layers.append(self._type(act,t,p));layers.append(self._dust(t))
+        layers.append(shadow); layers.append(subject); layers.append(self._hud(0 if self.world else act,t));layers.append(self._world_type(t) if self.world else self._type(act,t,p));layers.append(self._dust(t))
         canvas=Image.new('RGBA',(W,H))
         for i,layer in enumerate(layers):
             pixels=np.asarray(layer)
@@ -221,4 +240,5 @@ class SevenLayerCompositor:
         mat=cv2.getRotationMatrix2D((self.w/2,self.h/2),0,motion['scale'])
         mat[0,2]+=motion['x']*self.w; mat[1,2]+=motion['y']*self.h
         output=cv2.warpAffine(output,mat,(self.w,self.h),flags=cv2.INTER_LINEAR,borderMode=cv2.BORDER_REFLECT_101)
+        if self.world: output=self.world.apply_blur(output,t)
         return self.finisher(output,self.rng)

@@ -36,7 +36,7 @@ permissions:
   contents: write
 concurrency:
   group: documentary-render-output
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   render:
     runs-on: ubuntu-latest

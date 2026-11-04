@@ -12,6 +12,7 @@ from forge_python.post_fx.optical_lens import finish_frame
 from forge_python.render.compositor import SevenLayerCompositor
 from forge_python.render.voice import OfflineVoice
 from forge_python.render.document import ClassifiedDocument
+from forge_python.render.world_engine import WorldEngine
 from forge_python.render.hero import ThreeHero
 
 FPS=60
@@ -101,21 +102,22 @@ def prepare_audio(script, duration, tmp, whisper_model='base.en', require_online
     path=tmp/'master.wav'; sf.write(path,mix,sr,subtype='FLOAT')
     return path, speech, sr, modes, words, actual_duration
 
-def render(topic,duration,resolution,output,whisper_model="base.en",require_online=False,offline=False):
+def render(topic,duration,resolution,output,whisper_model="base.en",require_online=False,offline=False,showcase=False):
     w,h=resolution
     if w<64 or h<64 or w%2 or h%2: raise ValueError('resolution must be even and at least 64x64')
     if not math.isfinite(duration) or duration<=0: raise ValueError('duration must be finite and positive')
     output=Path(output).resolve(); output.parent.mkdir(parents=True,exist_ok=True)
-    script=script_for(topic)
+    script=(["Fluent answers are not always true. Follow the evidence, check the source, inspect the patterns, and verify important claims before trusting the result."] if showcase else script_for(topic))
     with tempfile.TemporaryDirectory(prefix='ceo-render-') as directory:
         tmp=Path(directory); requested_duration=duration
         audio,speech,sr,modes,words,duration=prepare_audio(script,duration,tmp,whisper_model,require_online,offline)
         if duration>requested_duration: print(f'Extended duration from {requested_duration:g}s to {duration:g}s to preserve narration pace.',flush=True)
-        doc=ClassifiedDocument([word for word in words if word['act']==1])
+        doc=ClassifiedDocument(words if showcase else [word for word in words if word['act']==1])
         Path(str(output)+'.brief.pdf').write_bytes(doc.pdf)
-        hero=ThreeHero(w*2,h*2)
-        compositor=SevenLayerCompositor(w,h,topic,words,doc,hero,finisher=finish_frame)
-        metadata={'topic':topic,'acts':script,'voiceover_modes':modes,'word_timestamps':words,'document_word_boxes':doc.boxes,'fps':FPS,'resolution':[w,h],'requested_duration':requested_duration,'duration':duration, 'note':'Chart values are illustrative. Offline timing is from eSpeak word events.'}
+        hero=ThreeHero(1000,640)
+        world=WorldEngine(w*2,h*2,duration,topic,doc,words,hero)
+        compositor=SevenLayerCompositor(w,h,topic,words,doc,hero,finisher=finish_frame,world=world)
+        metadata={'topic':topic,'acts':script,'voiceover_modes':modes,'word_timestamps':words,'document_word_boxes':doc.boxes,'fps':FPS,'resolution':[w,h],'requested_duration':requested_duration,'duration':duration,'camera':'continuous cubic spline world', 'showcase':showcase, 'note':'Chart values are illustrative. Offline timing is from eSpeak word events.'}
         Path(str(output)+'.json').write_text(json.dumps(metadata,indent=2))
         command=[get_ffmpeg_exe(),'-v','error','-y','-f','rawvideo','-pix_fmt','rgb24','-s',f'{w}x{h}','-r',str(FPS),'-i','-','-i',str(audio),'-c:v','libx264','-preset','slow','-crf','16','-pix_fmt','yuv420p','-c:a','aac','-b:a','192k','-shortest','-movflags','+faststart',str(output)]
         proc=subprocess.Popen(command,stdin=subprocess.PIPE)
@@ -124,10 +126,8 @@ def render(topic,duration,resolution,output,whisper_model="base.en",require_onli
             for frame_idx in range(count):
                 t=frame_idx/FPS; start=int(t*sr); samples=speech[start:min(len(speech),start+sr//FPS)]
                 rms=float(np.sqrt(np.mean(samples**2))) if len(samples) else 0
-                act=min(4,int(t/duration*5))
-                progress=(t-duration*act/5)/(duration/5)
-                # The compositor owns the finishing pass; no scene feeds the encoder directly.
-                frame=compositor.compose(act,t,progress,rms,duration)
+                # The world, not a scene index, determines what the camera sees.
+                frame=compositor.compose(0,t,t/duration,rms,duration)
                 proc.stdin.write(frame.tobytes())
             proc.stdin.close(); code=proc.wait()
             if code: raise RuntimeError(f'ffmpeg failed ({code})')
@@ -144,6 +144,6 @@ def resolution(value):
 
 def main():
     p=argparse.ArgumentParser(description=__doc__)
-    p.add_argument('--preview',action='store_true',help='Use 640x360 and at least 30 seconds for a paced draft'); p.add_argument('--topic',required=True); p.add_argument('--duration',type=float,default=60); p.add_argument('--resolution',type=resolution,default=(1920,1080)); p.add_argument('--output',default='final_video.mp4'); p.add_argument('--whisper-model',default='base.en',help='Faster-Whisper model name or local path (default: base.en)'); p.add_argument('--offline',action='store_true',help='Use offline eSpeak without an online probe'); p.add_argument('--require-online',action='store_true',help='Fail instead of using offline speech if Edge TTS or Whisper fails')
-    a=p.parse_args(); print('Rendered:',render(a.topic,min(a.duration,30) if a.preview else a.duration,(640,360) if a.preview else a.resolution,a.output,a.whisper_model,a.require_online,a.offline))
+    p.add_argument('--showcase',action='store_true',help='15-second continuous flight with a short, naturally paced narration'); p.add_argument('--preview',action='store_true',help='Use 640x360 and at least 30 seconds for a paced draft'); p.add_argument('--topic',required=True); p.add_argument('--duration',type=float,default=60); p.add_argument('--resolution',type=resolution,default=(1920,1080)); p.add_argument('--output',default='final_video.mp4'); p.add_argument('--whisper-model',default='base.en',help='Faster-Whisper model name or local path (default: base.en)'); p.add_argument('--offline',action='store_true',help='Use offline eSpeak without an online probe'); p.add_argument('--require-online',action='store_true',help='Fail instead of using offline speech if Edge TTS or Whisper fails')
+    a=p.parse_args(); duration=15 if a.showcase else (min(a.duration,30) if a.preview else a.duration); print('Rendered:',render(a.topic,duration,(640,360) if a.preview else a.resolution,a.output,a.whisper_model,a.require_online,a.offline,a.showcase))
 if __name__=='__main__': main()
