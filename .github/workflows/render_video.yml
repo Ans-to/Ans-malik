@@ -1,0 +1,51 @@
+name: Render documentary
+on:
+  workflow_dispatch:
+    inputs:
+      topic:
+        description: Documentary topic
+        required: true
+        default: Why Your AI Gives You Wrong Answers
+      duration:
+        description: Duration in seconds
+        default: '60'
+        required: true
+      resolution:
+        description: Even frame dimensions (WIDTHxHEIGHT)
+        default: '1920x1080'
+        required: true
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: pip install -r requirements.txt
+      - run: npm ci
+      - name: Render and finish
+        env:
+          TOPIC: ${{ inputs.topic }}
+          DURATION: ${{ inputs.duration }}
+          RESOLUTION: ${{ inputs.resolution }}
+        run: python ceo_render_app.py --topic "$TOPIC" --duration "$DURATION" --resolution "$RESOLUTION" --output final_video.mp4 --whisper-model tiny
+      - name: QA
+        env:
+          RESOLUTION: ${{ inputs.resolution }}
+        run: python qa_video.py final_video.mp4 --resolution "$RESOLUTION"
+      - name: Aesthetic gate
+        run: python aesthetic_gatekeeper.py final_video.mp4
+      - uses: actions/upload-artifact@v4
+        with:
+          name: documentary-render
+          path: |
+            final_video.mp4
+            final_video.mp4.json
+            final_video.mp4.brief.pdf
+            qa_contact_sheet.png

@@ -1,0 +1,27 @@
+<!doctype html><html><head><meta charset="utf-8"><style>*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#090B10}canvas{display:block}#overlay{position:absolute;left:6.5%;top:7%;color:#F3F4F6;font-family:Inter, sans-serif;font-weight:800;font-size:8vh;line-height:.95;letter-spacing:-.04em}#label{font:500 2vh Mono,monospace;color:#F59E0B;letter-spacing:.08em;margin-bottom:8vh}#small{font:italic 4vh Serif,serif;color:#F59E0B;margin-top:4vh}@font-face{font-family:Inter;src:url('/shared_workspace/fonts/Inter-ExtraBold.ttf')}@font-face{font-family:Mono;src:url('/shared_workspace/fonts/JetBrainsMono-Medium.ttf')}@font-face{font-family:Serif;src:url('/shared_workspace/fonts/InstrumentSerif-Italic.ttf')}</style><script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/","gsap":"/node_modules/gsap/index.js"}}</script></head>
+<body><div id="overlay"><div id="label">FIELD NOTES / 05<br><br>THE TAKEAWAY</div><div id="title">ASK.<br>VERIFY.</div><div id="small">Think beyond the answer.</div></div>
+<script type="module">
+import * as THREE from 'three';
+import {EffectComposer} from 'three/addons/postprocessing/EffectComposer.js';
+import {RenderPass} from 'three/addons/postprocessing/RenderPass.js';
+import {BokehPass} from 'three/addons/postprocessing/BokehPass.js';
+import {gsap} from '/node_modules/gsap/index.js';
+const w=innerWidth,h=innerHeight;
+const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});renderer.setSize(w,h);renderer.setPixelRatio(1);renderer.setClearColor('#090B10'); renderer.toneMapping=THREE.ACESFilmicToneMapping; document.body.prepend(renderer.domElement);
+const scene=new THREE.Scene();scene.fog=new THREE.FogExp2('#090B10',.045);
+const camera=new THREE.PerspectiveCamera(35,w/h,.1,100);camera.position.set(0,0,9);
+scene.add(new THREE.AmbientLight('#91AEC2',1.2));
+const key=new THREE.DirectionalLight('#FFE3B8',3.2);key.position.set(3,5,6);scene.add(key);
+const fill=new THREE.DirectionalLight('#A8C8E8',1.7);fill.position.set(-4,2,3);scene.add(fill);
+const rim=new THREE.DirectionalLight('#D6E9F7',6);rim.position.set(1,3,-5);scene.add(rim);
+let seed=42;const data=new Uint8Array(128*128*4);for(let i=0;i<data.length;i+=4){seed=(1664525*seed+1013904223)>>>0;data[i]=data[i+1]=data[i+2]=seed>>>24;data[i+3]=255}
+const bump=new THREE.DataTexture(data,128,128,THREE.RGBAFormat);bump.needsUpdate=true;bump.wrapS=bump.wrapT=THREE.RepeatWrapping;
+const metal=new THREE.MeshStandardMaterial({color:'#8C9EAD',emissive:'#4E667B',emissiveIntensity:1.1,roughness:.25,metalness:.8,bumpMap:bump,bumpScale:.025});
+const group=new THREE.Group();group.position.set(2.05,0,0);scene.add(group);
+const object=new THREE.Mesh(new THREE.OctahedronGeometry(1.6,0),metal);group.add(object);
+const ring=new THREE.Mesh(new THREE.TorusGeometry(2,.015,8,96),new THREE.MeshStandardMaterial({color:'#F59E0B',emissive:'#9B5E07',emissiveIntensity:.5,metalness:.8,roughness:.25}));ring.rotation.x=1.25;group.add(ring);
+const composer=new EffectComposer(renderer);composer.addPass(new RenderPass(scene,camera));composer.addPass(new BokehPass(scene,camera,{focus:9,aperture:.00015,maxblur:.008}));
+const state={rotation:-.7,scale:.8};const timeline=gsap.timeline({paused:true}).to(state,{rotation:.9,scale:1,duration:3,ease:'expo.out'});
+window.renderFrame=async function(frameIdx,fps=60,word=""){document.getElementById("small").textContent=word || "Think beyond the answer.";let t=frameIdx/fps;timeline.time(Math.min(t,3));object.rotation.y=state.rotation+.12*Math.sin(t*.37);object.rotation.x=.18*Math.sin(t*.29);group.scale.setScalar(state.scale);gsap.set('#title',{x:(1-state.scale)*-50,opacity:Math.min(1,.45+state.scale*.55)});camera.position.x=.027*Math.sin(t*.37);camera.position.y=.027*Math.sin(t*.29+1);camera.lookAt(0,0,0);composer.render();};
+await document.fonts.ready; window.ready=true;window.renderFrame(0);
+</script></body></html>

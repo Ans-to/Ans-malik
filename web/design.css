@@ -1,0 +1,11 @@
+@font-face { font-family: Inter; src: url('../shared_workspace/fonts/Inter-ExtraBold.ttf'); font-weight: 800; }
+@font-face { font-family: InstrumentSerif; src: url('../shared_workspace/fonts/InstrumentSerif-Italic.ttf'); font-style: italic; }
+@font-face { font-family: JetBrainsMono; src: url('../shared_workspace/fonts/JetBrainsMono-Medium.ttf'); font-weight: 500; }
+.cinema-background { position: relative; isolation: isolate; background: var(--background); color: var(--text, var(--ink)); }
+.cinema-background::before, .cinema-background::after { content: ''; position: absolute; inset: 0; pointer-events: none; z-index: -1; }
+.cinema-background::before { background: radial-gradient(ellipse at center, transparent 25%, color-mix(in srgb, var(--background), var(--ink, var(--surface)) 55%) 100%); }
+.cinema-background::after { opacity: .04; background-image: radial-gradient(var(--text, var(--ink)) 1px, transparent 1px); background-size: 16px 16px; }
+.hero { font: 800 1em/.95 Inter, sans-serif; letter-spacing: -.04em; }
+.data { font-family: JetBrainsMono, monospace; font-weight: 500; font-variant-numeric: tabular-nums; }
+.editorial { font-family: InstrumentSerif, serif; font-style: italic; }
+.highlighter { background: var(--highlighter); mix-blend-mode: multiply; }

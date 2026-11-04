@@ -1,0 +1,5 @@
+{
+  "obsidian_documentary": {"background":"#090B10","surface":"#121620","text":"#F3F4F6","gold":"#F59E0B","danger":"#E11D48","cyan":"#06B6D4"},
+  "archival_classified": {"background":"#EFECE6","ink":"#18181B","highlighter":"#FACC15","stamp":"#DC2626"},
+  "overlay_opacity": 0.04
+}
