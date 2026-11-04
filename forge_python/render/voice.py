@@ -20,6 +20,8 @@ class OfflineVoice:
         self.rate=lib.espeak_Initialize(2,0,str(Path(espeakng_loader.get_data_path()).parent).encode(),0)
         if self.rate <= 0: raise RuntimeError('espeak-ng initialization failed')
         lib.espeak_SetVoiceByName.argtypes=[C.c_char_p]; lib.espeak_SetVoiceByName(b'en-us')
+        lib.espeak_SetParameter.argtypes=[C.c_int,C.c_int,C.c_int]
+        if lib.espeak_SetParameter(1,145,0)!=0: raise RuntimeError('could not set offline narration rate')
         lib.espeak_SetSynthCallback.argtypes=[Callback]
         lib.espeak_Synth.argtypes=[C.c_void_p,C.c_size_t,C.c_uint,C.c_int,C.c_uint,C.c_uint,C.c_void_p,C.c_void_p]
         self.chunks=[]; self.events=[]

@@ -7,19 +7,46 @@ on:
         required: true
         default: Why Your AI Gives You Wrong Answers
       duration:
-        description: Duration in seconds
+        description: Minimum duration in seconds (extended as needed for narration)
         default: '60'
         required: true
       resolution:
-        description: Even frame dimensions (WIDTHxHEIGHT)
+        description: Even frame dimensions, at least 1920x1080
         default: '1920x1080'
         required: true
+  push:
+    branches:
+      - main
+      - arena/fa1317bb-ans-malik
+    paths:
+      - 'ceo_render_app.py'
+      - 'aesthetic_gatekeeper.py'
+      - 'qa_video.py'
+      - 'forge_python/**'
+      - 'design_system/**'
+      - 'shared_workspace/fonts/**'
+      - 'web/**'
+      - 'scripts/**'
+      - 'requirements.txt'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/render_video.yml'
+      - '.gitattributes'
+permissions:
+  contents: write
+concurrency:
+  group: documentary-render-output
+  cancel-in-progress: false
 jobs:
   render:
     runs-on: ubuntu-latest
     timeout-minutes: 360
     steps:
+      # Generated commits are restricted to the session branch, even on main pushes.
       - uses: actions/checkout@v4
+        with:
+          ref: arena/fa1317bb-ans-malik
+          lfs: true
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -29,23 +56,37 @@ jobs:
           cache: npm
       - run: pip install -r requirements.txt
       - run: npm ci
-      - name: Render and finish
+      - name: Render with neural narration and word alignment
         env:
-          TOPIC: ${{ inputs.topic }}
-          DURATION: ${{ inputs.duration }}
-          RESOLUTION: ${{ inputs.resolution }}
-        run: python ceo_render_app.py --topic "$TOPIC" --duration "$DURATION" --resolution "$RESOLUTION" --output final_video.mp4 --whisper-model tiny
+          TOPIC: ${{ inputs.topic || 'Why Your AI Gives You Wrong Answers' }}
+          DURATION: ${{ inputs.duration || '60' }}
+          RESOLUTION: ${{ inputs.resolution || '1920x1080' }}
+        run: python ceo_render_app.py --topic "$TOPIC" --duration "$DURATION" --resolution "$RESOLUTION" --output renders/github_action_masterpiece.mp4 --whisper-model base.en --require-online
       - name: QA
         env:
-          RESOLUTION: ${{ inputs.resolution }}
-        run: python qa_video.py final_video.mp4 --resolution "$RESOLUTION"
-      - name: Aesthetic gate
-        run: python aesthetic_gatekeeper.py final_video.mp4
+          RESOLUTION: ${{ inputs.resolution || '1920x1080' }}
+        run: |
+          python qa_video.py renders/github_action_masterpiece.mp4 --sheet renders/qa_contact_sheet.png --resolution "$RESOLUTION"
+          python aesthetic_gatekeeper.py renders/github_action_masterpiece.mp4
       - uses: actions/upload-artifact@v4
         with:
           name: documentary-render
+          if-no-files-found: error
           path: |
-            final_video.mp4
-            final_video.mp4.json
-            final_video.mp4.brief.pdf
-            qa_contact_sheet.png
+            renders/github_action_masterpiece.mp4
+            renders/github_action_masterpiece.mp4.json
+            renders/github_action_masterpiece.mp4.brief.pdf
+            renders/qa_contact_sheet.png
+      - name: Commit render to the session branch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git lfs install --local
+          git add -f renders/github_action_masterpiece.mp4 renders/github_action_masterpiece.mp4.json renders/github_action_masterpiece.mp4.brief.pdf renders/qa_contact_sheet.png
+          if git diff --cached --quiet; then
+            echo 'Render unchanged; nothing to commit.'
+            exit 0
+          fi
+          git commit -m 'Add documentary render [skip ci]'
+          git pull --rebase origin arena/fa1317bb-ans-malik
+          git push origin arena/fa1317bb-ans-malik

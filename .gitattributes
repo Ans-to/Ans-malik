@@ -1,0 +1,2 @@
+# GitHub limits ordinary Git blobs to 100 MiB. Long renders are stored in LFS.
+renders/github_action_masterpiece.mp4 filter=lfs diff=lfs merge=lfs -text
