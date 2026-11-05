@@ -1,0 +1,24 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><style>
+@font-face{font-family:Inter;src:url('/shared_workspace/fonts/Inter-ExtraBold.ttf');font-weight:800}
+@font-face{font-family:Serif;src:url('/shared_workspace/fonts/InstrumentSerif-Italic.ttf');font-style:italic}
+@font-face{font-family:Mono;src:url('/shared_workspace/fonts/JetBrainsMono-Medium.ttf')}
+*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#090B10}canvas{position:absolute;inset:0;display:block}
+.beat{display:none;position:absolute;inset:0;overflow:hidden}.on{display:block}
+.hero{position:absolute;font:800 12.3vw/.83 Inter,sans-serif;letter-spacing:-.065em;text-transform:uppercase;color:#F3F4F6}
+.small{font:500 1.1vw/1.3 Mono,monospace;letter-spacing:.13em;text-transform:uppercase}
+#hook .hero{top:32%;left:7%;max-width:90%;text-shadow:0 .035em #B77315,0 .06em #623A11,0 .09em 35px #F59E0B80;transform-origin:center}
+#hook .small{position:absolute;top:9%;left:7%;color:#F59E0B}#hook .tag{position:absolute;right:7%;bottom:8%;font:italic 2.8vw Serif;color:#E4C07B}
+#invert{background:#F4F1EA;color:#09090B}#invert .hero{color:#09090B;top:16%;left:-2%;font-size:19vw;line-height:.79;white-space:nowrap;transform-origin:center}#invert .red{position:absolute;background:#E11D48;width:160%;height:6%;top:52%;left:-30%;transform:rotate(-16deg)}#invert .small{position:absolute;right:5%;bottom:7%;color:#09090B}
+#dossier{background:#18181B}#paperwrap{position:absolute;left:15%;top:-33%;width:72%;height:170%;transform:rotate(-14deg) scale(1.22);filter:contrast(1.06);box-shadow:0 25px 80px #121620cc}#paper{width:100%;height:100%;object-fit:fill;display:block}#mark{position:absolute;background:#FACC15;mix-blend-mode:multiply;opacity:.75;transform-origin:left;pointer-events:none}#beam{position:absolute;inset:-30%;transform:rotate(-14deg);background:linear-gradient(105deg,transparent 40%,#F3F4F600 47%,#F3F4F6b5 50%,transparent 57%);mix-blend-mode:screen;pointer-events:none}#dossier .cut{position:absolute;top:38%;left:27%;width:42%;height:7%;background:#18181B;transform:rotate(-14deg);transform-origin:right center}#dossier .headline{position:absolute;bottom:5%;right:4%;background:#FACC15;color:#18181B;padding:.15em .25em;font:800 5vw/.95 Inter}
+#chart .hero{font-size:8vw;top:6%;left:5%;max-width:58%}#chart .small{position:absolute;bottom:6%;left:5%;color:#F59E0B}
+#shader .hero{top:12%;left:5%;font-size:10vw;color:transparent;-webkit-text-stroke:.15vw #F3F4F6;line-height:.88}#shader .fill{position:absolute;right:6%;bottom:15%;font:800 8vw/.9 Inter;color:#F59E0B;letter-spacing:-.06em}
+#climax{background:linear-gradient(116deg,#F4F1EA 0%,#F4F1EA 49.8%,#E11D48 50%,#5B1029 100%)}#climax .hero{top:23%;left:4%;font-size:14vw;color:#09090B;line-height:.84;text-shadow:.035em .035em #F3F4F6}#climax .small{position:absolute;right:6%;bottom:8%;color:#F3F4F6}
+#word{position:absolute;left:50%;bottom:6%;transform:translateX(-50%);font:800 3.3vw/.9 Inter;letter-spacing:-.04em;text-transform:uppercase;color:#F3F4F6;text-shadow:0 3px 15px #090B10;white-space:nowrap}#word.ink{color:#09090B;text-shadow:0 2px 12px #F4F1EA}
+</style><script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script></head>
+<body><div id="hook" class="beat"><div class="small">THE CONFIDENCE PROBLEM / 01</div><div class="hero">WRONG<br>ANSWERS</div><div class="tag">A story about certainty.</div></div>
+<div id="invert" class="beat"><div class="red"></div><div class="hero">SOUNDS<br>TRUE.</div><div class="small">CONFIDENCE IS NOT EVIDENCE</div></div>
+<div id="dossier" class="beat"><div id="paperwrap"><img id="paper"><div id="mark"></div></div><div id="beam"></div><div class="cut"></div><div class="headline">READ THE<br>FINE PRINT.</div></div>
+<div id="chart" class="beat"><div class="hero">THE<br>PROBABILITY<br>TRAP.</div><div class="small">ILLUSTRATION — NOT MEASURED DATA</div></div>
+<div id="shader" class="beat"><div class="hero">PREDICT.<br>NOT<br>PROVE.</div><div class="fill">THE MODEL</div></div>
+<div id="climax" class="beat"><div class="hero">ASK.<br>VERIFY.</div><div class="small">THE END / KEEP QUESTIONING</div></div><div id="word"></div><script type="module" src="/web/impact/impact.js"></script></body></html>

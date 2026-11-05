@@ -2,18 +2,18 @@
 """Render a 5-act documentary draft through the mandatory optical and audio buses."""
 import os
 os.environ.setdefault('NUMBA_NUM_THREADS', '2')
-import argparse, asyncio, json, math, re, subprocess, tempfile
+import argparse, asyncio, json, math, re, subprocess, tempfile, uuid
 from pathlib import Path
 import numpy as np
 import soundfile as sf
 from forge_python.ffmpeg import get_ffmpeg_exe
 from forge_python.audio_mastering.pedalboard_master import master
 from forge_python.post_fx.optical_lens import finish_frame
-from forge_python.render.compositor import SevenLayerCompositor
 from forge_python.render.voice import OfflineVoice
 from forge_python.render.document import ClassifiedDocument
-from forge_python.render.world_engine import WorldEngine
-from forge_python.render.hero import ThreeHero
+from forge_python.render.impact_renderer import ImpactRenderer
+from forge_python.render.impact_physics import ImpactPhysicsEngine, impact_music
+import cv2
 
 FPS=60
 MIN_SCENE_SECONDS=6.0
@@ -96,8 +96,7 @@ def prepare_audio(script, duration, tmp, whisper_model='base.en', require_online
         for item in aligned:
             start=round(offset/sr*1000+item['start_ms']); end=round(offset/sr*1000+item['end_ms'])
             words.append({'word_id':len(words),'act':act,'word':item['word'],'start_ms':start,'end_ms':max(start+1,end),'source':modes[act]})
-    time=np.arange(n)/sr
-    music=(0.016*np.sin(2*np.pi*55*time)+0.009*np.sin(2*np.pi*82.4*time)*(.65+.35*np.sin(2*np.pi*.13*time))).astype(np.float32)
+    music=impact_music(actual_duration,sr,words)
     mix=master(music,speech,sr)
     path=tmp/'master.wav'; sf.write(path,mix,sr,subtype='FLOAT')
     return path, speech, sr, modes, words, actual_duration
@@ -114,10 +113,16 @@ def render(topic,duration,resolution,output,whisper_model="base.en",require_onli
         if duration>requested_duration: print(f'Extended duration from {requested_duration:g}s to {duration:g}s to preserve narration pace.',flush=True)
         doc=ClassifiedDocument(words if showcase else [word for word in words if word['act']==1])
         Path(str(output)+'.brief.pdf').write_bytes(doc.pdf)
-        hero=ThreeHero(1000,640)
-        world=WorldEngine(w*2,h*2,duration,topic,doc,words,hero)
-        compositor=SevenLayerCompositor(w,h,topic,words,doc,hero,finisher=finish_frame,world=world)
-        metadata={'topic':topic,'acts':script,'voiceover_modes':modes,'word_timestamps':words,'document_word_boxes':doc.boxes,'fps':FPS,'resolution':[w,h],'requested_duration':requested_duration,'duration':duration,'camera':'continuous cubic spline world', 'showcase':showcase, 'note':'Chart values are illustrative. Offline timing is from eSpeak word events.'}
+        document_image=Path(__file__).resolve().parent/'renders'/f'.impact_document_{uuid.uuid4().hex}.png'
+        document_image.parent.mkdir(parents=True,exist_ok=True)
+        cv2.imwrite(str(document_image),cv2.cvtColor(doc.paper,cv2.COLOR_RGB2BGR))
+        Path(str(document_image)+'.json').write_text(json.dumps({'width':doc.paper.shape[1],'height':doc.paper.shape[0],'boxes':doc.boxes}))
+        try: hero=ImpactRenderer(w*2,h*2,topic,document_image)
+        except BaseException:
+            document_image.unlink(missing_ok=True);Path(str(document_image)+'.json').unlink(missing_ok=True);raise
+        physics=ImpactPhysicsEngine(w,h,duration,words)
+        rng=np.random.default_rng(42)
+        metadata={'topic':topic,'acts':script,'voiceover_modes':modes,'word_timestamps':words,'document_word_boxes':doc.boxes,'fps':FPS,'resolution':[w,h],'requested_duration':requested_duration,'duration':duration,'visual_engine':'six-beat Three.js impact + raymarched GLSL', 'showcase':showcase, 'note':'Chart values are illustrative. Offline timing is from eSpeak word events.'}
         Path(str(output)+'.json').write_text(json.dumps(metadata,indent=2))
         command=[get_ffmpeg_exe(),'-v','error','-y','-f','rawvideo','-pix_fmt','rgb24','-s',f'{w}x{h}','-r',str(FPS),'-i','-','-i',str(audio),'-c:v','libx264','-preset','slow','-crf','16','-pix_fmt','yuv420p','-c:a','aac','-b:a','192k','-shortest','-movflags','+faststart',str(output)]
         proc=subprocess.Popen(command,stdin=subprocess.PIPE)
@@ -126,9 +131,21 @@ def render(topic,duration,resolution,output,whisper_model="base.en",require_onli
             for frame_idx in range(count):
                 t=frame_idx/FPS; start=int(t*sr); samples=speech[start:min(len(speech),start+sr//FPS)]
                 rms=float(np.sqrt(np.mean(samples**2))) if len(samples) else 0
-                # The world, not a scene index, determines what the camera sees.
-                frame=compositor.compose(0,t,t/duration,rms,duration)
-                proc.stdin.write(frame.tobytes())
+                active=next((word for word in words if word['start_ms']<=t*1000<word['end_ms']),None)
+                word=active['word'] if active else ''
+                word_age=(t-active['start_ms']/1000) if active else 1
+                # Frequency bands drive the raymarched energy field; no independent oscillator is output raw.
+                if len(samples):
+                    spectrum=np.abs(np.fft.rfft(samples*np.hanning(len(samples))))
+                    frequencies=np.fft.rfftfreq(len(samples),1/sr)
+                    levels=[float(min(1,np.mean(spectrum[(frequencies>=lo)&(frequencies<hi)])*4)) if np.any((frequencies>=lo)&(frequencies<hi)) else 0 for lo,hi in ((80,400),(400,1600),(1600,6000))]
+                else: levels=[0,0,0]
+                word_id=active['word_id'] if active else -1
+                word_progress=(t*1000-active['start_ms'])/max(1,active['end_ms']-active['start_ms']) if active else 0
+                raw=hero.frame(frame_idx,FPS,word,word_age,levels,word_id,word_progress)
+                raw=cv2.resize(raw,(w,h),interpolation=cv2.INTER_AREA)
+                graded=finish_frame(physics.transform(raw,t),rng)
+                proc.stdin.write(graded.tobytes())
             proc.stdin.close(); code=proc.wait()
             if code: raise RuntimeError(f'ffmpeg failed ({code})')
         except BaseException:
@@ -136,6 +153,7 @@ def render(topic,duration,resolution,output,whisper_model="base.en",require_onli
             proc.wait(); output.unlink(missing_ok=True); raise
         finally:
             hero.close()
+            document_image.unlink(missing_ok=True);Path(str(document_image)+'.json').unlink(missing_ok=True)
     return output
 
 def resolution(value):
@@ -144,6 +162,6 @@ def resolution(value):
 
 def main():
     p=argparse.ArgumentParser(description=__doc__)
-    p.add_argument('--showcase',action='store_true',help='15-second continuous flight with a short, naturally paced narration'); p.add_argument('--preview',action='store_true',help='Use 640x360 and at least 30 seconds for a paced draft'); p.add_argument('--topic',required=True); p.add_argument('--duration',type=float,default=60); p.add_argument('--resolution',type=resolution,default=(1920,1080)); p.add_argument('--output',default='final_video.mp4'); p.add_argument('--whisper-model',default='base.en',help='Faster-Whisper model name or local path (default: base.en)'); p.add_argument('--offline',action='store_true',help='Use offline eSpeak without an online probe'); p.add_argument('--require-online',action='store_true',help='Fail instead of using offline speech if Edge TTS or Whisper fails')
+    p.add_argument('--showcase',action='store_true',help='15-second six-beat showcase with a short, naturally paced narration'); p.add_argument('--preview',action='store_true',help='Use 640x360 and at least 30 seconds for a paced draft'); p.add_argument('--topic',required=True); p.add_argument('--duration',type=float,default=60); p.add_argument('--resolution',type=resolution,default=(1920,1080)); p.add_argument('--output',default='final_video.mp4'); p.add_argument('--whisper-model',default='base.en',help='Faster-Whisper model name or local path (default: base.en)'); p.add_argument('--offline',action='store_true',help='Use offline eSpeak without an online probe'); p.add_argument('--require-online',action='store_true',help='Fail instead of using offline speech if Edge TTS or Whisper fails')
     a=p.parse_args(); duration=15 if a.showcase else (min(a.duration,30) if a.preview else a.duration); print('Rendered:',render(a.topic,duration,(640,360) if a.preview else a.resolution,a.output,a.whisper_model,a.require_online,a.offline,a.showcase))
 if __name__=='__main__': main()
