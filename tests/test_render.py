@@ -63,12 +63,12 @@ def test_online_voice_failure_uses_speech_and_timed_words(tmp_path, monkeypatch)
     script=ceo_render_app.script_for('Why Your AI Gives You Wrong Answers')
     path, speech, sr, modes, words,duration=ceo_render_app.prepare_audio(script, 10, tmp_path, 'tiny')
     assert path.exists() and np.max(np.abs(speech)) > .01
-    assert modes == ['offline-espeak']*5
-    assert {item['act'] for item in words} == set(range(5))
+    assert modes == ['offline-espeak']
+    assert {item['act'] for item in words} == {0}
     assert [item['word_id'] for item in words] == list(range(len(words)))
-    assert duration >= 30
+    assert duration >= 10
     assert all(item['start_ms'] < item['end_ms'] <= duration*1000 for item in words)
-    assert all(int(item['start_ms']/1000/(duration/5)) == item['act'] for item in words)
+    assert all(int(item['start_ms']/1000/duration) == item['act'] for item in words)
 
 
 def test_pacing_extends_to_fit_unmodified_speech(tmp_path, monkeypatch):
@@ -100,7 +100,7 @@ def test_neural_voice_configuration(monkeypatch,tmp_path):
         async def save(self, path, metadata): pass
     monkeypatch.setitem(sys.modules,'edge_tts',types.SimpleNamespace(Communicate=Communicate))
     asyncio.run(ceo_render_app.synthesize(['A test'],tmp_path/'a.mp3'))
-    assert calls == [('A test','en-US-ChristopherNeural',{'rate':'-5%','pitch':'-2Hz','boundary':'WordBoundary'})]
+    assert calls == [('A test','en-US-ChristopherNeural',{'rate':'+12%','pitch':'-2Hz','boundary':'WordBoundary'})]
 
 def test_online_voice_and_whisper_are_automatic(tmp_path, monkeypatch):
     import sys, types, soundfile as sf

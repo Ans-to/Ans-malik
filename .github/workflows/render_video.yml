@@ -84,13 +84,12 @@ jobs:
           path: |
             renders/final_video.mp4
             renders/final_video.mp4.json
-            renders/final_video.mp4.brief.pdf
             renders/qa_contact_sheet.png
       - name: Commit render to the session branch
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -f renders/final_video.mp4 renders/final_video.mp4.json renders/final_video.mp4.brief.pdf renders/qa_contact_sheet.png
+          git add -f renders/final_video.mp4 renders/final_video.mp4.json renders/qa_contact_sheet.png
           if git diff --cached --quiet; then
             echo 'Render unchanged; nothing to commit.'
             exit 0

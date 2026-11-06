@@ -1,33 +1,18 @@
-# Cinema Forge
+# Invisible Storm trailer renderer
 
-An experimental documentary video renderer. Its six-beat impact showcase uses hard cuts and contrasting full-screen compositions, not the former radar/HUD world. The script and chart are illustrative and require editorial fact-checking.
-
-## Setup and render
-
-Python 3.11+, Node 22 and `tar` are required. Chromium, FFmpeg and Python dependencies are installed with:
+A four-act procedural 3D trailer: a molten obsidian monolith bursts into 320 individually tumbling polyhedra; 150,000 particles move in an analytically divergence-free curl field and collapse/detonate; a Numba SDF raymarcher flies through a vaulted liquid-metal cathedral; a singularity and extruded metallic title conclude the film. There are no diagnostic interfaces or charts in the rendering path.
 
 ```sh
-python -m venv .venv
-. .venv/bin/activate
-pip install -r requirements.txt
-npm ci
-python ceo_render_app.py --topic "Why Your AI Gives You Wrong Answers" --showcase --offline --resolution 1920x1080 --output renders/final_video.mp4
+python -m venv .venv && . .venv/bin/activate
+pip install -r requirements.txt && npm ci
+python ceo_render_app.py --topic 'Invisible Storm' --showcase --offline --resolution 1920x1080 --output renders/final_video.mp4
 python qa_video.py renders/final_video.mp4 --sheet renders/qa_contact_sheet.png --resolution 1920x1080
 python impact_gatekeeper.py renders/final_video.mp4
-python -m pytest -q
-npm test
+python -m pytest -q && npm test
 ```
 
-The showcase is a naturally paced single-act narration lasting at least 15 seconds. Omit `--showcase` for the longer five-act script, whose duration is extended rather than speeding speech up; the six visual beats repeat every 15 seconds. `--preview` sets 640x360 and at least 30 seconds for the long version. Rendering at 2× resolution with software Chromium can take a long time. A JSON sidecar records timing, voice mode and document boxes; a ReportLab PDF is also saved alongside the MP4.
+Actions uses Edge TTS Christopher Neural at +12% and Faster-Whisper, failing instead of silently falling back. Local offline mode uses eSpeak at a faster trailer pace and its own estimated word events. Audio combines synthesized overdriven brass, risers and metallic transients with processed music, voice and room tone. Each frame passes through bloom, horizontal highlight streaks, vignette, chromatic aberration and grain. OpenCV handles timed shockwave, lensing and camera trauma. The final -14 LUFS target and reconstructed peak checks are not broadcast-certified.
 
-By default, the app attempts neural `en-US-ChristopherNeural` Edge TTS and Faster-Whisper word timestamps. When Whisper recognition differs from the script it uses Edge word boundaries if available. `--require-online` fails rather than silently substituting offline speech; `--offline` uses eSpeak NG with its own word-start events and inferred word ends. Neither mode guarantees perfect alignment. Audio mastering mixes narration, procedural music, impact transients and room tone, ducks the music, and targets -14 LUFS. Its 4× resampled peak check is not a certified true-peak meter, and AAC encoding may change peaks.
+The Three.js shards use deterministic ballistic trajectories and angular velocity, not a collision-solving rigid-body engine. The curl field is analytic rather than simplex noise; particles use procedural trajectories with curl displacement, rather than a Navier-Stokes solver. The CPU SDF raymarcher renders at up to 480 pixels wide then upscales, with finite-difference normals, approximate ambient occlusion, highlights and fog; it is not path-traced and has no physically accurate reflections. Point glow approximates bokeh. Volumetric shafts are approximated by blooms, not volumetric path tracing. These limits matter when comparing with cinematic reference footage.
 
-## Visuals and QA
-
-Three.js renders 144 solid metallic fragments, extruded text and an animated tip-following 3D chart. A GLSL raymarcher responds to speech frequency bands. A real ReportLab PDF is rasterized, rotated and highlighted with word coordinates. Hard-cut compositions, shockwaves, deterministic camera shake, timed type and impact audio are followed by the optical finisher on every frame. The finisher includes bloom, vignette, chromatic aberration and grain; 2× captures are downsampled before finishing. These are procedural stylizations, not a simulation of actual data, and not every shot uses physically simulated depth of field or motion blur.
-
-`qa_video.py` checks streams, resolution, fps, sampled contrast and motion and creates a contact sheet. `impact_gatekeeper.py` checks a full-HD 60 fps showcase for six decodable beat samples, palette inversion and sampled intra-beat motion. It deliberately allows hard cuts; neither gate guarantees aesthetic quality or alignment. The older `aesthetic_gatekeeper.py` is intended for continuous-shot footage and is not the impact gate.
-
-The GitHub Actions workflow runs on engine changes pushed to main or this session branch, and supports manual topic, duration, resolution and showcase inputs. Pushes render the 15-second showcase; manual runs can choose a longer render. It checks out and writes to the session branch, requires neural speech and alignment, performs QA, uploads artifacts, and commits the video and sheet. Online services, workflow write permission and sufficient GitHub storage must be available. Files over GitHub's ordinary 100 MiB limit require Git LFS or external storage. Workflow-dispatch UI availability requires the workflow on the default branch.
-
-Licensed fonts and licenses are in `shared_workspace/fonts/`. The chart values are illustrative; generated narration is templated and must be verified by a human.
+GitHub Actions renders the showcase on relevant pushes, validates video and audio, uploads artifacts, and commits the MP4 and contact sheet to the session branch. It requires available neural services and GitHub write permissions. Large renders exceeding GitHub's 100 MiB blob limit require Git LFS or external storage. The contact sheet and automated motion checks do not prove a subjective quality benchmark or absence of every unwanted visual element.

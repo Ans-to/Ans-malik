@@ -48,6 +48,12 @@ def _finish_with_seed(frame, grain_seed):
     small = cv2.resize(highlights, (sw, sh), interpolation=cv2.INTER_AREA)
     blurred = gaussian_filter(small, sigma=(18 * sh / h, 18 * sw / w, 0))
     bloom = cv2.resize(blurred, (w, h), interpolation=cv2.INTER_LINEAR)
+    # Horizontal highlight convolution approximates anamorphic streak flare.
+    cutoff = np.percentile(luminance, 98)
+    hot = np.maximum(luminance - max(cutoff, .75), 0).astype(np.float32)
+    streak = cv2.blur(hot, (65, 1))
+    image += streak[..., None] * np.array([.26, .45, .50], dtype=np.float32)
+    image = np.clip(image, 0, 1)
     image = apply_bloom_vignette_and_grain(image, bloom, grain_seed)
     yy, xx = np.mgrid[:h, :w].astype(np.float32)
     dx = (xx - (w - 1) / 2) / max((w - 1) / 2, 1)

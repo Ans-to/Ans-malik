@@ -10,32 +10,25 @@ from forge_python.ffmpeg import get_ffmpeg_exe
 from forge_python.audio_mastering.pedalboard_master import master
 from forge_python.post_fx.optical_lens import finish_frame
 from forge_python.render.voice import OfflineVoice
-from forge_python.render.document import ClassifiedDocument
+from forge_python.render.trailer_raymarch import frame as cathedral_frame
+from forge_python.render.trailer_particles import ParticleField
 from forge_python.render.impact_renderer import ImpactRenderer
 from forge_python.render.impact_physics import ImpactPhysicsEngine, impact_music
 import cv2
 
 FPS=60
 MIN_SCENE_SECONDS=6.0
-NARRATION_WPM=145
+NARRATION_WPM=190
 VOICE_GAP_SECONDS=0.6
 
+TRAILER_SCRIPT = "Beneath the surface of every machine lies an invisible storm. Millions of dimensions colliding in the dark—shattering illusion into raw power. When the mirage collapses, only physics survives."
+
 def script_for(topic):
-    if not any(term in topic.lower() for term in (' ai', 'ai ', 'artificial intelligence', 'language model', 'chatgpt')):
-        return [f'{topic}. To understand the question, we need to look beyond the headline. The answer depends on context, evidence, and the assumptions we bring to the story.',
-                'Start with a clear question and identify the sources behind the claims. A compelling account can leave out details that change how the evidence should be interpreted.',
-                'Look at what the available evidence can and cannot tell us. An illustrative curve is not a measurement, and correlation alone does not establish a cause.',
-                'Consider alternative explanations and ask what information is missing. A useful model can reveal patterns, but its conclusions still depend on the quality of its inputs.',
-                'Before drawing a conclusion, check important claims against reliable sources. Keep uncertainty in view, and be ready to revise the story when better evidence appears.']
-    return [f'{topic}. The answer can sound certain, detailed, and completely convincing. But fluent language is not the same thing as evidence, and a confident response can still be wrong.',
-            'A fluent answer can look convincing even when it is wrong. These systems generate language by following learned patterns, so a polished explanation should not replace careful source checking.',
-            'A language model predicts likely sequences from its context. The illustrative curve shows a changing score, not measured accuracy; probability is not a guarantee that a claim is true.',
-            'Gaps in context, ambiguous questions, and unreliable source material can all shape an answer. The network finds patterns, but it does not automatically verify every fact it produces.',
-            'Ask for sources, check important claims, and compare answers against reliable evidence. Use the model as a starting point, then apply judgment before making consequential decisions.']
+    return [TRAILER_SCRIPT]  # The requested trailer is one naturally delivered act.
 
 async def synthesize(script, target):
     import edge_tts
-    await asyncio.wait_for(edge_tts.Communicate(' '.join(script), 'en-US-ChristopherNeural', rate='-5%', pitch='-2Hz', boundary='WordBoundary').save(str(target), str(target)+'.jsonl'), timeout=45)
+    await asyncio.wait_for(edge_tts.Communicate(' '.join(script), 'en-US-ChristopherNeural', rate='+12%', pitch='-2Hz', boundary='WordBoundary').save(str(target), str(target)+'.jsonl'), timeout=45)
 
 def prepare_audio(script, duration, tmp, whisper_model='base.en', require_online=False, offline=False):
     """Synthesize first, then extend the timeline to fit at the original speed.
@@ -106,23 +99,16 @@ def render(topic,duration,resolution,output,whisper_model="base.en",require_onli
     if w<64 or h<64 or w%2 or h%2: raise ValueError('resolution must be even and at least 64x64')
     if not math.isfinite(duration) or duration<=0: raise ValueError('duration must be finite and positive')
     output=Path(output).resolve(); output.parent.mkdir(parents=True,exist_ok=True)
-    script=(["Fluent answers are not always true. Follow the evidence, check the source, inspect the patterns, and verify important claims before trusting the result."] if showcase else script_for(topic))
+    script=script_for(topic)
     with tempfile.TemporaryDirectory(prefix='ceo-render-') as directory:
         tmp=Path(directory); requested_duration=duration
         audio,speech,sr,modes,words,duration=prepare_audio(script,duration,tmp,whisper_model,require_online,offline)
         if duration>requested_duration: print(f'Extended duration from {requested_duration:g}s to {duration:g}s to preserve narration pace.',flush=True)
-        doc=ClassifiedDocument(words if showcase else [word for word in words if word['act']==1])
-        Path(str(output)+'.brief.pdf').write_bytes(doc.pdf)
-        document_image=Path(__file__).resolve().parent/'renders'/f'.impact_document_{uuid.uuid4().hex}.png'
-        document_image.parent.mkdir(parents=True,exist_ok=True)
-        cv2.imwrite(str(document_image),cv2.cvtColor(doc.paper,cv2.COLOR_RGB2BGR))
-        Path(str(document_image)+'.json').write_text(json.dumps({'width':doc.paper.shape[1],'height':doc.paper.shape[0],'boxes':doc.boxes}))
-        try: hero=ImpactRenderer(w*2,h*2,topic,document_image)
-        except BaseException:
-            document_image.unlink(missing_ok=True);Path(str(document_image)+'.json').unlink(missing_ok=True);raise
+        hero=ImpactRenderer(w*2,h*2,topic,None)
         physics=ImpactPhysicsEngine(w,h,duration,words)
+        particles=ParticleField()
         rng=np.random.default_rng(42)
-        metadata={'topic':topic,'acts':script,'voiceover_modes':modes,'word_timestamps':words,'document_word_boxes':doc.boxes,'fps':FPS,'resolution':[w,h],'requested_duration':requested_duration,'duration':duration,'visual_engine':'six-beat Three.js impact + raymarched GLSL', 'showcase':showcase, 'note':'Chart values are illustrative. Offline timing is from eSpeak word events.'}
+        metadata={'topic':topic,'acts':script,'voiceover_modes':modes,'word_timestamps':words,'fps':FPS,'resolution':[w,h],'requested_duration':requested_duration,'duration':duration,'visual_engine':'Four-act Three.js destruction and Numba SDF raymarcher', 'showcase':showcase, 'note':'Offline timing is from eSpeak word events; offline voice is synthetic.'}
         Path(str(output)+'.json').write_text(json.dumps(metadata,indent=2))
         command=[get_ffmpeg_exe(),'-v','error','-y','-f','rawvideo','-pix_fmt','rgb24','-s',f'{w}x{h}','-r',str(FPS),'-i','-','-i',str(audio),'-c:v','libx264','-preset','slow','-crf','16','-pix_fmt','yuv420p','-c:a','aac','-b:a','192k','-shortest','-movflags','+faststart',str(output)]
         proc=subprocess.Popen(command,stdin=subprocess.PIPE)
@@ -142,8 +128,12 @@ def render(topic,duration,resolution,output,whisper_model="base.en",require_onli
                 else: levels=[0,0,0]
                 word_id=active['word_id'] if active else -1
                 word_progress=(t*1000-active['start_ms'])/max(1,active['end_ms']-active['start_ms']) if active else 0
-                raw=hero.frame(frame_idx,FPS,word,word_age,levels,word_id,word_progress)
-                raw=cv2.resize(raw,(w,h),interpolation=cv2.INTER_AREA)
+                if 7.6 <= (t % 15) < 11.4:
+                    raw=cathedral_frame(w,h,(t % 15)-7.6)
+                else:
+                    particle_data=particles.frame((t%15)-3.8) if 3.8 <= (t%15) < 7.6 else None
+                    raw=hero.frame(frame_idx,FPS,word,word_age,levels,word_id,word_progress,particle_data)
+                    raw=cv2.resize(raw,(w,h),interpolation=cv2.INTER_AREA)
                 graded=finish_frame(physics.transform(raw,t),rng)
                 proc.stdin.write(graded.tobytes())
             proc.stdin.close(); code=proc.wait()
@@ -153,7 +143,6 @@ def render(topic,duration,resolution,output,whisper_model="base.en",require_onli
             proc.wait(); output.unlink(missing_ok=True); raise
         finally:
             hero.close()
-            document_image.unlink(missing_ok=True);Path(str(document_image)+'.json').unlink(missing_ok=True)
     return output
 
 def resolution(value):

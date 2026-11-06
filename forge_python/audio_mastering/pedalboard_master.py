@@ -58,7 +58,7 @@ def master(music, voice, sample_rate, seed=0):
     if length == 0: raise ValueError('stems must not both be empty')
     music = np.pad(music, ((0, length-len(music)), (0, 0)))
     voice = np.pad(voice, ((0, length-len(voice)), (0, 0)))
-    board = Pedalboard([LowpassFilter(cutoff_frequency_hz=1800), Chorus(), Reverb(room_size=0.82, wet_level=0.45)])
+    board = Pedalboard([LowpassFilter(cutoff_frequency_hz=min(10000, sample_rate * .45)), Chorus(), Reverb(room_size=0.82, wet_level=0.45)])
     processed = board(music.T, sample_rate).T
     # Low-pass filtered noise provides a deterministic, dark room-tone bed at -38 dB RMS.
     from scipy.signal import lfilter
