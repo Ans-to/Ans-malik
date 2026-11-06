@@ -5,7 +5,7 @@ on:
       topic:
         description: Documentary topic
         required: true
-        default: Why Your AI Gives You Wrong Answers
+        default: Invisible Storm
       showcase:
         description: Render the 15-second showcase instead of the longer documentary
         type: boolean
@@ -63,7 +63,7 @@ jobs:
       - run: npm ci
       - name: Render with neural narration and word alignment
         env:
-          TOPIC: ${{ inputs.topic || 'Why Your AI Gives You Wrong Answers' }}
+          TOPIC: ${{ inputs.topic || 'Invisible Storm' }}
           DURATION: ${{ inputs.duration || '60' }}
           RESOLUTION: ${{ inputs.resolution || '1920x1080' }}
           SHOWCASE: ${{ github.event_name == 'push' || inputs.showcase }}

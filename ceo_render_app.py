@@ -10,9 +10,7 @@ from forge_python.ffmpeg import get_ffmpeg_exe
 from forge_python.audio_mastering.pedalboard_master import master
 from forge_python.post_fx.optical_lens import finish_frame
 from forge_python.render.voice import OfflineVoice
-from forge_python.render.trailer_raymarch import frame as cathedral_frame
-from forge_python.render.trailer_particles import ParticleField
-from forge_python.render.impact_renderer import ImpactRenderer
+from forge_python.render.cosmic_shader import CosmicRenderer
 from forge_python.render.impact_physics import ImpactPhysicsEngine, impact_music
 import cv2
 
@@ -34,7 +32,7 @@ def prepare_audio(script, duration, tmp, whisper_model='base.en', require_online
     """Synthesize first, then extend the timeline to fit at the original speed.
 
     Every act has an equal duration of at least six seconds and sufficient room
-    for its speech and an estimated 145-wpm reading. No speech is time-scaled.
+    for its speech and an estimated 190-wpm reading. No speech is time-scaled.
     """
     if not script or not math.isfinite(duration) or duration <= 0:
         raise ValueError('duration must be a finite positive number and script must not be empty')
@@ -104,36 +102,18 @@ def render(topic,duration,resolution,output,whisper_model="base.en",require_onli
         tmp=Path(directory); requested_duration=duration
         audio,speech,sr,modes,words,duration=prepare_audio(script,duration,tmp,whisper_model,require_online,offline)
         if duration>requested_duration: print(f'Extended duration from {requested_duration:g}s to {duration:g}s to preserve narration pace.',flush=True)
-        hero=ImpactRenderer(w*2,h*2,topic,None)
+        hero=CosmicRenderer(w,h)
         physics=ImpactPhysicsEngine(w,h,duration,words)
-        particles=ParticleField()
         rng=np.random.default_rng(42)
-        metadata={'topic':topic,'acts':script,'voiceover_modes':modes,'word_timestamps':words,'fps':FPS,'resolution':[w,h],'requested_duration':requested_duration,'duration':duration,'visual_engine':'Four-act Three.js destruction and Numba SDF raymarcher', 'showcase':showcase, 'note':'Offline timing is from eSpeak word events; offline voice is synthetic.'}
+        metadata={'topic':topic,'acts':script,'voiceover_modes':modes,'word_timestamps':words,'fps':FPS,'resolution':[w,h],'requested_duration':requested_duration,'duration':duration,'visual_engine':'Four-act Numba procedural cosmic shader', 'shader_internal_resolution':[hero.iw,hero.ih], 'showcase':showcase, 'note':'Offline timing is from eSpeak word events; offline voice is synthetic.'}
         Path(str(output)+'.json').write_text(json.dumps(metadata,indent=2))
         command=[get_ffmpeg_exe(),'-v','error','-y','-f','rawvideo','-pix_fmt','rgb24','-s',f'{w}x{h}','-r',str(FPS),'-i','-','-i',str(audio),'-c:v','libx264','-preset','slow','-crf','16','-pix_fmt','yuv420p','-c:a','aac','-b:a','192k','-shortest','-movflags','+faststart',str(output)]
         proc=subprocess.Popen(command,stdin=subprocess.PIPE)
         try:
             count=round(duration*FPS)
             for frame_idx in range(count):
-                t=frame_idx/FPS; start=int(t*sr); samples=speech[start:min(len(speech),start+sr//FPS)]
-                rms=float(np.sqrt(np.mean(samples**2))) if len(samples) else 0
-                active=next((word for word in words if word['start_ms']<=t*1000<word['end_ms']),None)
-                word=active['word'] if active else ''
-                word_age=(t-active['start_ms']/1000) if active else 1
-                # Frequency bands drive the raymarched energy field; no independent oscillator is output raw.
-                if len(samples):
-                    spectrum=np.abs(np.fft.rfft(samples*np.hanning(len(samples))))
-                    frequencies=np.fft.rfftfreq(len(samples),1/sr)
-                    levels=[float(min(1,np.mean(spectrum[(frequencies>=lo)&(frequencies<hi)])*4)) if np.any((frequencies>=lo)&(frequencies<hi)) else 0 for lo,hi in ((80,400),(400,1600),(1600,6000))]
-                else: levels=[0,0,0]
-                word_id=active['word_id'] if active else -1
-                word_progress=(t*1000-active['start_ms'])/max(1,active['end_ms']-active['start_ms']) if active else 0
-                if 7.6 <= (t % 15) < 11.4:
-                    raw=cathedral_frame(w,h,(t % 15)-7.6)
-                else:
-                    particle_data=particles.frame((t%15)-3.8) if 3.8 <= (t%15) < 7.6 else None
-                    raw=hero.frame(frame_idx,FPS,word,word_age,levels,word_id,word_progress,particle_data)
-                    raw=cv2.resize(raw,(w,h),interpolation=cv2.INTER_AREA)
+                t=frame_idx/FPS
+                raw=hero.frame(t)
                 graded=finish_frame(physics.transform(raw,t),rng)
                 proc.stdin.write(graded.tobytes())
             proc.stdin.close(); code=proc.wait()
@@ -141,8 +121,6 @@ def render(topic,duration,resolution,output,whisper_model="base.en",require_onli
         except BaseException:
             if proc.poll() is None: proc.kill()
             proc.wait(); output.unlink(missing_ok=True); raise
-        finally:
-            hero.close()
     return output
 
 def resolution(value):
@@ -151,6 +129,6 @@ def resolution(value):
 
 def main():
     p=argparse.ArgumentParser(description=__doc__)
-    p.add_argument('--showcase',action='store_true',help='15-second six-beat showcase with a short, naturally paced narration'); p.add_argument('--preview',action='store_true',help='Use 640x360 and at least 30 seconds for a paced draft'); p.add_argument('--topic',required=True); p.add_argument('--duration',type=float,default=60); p.add_argument('--resolution',type=resolution,default=(1920,1080)); p.add_argument('--output',default='final_video.mp4'); p.add_argument('--whisper-model',default='base.en',help='Faster-Whisper model name or local path (default: base.en)'); p.add_argument('--offline',action='store_true',help='Use offline eSpeak without an online probe'); p.add_argument('--require-online',action='store_true',help='Fail instead of using offline speech if Edge TTS or Whisper fails')
+    p.add_argument('--showcase',action='store_true',help='15-second four-act showcase with a short, naturally paced narration'); p.add_argument('--preview',action='store_true',help='Use 640x360 and at least 30 seconds for a paced draft'); p.add_argument('--topic',required=True); p.add_argument('--duration',type=float,default=60); p.add_argument('--resolution',type=resolution,default=(1920,1080)); p.add_argument('--output',default='final_video.mp4'); p.add_argument('--whisper-model',default='base.en',help='Faster-Whisper model name or local path (default: base.en)'); p.add_argument('--offline',action='store_true',help='Use offline eSpeak without an online probe'); p.add_argument('--require-online',action='store_true',help='Fail instead of using offline speech if Edge TTS or Whisper fails')
     a=p.parse_args(); duration=15 if a.showcase else (min(a.duration,30) if a.preview else a.duration); print('Rendered:',render(a.topic,duration,(640,360) if a.preview else a.resolution,a.output,a.whisper_model,a.require_online,a.offline,a.showcase))
 if __name__=='__main__': main()

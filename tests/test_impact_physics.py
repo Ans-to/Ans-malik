@@ -14,14 +14,22 @@ def test_score_includes_low_frequency_impact_transients():
     assert music.shape==(3*sr,) and np.isfinite(music).all()
     assert np.sqrt(np.mean(music[:sr//5]**2))>np.sqrt(np.mean(music[sr:sr+sr//5]**2))
 
-def test_particle_field_has_150000_finite_moving_points():
-    from forge_python.render.trailer_particles import ParticleField
-    field=ParticleField();a=field.frame(.5);b=field.frame(1.5)
-    assert a.shape==(150000,3) and np.isfinite(a).all()
-    assert np.mean(np.linalg.norm(a-b,axis=1))>1
+def test_cosmic_shader_samples_acts_and_is_deterministic():
+    from forge_python.render.cosmic_shader import render_shader
+    frames=[render_shader(96,54,t) for t in (.9,4.7,9.,13.)]
+    assert all(a.shape==(54,96,3) and a.dtype==np.uint8 for a in frames)
+    assert np.array_equal(frames[0],render_shader(96,54,.9))
+    assert all(np.std(a)>2 for a in frames)
 
-def test_numba_raymarch_depends_on_camera_time():
-    from forge_python.render.trailer_raymarch import raymarch
-    a=raymarch(64,36,.1);b=raymarch(64,36,1.)
-    assert a.shape==(36,64,3) and a.dtype==np.uint8
-    assert np.mean(np.abs(a.astype(float)-b.astype(float)))>1
+def test_title_mask_is_spaced_and_has_shadow_compositor():
+    from forge_python.render.cosmic_shader import CosmicRenderer
+    renderer=CosmicRenderer(320,180,160)
+    assert renderer.mask.max()>.7 and np.sum(renderer.mask)>10
+    assert not np.array_equal(renderer.frame(12),renderer.frame(13))
+
+def test_chroma_variance_rejects_grey_images():
+    from impact_gatekeeper import chroma_variance
+    gray=np.tile(np.arange(128,dtype=np.uint8),(64,1)); gray=np.repeat(gray[:,:,None],3,axis=2)
+    assert chroma_variance(gray)==0
+    color=gray.copy();color[:,:64,2]=200;color[:,64:,0]=200
+    assert chroma_variance(color)>4
