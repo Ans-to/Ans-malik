@@ -1,5 +1,5 @@
 {
-  "topic": "Why Your AI Gives You Wrong Answers",
+  "topic": "Invisible Storm",
   "acts": [
     "Beneath the surface of every machine lies an invisible storm. Millions of dimensions colliding in the dark\u2014shattering illusion into raw power. When the mirage collapses, only physics survives."
   ],
@@ -28,14 +28,14 @@
       "act": 0,
       "word": "surface",
       "start_ms": 2024,
-      "end_ms": 2224,
+      "end_ms": 2244,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word_id": 3,
       "act": 0,
       "word": "of",
-      "start_ms": 2224,
+      "start_ms": 2244,
       "end_ms": 2524,
       "source": "edge-tts+faster-whisper"
     },
@@ -76,14 +76,14 @@
       "act": 0,
       "word": "invisible",
       "start_ms": 3524,
-      "end_ms": 3844,
+      "end_ms": 3804,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word_id": 9,
       "act": 0,
       "word": "storm.",
-      "start_ms": 3844,
+      "start_ms": 3804,
       "end_ms": 4244,
       "source": "edge-tts+faster-whisper"
     },
@@ -247,7 +247,11 @@
   ],
   "requested_duration": 15,
   "duration": 15.0,
-  "visual_engine": "Four-act Three.js destruction and Numba SDF raymarcher",
+  "visual_engine": "Four-act Numba procedural cosmic shader",
+  "shader_internal_resolution": [
+    1920,
+    1080
+  ],
   "showcase": true,
   "note": "Offline timing is from eSpeak word events; offline voice is synthetic."
 }
