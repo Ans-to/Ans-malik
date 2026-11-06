@@ -71,6 +71,8 @@ jobs:
           args=()
           if [ "$SHOWCASE" = "true" ]; then args+=(--showcase); fi
           python ceo_render_app.py --topic "$TOPIC" --duration "$DURATION" --resolution "$RESOLUTION" --output renders/final_video.mp4 --whisper-model base.en --require-online "${args[@]}"
+      - name: Fit complete video under GitHub's file limit
+        run: python scripts/fit_github_video.py renders/final_video.mp4
       - name: QA
         env:
           RESOLUTION: ${{ inputs.resolution || '1920x1080' }}
