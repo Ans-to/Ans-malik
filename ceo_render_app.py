@@ -128,7 +128,7 @@ def render(topic,duration,resolution,output,whisper_model="base.en",require_onli
                     end=transition['frame'];n=transition['duration_frames'];start=end-n//2;i=next(i for i,s in enumerate(shots) if s['start_frame']==end)
                     old=shots[i-1];new=shots[i]
                     left=hero.frame(i-1,max(0,(f-old['start_frame'])/FPS),(old['end_frame']-old['start_frame'])/FPS,pulse)
-                    right=hero.frame(i,max(0,(f-start)/FPS),(new['end_frame']-new['start_frame'])/FPS,pulse)
+                    right=hero.frame(i,max(0,(f-new['start_frame'])/FPS),(new['end_frame']-new['start_frame'])/FPS,pulse)
                     left=cv2.resize(left,(w,h),interpolation=cv2.INTER_AREA);right=cv2.resize(right,(w,h),interpolation=cv2.INTER_AREA)
                     raw=physical_transition(left,right,(f-start)/(n-1),transition['kind'])
                 else:
