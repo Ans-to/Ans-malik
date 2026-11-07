@@ -95,7 +95,8 @@ def prepare_audio(script, duration, tmp, whisper_model='base.en', require_online
         events=[x['frame']/FPS for x in transitions]
         music=impact_music(actual_duration,sr,words,events=[])
         sfx,_=trailer_sfx(actual_duration,sr,transitions,anchors)
-        mix=master(music,speech,sr,sfx=sfx,voice_presence=True)
+        urgency=next((w['start_ms']/1000 for w in words if '2022' in w['word']),None)
+        mix=master(music,speech,sr,sfx=sfx,voice_presence=True,urgent_after=urgency)
     else:
         shots,transitions=make_timeline(max(15., min(actual_duration,17.6)),words)
         events=[x['frame']/FPS for x in transitions if x['frame']/FPS<actual_duration]

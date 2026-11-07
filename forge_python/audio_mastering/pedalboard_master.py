@@ -52,8 +52,18 @@ def constrain_oversampled_peak(audio, sample_rate, ceiling_db=-1.0):
     if peak>limit: out*=limit/peak
     return out.astype(np.float32)
 
-def master(music, voice, sample_rate, seed=0, sfx=None, voice_presence=False):
+def master(music, voice, sample_rate, seed=0, sfx=None, voice_presence=False, urgent_after=None):
     music, voice = stereo(np.asarray(music, dtype=np.float32)), stereo(np.asarray(voice, dtype=np.float32))
+    if urgent_after is not None:
+        from pedalboard import PitchShift
+        start=max(0,min(len(voice),round(float(urgent_after)*sample_rate)))
+        warm=max(0,start-round(.25*sample_rate))
+        if start<len(voice):
+            shifted=Pedalboard([PitchShift(semitones=.25)])(voice[warm:].astype(np.float32).T,sample_rate).T
+            shifted=shifted[start-warm:]
+            fade=min(len(shifted),round(.1*sample_rate))
+            if fade: shifted[:fade]=voice[start:start+fade]*(1-np.linspace(0,1,fade)[:,None])+shifted[:fade]*np.linspace(0,1,fade)[:,None]
+            voice[start:]=shifted
     if voice_presence:
         from scipy.signal import iirpeak, lfilter
         b,a=iirpeak(3000,1.0,fs=sample_rate)
