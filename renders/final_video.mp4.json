@@ -1,7 +1,7 @@
 {
   "topic": "The Nixon Shock",
   "acts": [
-    "In 1971, Nixon closed the gold window. Foreign central banks could no longer swap dollars for gold. Digital ledgers connect debt and currencies. In 2022, dollars appeared in eighty-eight percent of foreign exchange trades."
+    "In 1971, Nixon closed the gold window. Foreign central banks lost gold conversion. Digital ledgers connect debt. In 2022, dollars were in eighty-eight percent of foreign exchange trades."
   ],
   "voiceover_modes": [
     "edge-tts-boundaries+faster-whisper"
@@ -11,256 +11,208 @@
       "word_id": 0,
       "act": 0,
       "word": "In 1971",
-      "start_ms": 399,
-      "end_ms": 1604,
+      "start_ms": 683,
+      "end_ms": 1888,
       "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 1,
       "act": 0,
       "word": "Nixon",
-      "start_ms": 1850,
-      "end_ms": 2229,
+      "start_ms": 2134,
+      "end_ms": 2513,
       "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 2,
       "act": 0,
       "word": "closed",
-      "start_ms": 2240,
-      "end_ms": 2597,
+      "start_ms": 2524,
+      "end_ms": 2881,
       "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 3,
       "act": 0,
       "word": "the",
-      "start_ms": 2608,
-      "end_ms": 2687,
+      "start_ms": 2892,
+      "end_ms": 2971,
       "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 4,
       "act": 0,
       "word": "gold",
-      "start_ms": 2698,
-      "end_ms": 2966,
+      "start_ms": 2982,
+      "end_ms": 3250,
       "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 5,
       "act": 0,
       "word": "window",
-      "start_ms": 2977,
-      "end_ms": 3412,
+      "start_ms": 3261,
+      "end_ms": 3696,
       "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 6,
       "act": 0,
       "word": "Foreign",
-      "start_ms": 4177,
-      "end_ms": 4579,
+      "start_ms": 4461,
+      "end_ms": 4863,
       "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 7,
       "act": 0,
       "word": "central",
-      "start_ms": 4590,
-      "end_ms": 4913,
+      "start_ms": 4874,
+      "end_ms": 5197,
       "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 8,
       "act": 0,
       "word": "banks",
-      "start_ms": 4925,
-      "end_ms": 5259,
+      "start_ms": 5209,
+      "end_ms": 5521,
       "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 9,
       "act": 0,
-      "word": "could",
-      "start_ms": 5270,
-      "end_ms": 5427,
+      "word": "lost",
+      "start_ms": 5532,
+      "end_ms": 5845,
       "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 10,
       "act": 0,
-      "word": "no",
-      "start_ms": 5438,
-      "end_ms": 5583,
+      "word": "gold",
+      "start_ms": 5856,
+      "end_ms": 6101,
       "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 11,
       "act": 0,
-      "word": "longer",
-      "start_ms": 5594,
-      "end_ms": 5907,
+      "word": "conversion",
+      "start_ms": 6113,
+      "end_ms": 6715,
       "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 12,
       "act": 0,
-      "word": "swap",
-      "start_ms": 5918,
-      "end_ms": 6230,
+      "word": "Digital",
+      "start_ms": 7485,
+      "end_ms": 7865,
       "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 13,
       "act": 0,
-      "word": "dollars",
-      "start_ms": 6242,
-      "end_ms": 6576,
+      "word": "ledgers",
+      "start_ms": 7876,
+      "end_ms": 8222,
       "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 14,
       "act": 0,
-      "word": "for",
-      "start_ms": 6588,
-      "end_ms": 6721,
+      "word": "connect",
+      "start_ms": 8233,
+      "end_ms": 8579,
       "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 15,
       "act": 0,
-      "word": "gold",
-      "start_ms": 6733,
-      "end_ms": 7157,
+      "word": "debt",
+      "start_ms": 8590,
+      "end_ms": 8903,
       "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 16,
       "act": 0,
-      "word": "Digital",
-      "start_ms": 7927,
-      "end_ms": 8306,
+      "word": "In 2022",
+      "start_ms": 9673,
+      "end_ms": 10711,
       "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 17,
       "act": 0,
-      "word": "ledgers",
-      "start_ms": 8317,
-      "end_ms": 8663,
+      "word": "dollars",
+      "start_ms": 10934,
+      "end_ms": 11280,
       "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 18,
       "act": 0,
-      "word": "connect",
-      "start_ms": 8675,
-      "end_ms": 9054,
+      "word": "were",
+      "start_ms": 11291,
+      "end_ms": 11403,
       "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 19,
       "act": 0,
-      "word": "debt",
-      "start_ms": 9065,
-      "end_ms": 9311,
+      "word": "in",
+      "start_ms": 11414,
+      "end_ms": 11559,
       "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 20,
       "act": 0,
-      "word": "and",
-      "start_ms": 9322,
-      "end_ms": 9434,
+      "word": "eighty-eight",
+      "start_ms": 11570,
+      "end_ms": 11905,
       "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 21,
       "act": 0,
-      "word": "currencies",
-      "start_ms": 9445,
-      "end_ms": 10148,
+      "word": "percent",
+      "start_ms": 11916,
+      "end_ms": 12262,
       "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 22,
       "act": 0,
-      "word": "In 2022",
-      "start_ms": 10918,
-      "end_ms": 11956,
+      "word": "of",
+      "start_ms": 12273,
+      "end_ms": 12340,
       "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 23,
       "act": 0,
-      "word": "dollars",
-      "start_ms": 12179,
-      "end_ms": 12525,
+      "word": "foreign",
+      "start_ms": 12351,
+      "end_ms": 12608,
       "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 24,
       "act": 0,
-      "word": "appeared",
-      "start_ms": 12536,
-      "end_ms": 12882,
+      "word": "exchange",
+      "start_ms": 12619,
+      "end_ms": 13088,
       "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 25,
       "act": 0,
-      "word": "in",
-      "start_ms": 12893,
-      "end_ms": 13050,
-      "source": "edge-tts-boundaries+faster-whisper"
-    },
-    {
-      "word_id": 26,
-      "act": 0,
-      "word": "eighty-eight",
-      "start_ms": 13061,
-      "end_ms": 13396,
-      "source": "edge-tts-boundaries+faster-whisper"
-    },
-    {
-      "word_id": 27,
-      "act": 0,
-      "word": "percent",
-      "start_ms": 13407,
-      "end_ms": 13741,
-      "source": "edge-tts-boundaries+faster-whisper"
-    },
-    {
-      "word_id": 28,
-      "act": 0,
-      "word": "of",
-      "start_ms": 13753,
-      "end_ms": 13820,
-      "source": "edge-tts-boundaries+faster-whisper"
-    },
-    {
-      "word_id": 29,
-      "act": 0,
-      "word": "foreign",
-      "start_ms": 13831,
-      "end_ms": 14087,
-      "source": "edge-tts-boundaries+faster-whisper"
-    },
-    {
-      "word_id": 30,
-      "act": 0,
-      "word": "exchange",
-      "start_ms": 14099,
-      "end_ms": 14567,
-      "source": "edge-tts-boundaries+faster-whisper"
-    },
-    {
-      "word_id": 31,
-      "act": 0,
       "word": "trades",
-      "start_ms": 14579,
-      "end_ms": 15103,
+      "start_ms": 13099,
+      "end_ms": 13624,
       "source": "edge-tts-boundaries+faster-whisper"
     }
   ],
@@ -270,118 +222,118 @@
     1080
   ],
   "requested_duration": 15,
-  "duration": 16.183333333333334,
+  "duration": 15.0,
   "visual_engine": "11-shot Three.js documentary and physical transitions",
   "shots": [
     {
       "index": 0,
       "start_frame": 0,
-      "end_frame": 88
+      "end_frame": 82
     },
     {
       "index": 1,
-      "start_frame": 88,
-      "end_frame": 177
+      "start_frame": 82,
+      "end_frame": 164
     },
     {
       "index": 2,
-      "start_frame": 177,
-      "end_frame": 265
+      "start_frame": 164,
+      "end_frame": 245
     },
     {
       "index": 3,
-      "start_frame": 265,
-      "end_frame": 353
+      "start_frame": 245,
+      "end_frame": 327
     },
     {
       "index": 4,
-      "start_frame": 353,
-      "end_frame": 441
+      "start_frame": 327,
+      "end_frame": 409
     },
     {
       "index": 5,
-      "start_frame": 441,
-      "end_frame": 530
+      "start_frame": 409,
+      "end_frame": 491
     },
     {
       "index": 6,
-      "start_frame": 530,
-      "end_frame": 618
+      "start_frame": 491,
+      "end_frame": 580
     },
     {
       "index": 7,
-      "start_frame": 618,
-      "end_frame": 706
+      "start_frame": 580,
+      "end_frame": 656
     },
     {
       "index": 8,
-      "start_frame": 706,
-      "end_frame": 794
+      "start_frame": 656,
+      "end_frame": 741
     },
     {
       "index": 9,
-      "start_frame": 794,
-      "end_frame": 883
+      "start_frame": 741,
+      "end_frame": 818
     },
     {
       "index": 10,
-      "start_frame": 883,
-      "end_frame": 971
+      "start_frame": 818,
+      "end_frame": 900
     }
   ],
   "transitions": [
     {
-      "frame": 88,
+      "frame": 82,
       "kind": "pillar",
       "duration_frames": 10
     },
     {
-      "frame": 177,
+      "frame": 164,
       "kind": "portal",
       "duration_frames": 10
     },
     {
-      "frame": 265,
+      "frame": 245,
       "kind": "whip",
       "duration_frames": 8
     },
     {
-      "frame": 353,
+      "frame": 327,
       "kind": "pillar",
       "duration_frames": 10
     },
     {
-      "frame": 441,
+      "frame": 409,
       "kind": "portal",
       "duration_frames": 10
     },
     {
-      "frame": 530,
+      "frame": 491,
       "kind": "whip",
       "duration_frames": 8
     },
     {
-      "frame": 618,
+      "frame": 580,
       "kind": "pillar",
       "duration_frames": 10
     },
     {
-      "frame": 706,
+      "frame": 656,
       "kind": "portal",
       "duration_frames": 10
     },
     {
-      "frame": 794,
+      "frame": 741,
       "kind": "whip",
       "duration_frames": 8
     },
     {
-      "frame": 883,
+      "frame": 818,
       "kind": "pillar",
       "duration_frames": 10
     }
   ],
-  "shot_cycle_seconds": 16.183333333333334,
+  "shot_cycle_seconds": 15.0,
   "sources": [
     "https://www.federalreservehistory.org/essays/gold-convertibility-ends",
     "https://www.bis.org/press/p221027.htm"
