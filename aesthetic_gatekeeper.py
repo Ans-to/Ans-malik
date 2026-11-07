@@ -5,6 +5,8 @@ These heuristics detect some sparse frames; they are not a proxy for taste or
 proof of professional quality. Ten frames are sampled across the entire film.
 """
 import argparse
+import json
+from pathlib import Path
 import cv2
 import numpy as np
 
@@ -98,9 +100,47 @@ def gatekeep(path,samples=10):
         return reports
     finally: cap.release()
 
+def check_documentary(path):
+    """Validate timing/transition provenance plus sampled transition movement.
+
+    Pixel analysis cannot prove absence of every dissolve or identify objects;
+    provenance asserts the renderer selected spatial-only transition types.
+    """
+    metadata_path=Path(str(path)+'.json')
+    if not metadata_path.exists():raise ValueError('documentary timeline metadata is missing')
+    data=json.loads(metadata_path.read_text());shots=data.get('shots',[]);transitions=data.get('transitions',[])
+    if len(shots)!=11 or len(transitions)!=10:raise ValueError('expected eleven shots and ten transitions')
+    if any(not 72 <= s['end_frame']-s['start_frame'] <=96 for s in shots):raise ValueError('shot outside 1.2–1.6 second range')
+    if any(x['kind'] not in ('pillar','portal','whip') or x['duration_frames'] not in (8,10) for x in transitions):raise ValueError('unsupported transition')
+    if any(shots[i]['end_frame']!=shots[i+1]['start_frame'] or transitions[i]['frame']!=shots[i]['end_frame'] for i in range(10)):raise ValueError('timeline has a gap or mismatched boundary')
+    from forge_python.render.documentary_timeline import speed_ramp
+    for shot in shots:
+        d=(shot['end_frame']-shot['start_frame'])/60
+        arrival=speed_ramp(.15,d)-speed_ramp(0,d)
+        glide=speed_ramp(.75,d)-speed_ramp(.60,d)
+        exit_speed=speed_ramp(d,d)-speed_ramp(d-.15,d)
+        if min(arrival,exit_speed)<=4*glide:raise ValueError('speed-ramp curve lacks arrival or exit spike')
+    cap=cv2.VideoCapture(str(path));changes=[]
+    try:
+        if not cap.isOpened():raise ValueError('cannot open video')
+        if abs(cap.get(cv2.CAP_PROP_FPS)-60)>.01:raise ValueError('documentary must be 60fps')
+        for transition in transitions:
+            f=transition['frame'];n=transition['duration_frames'];samples=[]
+            for idx in (f-n//2,f,f+n//2-1):
+                cap.set(cv2.CAP_PROP_POS_FRAMES,idx);ok,frame=cap.read()
+                if not ok:raise ValueError(f'cannot decode transition frame {idx}')
+                samples.append(cv2.resize(frame,(160,90),interpolation=cv2.INTER_AREA))
+            change=float(np.mean(cv2.absdiff(samples[0],samples[-1])));changes.append(change)
+            if change<1.:raise ValueError(f'no visible transition motion at frame {f}')
+        print(f'PASS documentary: 11 shots in 1.2–1.6s; 10 spatial transitions; minimum sampled change {min(changes):.2f}. Metadata does not prove semantic content or exclude all dissolves.')
+        return {'shots':shots,'transitions':transitions,'transition_change':changes}
+    finally:cap.release()
+
 def main():
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('video');p.add_argument('--samples',type=int,default=10);args=p.parse_args()
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('video');p.add_argument('--samples',type=int,default=10);p.add_argument('--documentary',action='store_true');args=p.parse_args()
     if args.samples<1:p.error('samples must be positive')
+    if args.documentary:
+        check_documentary(args.video);return
     errors=[]
     for check in (lambda: gatekeep(args.video,args.samples), lambda: check_continuity(args.video)):
         try: check()

@@ -13,9 +13,9 @@ def keyword_times(words):
     return [word['start_ms']/1000 for word in words if len(word.get('word','').strip('.,;:!?'))>=4]
 
 class ImpactPhysicsEngine:
-    def __init__(self,width,height,duration,words):
+    def __init__(self,width,height,duration,words,events=None):
         self.width,self.height=width,height
-        self.beats=beat_times(duration)
+        self.beats=beat_times(duration) if events is None else events
         self.events=[(t,1.0) for t in self.beats]
         self.times=[t for t,_ in self.events]
         yy,xx=np.mgrid[:height,:width].astype(np.float32)
@@ -52,14 +52,14 @@ class ImpactPhysicsEngine:
             mx+=self.nx*lens;my+=self.ny*lens
         return cv2.remap(shaken,mx,my,cv2.INTER_LINEAR,borderMode=cv2.BORDER_REFLECT_101)
 
-def impact_music(duration,sample_rate,words=(),seed=42):
+def impact_music(duration,sample_rate,words=(),seed=42,events=None):
     """Trailer brass, rising sweeps and crystalline foley synchronized to impacts."""
     from scipy.signal import sawtooth, chirp, butter, sosfilt
     from pedalboard import Pedalboard, Distortion, Reverb
     n=round(duration*sample_rate);music=np.zeros(n,dtype=np.float32);rng=np.random.default_rng(seed)
     music+=.008*np.sin(2*np.pi*55*np.arange(n)/sample_rate).astype(np.float32)
     board=Pedalboard([Distortion(drive_db=20),Reverb(room_size=.8,wet_level=.3)])
-    for when in beat_times(duration):
+    for when in (beat_times(duration) if events is None else events):
         i=round(when*sample_rate);size=min(round(1.4*sample_rate),n-i)
         if size<=0:continue
         t=np.arange(size)/sample_rate;env=np.minimum(1,t*30)*np.exp(-t*2.2)

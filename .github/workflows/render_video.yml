@@ -5,7 +5,7 @@ on:
       topic:
         description: Documentary topic
         required: true
-        default: Invisible Storm
+        default: The Nixon Shock
       showcase:
         description: Render the 15-second showcase instead of the longer documentary
         type: boolean
@@ -63,7 +63,7 @@ jobs:
       - run: npm ci
       - name: Render with neural narration and word alignment
         env:
-          TOPIC: ${{ inputs.topic || 'Invisible Storm' }}
+          TOPIC: ${{ inputs.topic || 'The Nixon Shock' }}
           DURATION: ${{ inputs.duration || '60' }}
           RESOLUTION: ${{ inputs.resolution || '1920x1080' }}
           SHOWCASE: ${{ github.event_name == 'push' || inputs.showcase }}
@@ -78,7 +78,7 @@ jobs:
           RESOLUTION: ${{ inputs.resolution || '1920x1080' }}
         run: |
           python qa_video.py renders/final_video.mp4 --sheet renders/qa_contact_sheet.png --resolution "$RESOLUTION"
-          python impact_gatekeeper.py renders/final_video.mp4
+          python aesthetic_gatekeeper.py renders/final_video.mp4 --documentary
       - uses: actions/upload-artifact@v4
         with:
           name: documentary-render
