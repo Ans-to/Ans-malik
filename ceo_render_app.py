@@ -20,7 +20,7 @@ MIN_SCENE_SECONDS=6.0
 NARRATION_WPM=190
 VOICE_GAP_SECONDS=0.6
 
-TRAILER_SCRIPT = "In 1971, Nixon closed the gold window. Foreign central banks lost gold conversion. Digital ledgers connect global debt. In 2022, dollars appeared in eighty-eight percent of foreign exchange trades."
+TRAILER_SCRIPT = "In 1971, Nixon closed the gold window. Foreign central banks lost gold conversion. Digital ledgers connect debt. In 2022, dollars were in eighty-eight percent of foreign exchange trades."
 
 def script_for(topic):
     return [TRAILER_SCRIPT]  # The requested trailer is one naturally delivered act.
