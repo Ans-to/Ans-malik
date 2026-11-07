@@ -1,243 +1,267 @@
 {
-  "topic": "Invisible Storm",
+  "topic": "The Nixon Shock",
   "acts": [
-    "Beneath the surface of every machine lies an invisible storm. Millions of dimensions colliding in the dark\u2014shattering illusion into raw power. When the mirage collapses, only physics survives."
+    "In 1971, Nixon closed the gold window. Foreign central banks could no longer swap dollars for gold. Digital ledgers connect debt and currencies. In 2022, dollars appeared in eighty-eight percent of foreign exchange trades."
   ],
   "voiceover_modes": [
-    "edge-tts+faster-whisper"
+    "edge-tts-boundaries+faster-whisper"
   ],
   "word_timestamps": [
     {
       "word_id": 0,
       "act": 0,
-      "word": "beneath",
-      "start_ms": 1464,
-      "end_ms": 1764,
-      "source": "edge-tts+faster-whisper"
+      "word": "In 1971",
+      "start_ms": 399,
+      "end_ms": 1604,
+      "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 1,
       "act": 0,
-      "word": "the",
-      "start_ms": 1764,
-      "end_ms": 2024,
-      "source": "edge-tts+faster-whisper"
+      "word": "Nixon",
+      "start_ms": 1850,
+      "end_ms": 2229,
+      "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 2,
       "act": 0,
-      "word": "surface",
-      "start_ms": 2024,
-      "end_ms": 2244,
-      "source": "edge-tts+faster-whisper"
+      "word": "closed",
+      "start_ms": 2240,
+      "end_ms": 2597,
+      "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 3,
       "act": 0,
-      "word": "of",
-      "start_ms": 2244,
-      "end_ms": 2524,
-      "source": "edge-tts+faster-whisper"
+      "word": "the",
+      "start_ms": 2608,
+      "end_ms": 2687,
+      "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 4,
       "act": 0,
-      "word": "every",
-      "start_ms": 2524,
-      "end_ms": 2704,
-      "source": "edge-tts+faster-whisper"
+      "word": "gold",
+      "start_ms": 2698,
+      "end_ms": 2966,
+      "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 5,
       "act": 0,
-      "word": "machine",
-      "start_ms": 2704,
-      "end_ms": 3044,
-      "source": "edge-tts+faster-whisper"
+      "word": "window",
+      "start_ms": 2977,
+      "end_ms": 3412,
+      "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 6,
       "act": 0,
-      "word": "lies",
-      "start_ms": 3044,
-      "end_ms": 3344,
-      "source": "edge-tts+faster-whisper"
+      "word": "Foreign",
+      "start_ms": 4177,
+      "end_ms": 4579,
+      "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 7,
       "act": 0,
-      "word": "an",
-      "start_ms": 3344,
-      "end_ms": 3524,
-      "source": "edge-tts+faster-whisper"
+      "word": "central",
+      "start_ms": 4590,
+      "end_ms": 4913,
+      "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 8,
       "act": 0,
-      "word": "invisible",
-      "start_ms": 3524,
-      "end_ms": 3804,
-      "source": "edge-tts+faster-whisper"
+      "word": "banks",
+      "start_ms": 4925,
+      "end_ms": 5259,
+      "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 9,
       "act": 0,
-      "word": "storm.",
-      "start_ms": 3804,
-      "end_ms": 4244,
-      "source": "edge-tts+faster-whisper"
+      "word": "could",
+      "start_ms": 5270,
+      "end_ms": 5427,
+      "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 10,
       "act": 0,
-      "word": "Millions",
-      "start_ms": 5324,
-      "end_ms": 5444,
-      "source": "edge-tts+faster-whisper"
+      "word": "no",
+      "start_ms": 5438,
+      "end_ms": 5583,
+      "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 11,
       "act": 0,
-      "word": "of",
-      "start_ms": 5444,
-      "end_ms": 5764,
-      "source": "edge-tts+faster-whisper"
+      "word": "longer",
+      "start_ms": 5594,
+      "end_ms": 5907,
+      "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 12,
       "act": 0,
-      "word": "dimensions",
-      "start_ms": 5764,
-      "end_ms": 6004,
-      "source": "edge-tts+faster-whisper"
+      "word": "swap",
+      "start_ms": 5918,
+      "end_ms": 6230,
+      "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 13,
       "act": 0,
-      "word": "colliding",
-      "start_ms": 6004,
-      "end_ms": 6544,
-      "source": "edge-tts+faster-whisper"
+      "word": "dollars",
+      "start_ms": 6242,
+      "end_ms": 6576,
+      "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 14,
       "act": 0,
-      "word": "in",
-      "start_ms": 6544,
-      "end_ms": 6744,
-      "source": "edge-tts+faster-whisper"
+      "word": "for",
+      "start_ms": 6588,
+      "end_ms": 6721,
+      "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 15,
       "act": 0,
-      "word": "the",
-      "start_ms": 6744,
-      "end_ms": 6844,
-      "source": "edge-tts+faster-whisper"
+      "word": "gold",
+      "start_ms": 6733,
+      "end_ms": 7157,
+      "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 16,
       "act": 0,
-      "word": "dark,",
-      "start_ms": 6844,
-      "end_ms": 7044,
-      "source": "edge-tts+faster-whisper"
+      "word": "Digital",
+      "start_ms": 7927,
+      "end_ms": 8306,
+      "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 17,
       "act": 0,
-      "word": "shattering",
-      "start_ms": 7504,
-      "end_ms": 7784,
-      "source": "edge-tts+faster-whisper"
+      "word": "ledgers",
+      "start_ms": 8317,
+      "end_ms": 8663,
+      "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 18,
       "act": 0,
-      "word": "illusion",
-      "start_ms": 7784,
-      "end_ms": 8044,
-      "source": "edge-tts+faster-whisper"
+      "word": "connect",
+      "start_ms": 8675,
+      "end_ms": 9054,
+      "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 19,
       "act": 0,
-      "word": "into",
-      "start_ms": 8044,
-      "end_ms": 8444,
-      "source": "edge-tts+faster-whisper"
+      "word": "debt",
+      "start_ms": 9065,
+      "end_ms": 9311,
+      "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 20,
       "act": 0,
-      "word": "raw",
-      "start_ms": 8444,
-      "end_ms": 8644,
-      "source": "edge-tts+faster-whisper"
+      "word": "and",
+      "start_ms": 9322,
+      "end_ms": 9434,
+      "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 21,
       "act": 0,
-      "word": "power.",
-      "start_ms": 8644,
-      "end_ms": 9004,
-      "source": "edge-tts+faster-whisper"
+      "word": "currencies",
+      "start_ms": 9445,
+      "end_ms": 10148,
+      "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 22,
       "act": 0,
-      "word": "When",
-      "start_ms": 9944,
-      "end_ms": 10064,
-      "source": "edge-tts+faster-whisper"
+      "word": "In 2022",
+      "start_ms": 10918,
+      "end_ms": 11956,
+      "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 23,
       "act": 0,
-      "word": "the",
-      "start_ms": 10064,
-      "end_ms": 10184,
-      "source": "edge-tts+faster-whisper"
+      "word": "dollars",
+      "start_ms": 12179,
+      "end_ms": 12525,
+      "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 24,
       "act": 0,
-      "word": "mirage",
-      "start_ms": 10184,
-      "end_ms": 10464,
-      "source": "edge-tts+faster-whisper"
+      "word": "appeared",
+      "start_ms": 12536,
+      "end_ms": 12882,
+      "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 25,
       "act": 0,
-      "word": "collapses,",
-      "start_ms": 10464,
-      "end_ms": 11024,
-      "source": "edge-tts+faster-whisper"
+      "word": "in",
+      "start_ms": 12893,
+      "end_ms": 13050,
+      "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 26,
       "act": 0,
-      "word": "only",
-      "start_ms": 11444,
-      "end_ms": 11644,
-      "source": "edge-tts+faster-whisper"
+      "word": "eighty-eight",
+      "start_ms": 13061,
+      "end_ms": 13396,
+      "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 27,
       "act": 0,
-      "word": "physics",
-      "start_ms": 11644,
-      "end_ms": 11864,
-      "source": "edge-tts+faster-whisper"
+      "word": "percent",
+      "start_ms": 13407,
+      "end_ms": 13741,
+      "source": "edge-tts-boundaries+faster-whisper"
     },
     {
       "word_id": 28,
       "act": 0,
-      "word": "survives.",
-      "start_ms": 11864,
-      "end_ms": 12324,
-      "source": "edge-tts+faster-whisper"
+      "word": "of",
+      "start_ms": 13753,
+      "end_ms": 13820,
+      "source": "edge-tts-boundaries+faster-whisper"
+    },
+    {
+      "word_id": 29,
+      "act": 0,
+      "word": "foreign",
+      "start_ms": 13831,
+      "end_ms": 14087,
+      "source": "edge-tts-boundaries+faster-whisper"
+    },
+    {
+      "word_id": 30,
+      "act": 0,
+      "word": "exchange",
+      "start_ms": 14099,
+      "end_ms": 14567,
+      "source": "edge-tts-boundaries+faster-whisper"
+    },
+    {
+      "word_id": 31,
+      "act": 0,
+      "word": "trades",
+      "start_ms": 14579,
+      "end_ms": 15103,
+      "source": "edge-tts-boundaries+faster-whisper"
     }
   ],
   "fps": 60,
@@ -246,11 +270,121 @@
     1080
   ],
   "requested_duration": 15,
-  "duration": 15.0,
-  "visual_engine": "Four-act Numba procedural cosmic shader",
-  "shader_internal_resolution": [
-    1920,
-    1080
+  "duration": 16.183333333333334,
+  "visual_engine": "11-shot Three.js documentary and physical transitions",
+  "shots": [
+    {
+      "index": 0,
+      "start_frame": 0,
+      "end_frame": 88
+    },
+    {
+      "index": 1,
+      "start_frame": 88,
+      "end_frame": 177
+    },
+    {
+      "index": 2,
+      "start_frame": 177,
+      "end_frame": 265
+    },
+    {
+      "index": 3,
+      "start_frame": 265,
+      "end_frame": 353
+    },
+    {
+      "index": 4,
+      "start_frame": 353,
+      "end_frame": 441
+    },
+    {
+      "index": 5,
+      "start_frame": 441,
+      "end_frame": 530
+    },
+    {
+      "index": 6,
+      "start_frame": 530,
+      "end_frame": 618
+    },
+    {
+      "index": 7,
+      "start_frame": 618,
+      "end_frame": 706
+    },
+    {
+      "index": 8,
+      "start_frame": 706,
+      "end_frame": 794
+    },
+    {
+      "index": 9,
+      "start_frame": 794,
+      "end_frame": 883
+    },
+    {
+      "index": 10,
+      "start_frame": 883,
+      "end_frame": 971
+    }
+  ],
+  "transitions": [
+    {
+      "frame": 88,
+      "kind": "pillar",
+      "duration_frames": 10
+    },
+    {
+      "frame": 177,
+      "kind": "portal",
+      "duration_frames": 10
+    },
+    {
+      "frame": 265,
+      "kind": "whip",
+      "duration_frames": 8
+    },
+    {
+      "frame": 353,
+      "kind": "pillar",
+      "duration_frames": 10
+    },
+    {
+      "frame": 441,
+      "kind": "portal",
+      "duration_frames": 10
+    },
+    {
+      "frame": 530,
+      "kind": "whip",
+      "duration_frames": 8
+    },
+    {
+      "frame": 618,
+      "kind": "pillar",
+      "duration_frames": 10
+    },
+    {
+      "frame": 706,
+      "kind": "portal",
+      "duration_frames": 10
+    },
+    {
+      "frame": 794,
+      "kind": "whip",
+      "duration_frames": 8
+    },
+    {
+      "frame": 883,
+      "kind": "pillar",
+      "duration_frames": 10
+    }
+  ],
+  "shot_cycle_seconds": 16.183333333333334,
+  "sources": [
+    "https://www.federalreservehistory.org/essays/gold-convertibility-ends",
+    "https://www.bis.org/press/p221027.htm"
   ],
   "showcase": true,
   "note": "Offline timing is from eSpeak word events; offline voice is synthetic."
