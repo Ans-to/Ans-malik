@@ -52,9 +52,14 @@ def constrain_oversampled_peak(audio, sample_rate, ceiling_db=-1.0):
     if peak>limit: out*=limit/peak
     return out.astype(np.float32)
 
-def master(music, voice, sample_rate, seed=0):
+def master(music, voice, sample_rate, seed=0, sfx=None, voice_presence=False):
     music, voice = stereo(np.asarray(music, dtype=np.float32)), stereo(np.asarray(voice, dtype=np.float32))
-    length = max(len(music), len(voice))
+    if voice_presence:
+        from scipy.signal import iirpeak, lfilter
+        b,a=iirpeak(3000,1.0,fs=sample_rate)
+        voice=voice+(10**(1.5/20)-1)*lfilter(b,a,voice,axis=0)
+    if sfx is not None: sfx=stereo(np.asarray(sfx,dtype=np.float32))
+    length = max(len(music), len(voice),len(sfx) if sfx is not None else 0)
     if length == 0: raise ValueError('stems must not both be empty')
     music = np.pad(music, ((0, length-len(music)), (0, 0)))
     voice = np.pad(voice, ((0, length-len(voice)), (0, 0)))
@@ -67,6 +72,7 @@ def master(music, voice, sample_rate, seed=0):
     rms = np.sqrt(np.mean(noise ** 2))
     if rms: noise *= 10 ** (-38 / 20) / rms
     mix = (processed + noise) * duck_envelope(voice, sample_rate)[:, None] + voice
+    if sfx is not None: mix+=np.pad(sfx,((0,length-len(sfx)),(0,0)))
     meter = pyln.Meter(sample_rate)
     if length < int(0.4 * sample_rate): raise ValueError('audio must be at least 0.4 seconds for LUFS measurement')
     loudness = meter.integrated_loudness(mix)

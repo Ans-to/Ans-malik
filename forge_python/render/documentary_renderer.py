@@ -8,8 +8,8 @@ class DocumentaryRenderer:
     def __init__(self,width,height):
         self.proc=subprocess.Popen(['node',str(ROOT/'web/documentary/render.mjs'),str(width),str(height)],cwd=ROOT,stdin=subprocess.PIPE,stdout=subprocess.PIPE,text=True,bufsize=1)
         if self.proc.stdout.readline().strip()!='READY':self.close();raise RuntimeError('Documentary renderer failed to start')
-    def frame(self,shot,u,d,pulse=0):
-        self.proc.stdin.write(json.dumps({'shot':shot,'u':u,'d':d,'pulse':pulse})+'\n');self.proc.stdin.flush();line=self.proc.stdout.readline()
+    def frame(self,shot,u,d,pulse=0,anchor=""):
+        self.proc.stdin.write(json.dumps({'shot':shot,'u':u,'d':d,'pulse':pulse,'anchor':anchor})+'\n');self.proc.stdin.flush();line=self.proc.stdout.readline()
         if not line:raise RuntimeError('Documentary renderer exited')
         image=cv2.imdecode(np.frombuffer(base64.b64decode(line),np.uint8),cv2.IMREAD_COLOR)
         if image is None:raise RuntimeError('Cannot decode frame')

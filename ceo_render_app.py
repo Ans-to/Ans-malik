@@ -11,7 +11,8 @@ from forge_python.audio_mastering.pedalboard_master import master
 from forge_python.post_fx.optical_lens import finish_frame
 from forge_python.render.voice import OfflineVoice
 from forge_python.render.documentary_renderer import DocumentaryRenderer
-from forge_python.render.documentary_timeline import make_timeline, active_shot, physical_transition, FPS as TIMELINE_FPS, KEYWORDS
+from forge_python.render.documentary_timeline import make_timeline, make_v2_timeline, anchor_events, active_shot, physical_transition, FPS as TIMELINE_FPS, KEYWORDS
+from forge_python.audio_mastering.trailer_sfx import trailer_sfx
 from forge_python.render.impact_physics import ImpactPhysicsEngine, impact_music
 import cv2
 
@@ -20,7 +21,7 @@ MIN_SCENE_SECONDS=6.0
 NARRATION_WPM=190
 VOICE_GAP_SECONDS=0.6
 
-TRAILER_SCRIPT = "In 1971, Nixon closed the gold window. Foreign central banks lost gold conversion. Digital ledgers connect debt. In 2022, dollars were in eighty-eight percent of foreign exchange trades."
+TRAILER_SCRIPT = "In 1971, Nixon closed the gold window. Digital ledgers, debt towers, four hubs. In 2022, dollars were in eighty-eight percent of FX trades."
 
 def script_for(topic):
     return [TRAILER_SCRIPT]  # The requested trailer is one naturally delivered act.
@@ -76,7 +77,8 @@ def prepare_audio(script, duration, tmp, whisper_model='base.en', require_online
             if offline_voice is None: offline_voice=OfflineVoice()
             voice,aligned=offline_voice.speak(text,sr)
         clips.append((voice,aligned)); modes.append(mode)
-    required_scene=max([MIN_SCENE_SECONDS] + [max(len(voice)/sr+VOICE_GAP_SECONDS, len(re.findall(r"[^\W_]+", text, re.UNICODE))*60/NARRATION_WPM+VOICE_GAP_SECONDS) for text,(voice,_) in zip(script,clips)])
+    gap=.12 if duration==12 and len(script)==1 else VOICE_GAP_SECONDS
+    required_scene=max([MIN_SCENE_SECONDS] + [max(len(voice)/sr+gap, len(re.findall(r"[^\W_]+", text, re.UNICODE))*60/NARRATION_WPM+gap) for text,(voice,_) in zip(script,clips)])
     frames_per_scene=math.ceil(max(duration/len(script),required_scene)*FPS)
     actual_duration=frames_per_scene*len(script)/FPS
     n=round(actual_duration*sr); speech=np.zeros(n,dtype=np.float32); words=[]
@@ -88,10 +90,17 @@ def prepare_audio(script, duration, tmp, whisper_model='base.en', require_online
         for item in aligned:
             start=round(offset/sr*1000+item['start_ms']); end=round(offset/sr*1000+item['end_ms'])
             words.append({'word_id':len(words),'act':act,'word':item['word'],'start_ms':start,'end_ms':max(start+1,end),'source':modes[act]})
-    shots,transitions=make_timeline(max(15., min(actual_duration,17.6)),words)
-    impact_events=[x['frame']/FPS for x in transitions if x['frame']/FPS<actual_duration]
-    music=impact_music(actual_duration,sr,words,events=[0.]+impact_events)
-    mix=master(music,speech,sr)
+    if duration==12 and actual_duration<=12:
+        shots,transitions,anchors=make_v2_timeline(words,12)
+        events=[x['frame']/FPS for x in transitions]
+        music=impact_music(actual_duration,sr,words,events=[])
+        sfx,_=trailer_sfx(actual_duration,sr,transitions,anchors)
+        mix=master(music,speech,sr,sfx=sfx,voice_presence=True)
+    else:
+        shots,transitions=make_timeline(max(15., min(actual_duration,17.6)),words)
+        events=[x['frame']/FPS for x in transitions if x['frame']/FPS<actual_duration]
+        music=impact_music(actual_duration,sr,words,events=events)
+        mix=master(music,speech,sr)
     path=tmp/'master.wav'; sf.write(path,mix,sr,subtype='FLOAT')
     return path, speech, sr, modes, words, actual_duration
 
@@ -104,15 +113,18 @@ def render(topic,duration,resolution,output,whisper_model="base.en",require_onli
     with tempfile.TemporaryDirectory(prefix='ceo-render-') as directory:
         tmp=Path(directory); requested_duration=duration
         audio,speech,sr,modes,words,duration=prepare_audio(script,duration,tmp,whisper_model,require_online,offline)
-        if showcase and duration>15: raise ValueError(f'Narration needs {duration:.2f}s; shorten the script rather than speeding or truncating it')
+        if showcase and duration>12: raise ValueError(f'Narration needs {duration:.2f}s; shorten the script rather than speeding or truncating it')
         if duration>requested_duration: print(f'Extended duration from {requested_duration:g}s to {duration:g}s to preserve narration pace.',flush=True)
         hero=DocumentaryRenderer(w*2,h*2)
-        cycle=max(15., min(duration,17.6))
-        shots,transitions=make_timeline(cycle,words)
+        if showcase:
+            cycle=12.;shots,transitions,anchors=make_v2_timeline(words,cycle)
+            _,audio_events=trailer_sfx(cycle,sr,transitions,anchors)
+        else:
+            cycle=max(15., min(duration,17.6));shots,transitions=make_timeline(cycle,words);anchors=[];audio_events=[]
         event_times=[0.]+[x['frame']/FPS for x in transitions]
         physics=ImpactPhysicsEngine(w,h,duration,words,events=event_times)
         rng=np.random.default_rng(42)
-        metadata={'topic':topic,'acts':script,'voiceover_modes':modes,'word_timestamps':words,'fps':FPS,'resolution':[w,h],'requested_duration':requested_duration,'duration':duration,'visual_engine':'11-shot Three.js documentary and physical transitions', 'shots':shots, 'transitions':transitions, 'shot_cycle_seconds':cycle, 'sources':['https://www.federalreservehistory.org/essays/gold-convertibility-ends','https://www.bis.org/press/p221027.htm'], 'showcase':showcase, 'note':'Offline timing is from eSpeak word events; offline voice is synthetic.'}
+        metadata={'topic':topic,'acts':script,'voiceover_modes':modes,'word_timestamps':words,'fps':FPS,'resolution':[w,h],'requested_duration':requested_duration,'duration':duration,'visual_engine':'V2 Three.js word-locked documentary', 'shots':shots, 'transitions':transitions, 'anchors':anchors, 'audio_events':audio_events, 'typography':'single spoken anchor only', 'shot_cycle_seconds':cycle, 'sources':['https://www.federalreservehistory.org/essays/gold-convertibility-ends','https://www.bis.org/press/p221027.htm'], 'showcase':showcase, 'note':'Offline timing is from eSpeak word events; offline voice is synthetic.'}
         Path(str(output)+'.json').write_text(json.dumps(metadata,indent=2))
         command=[get_ffmpeg_exe(),'-v','error','-y','-f','rawvideo','-pix_fmt','rgb24','-s',f'{w}x{h}','-r',str(FPS),'-i','-','-i',str(audio),'-c:v','libx264','-preset','slow','-crf','16','-pix_fmt','yuv420p','-c:a','aac','-b:a','192k','-shortest','-movflags','+faststart',str(output)]
         proc=subprocess.Popen(command,stdin=subprocess.PIPE)
@@ -121,18 +133,19 @@ def render(topic,duration,resolution,output,whisper_model="base.en",require_onli
             for frame_idx in range(count):
                 t=frame_idx/FPS; f=frame_idx%round(cycle*FPS); shot_id=active_shot(shots,f)
                 current=shots[shot_id]; local=(f-current['start_frame'])/FPS; length=(current['end_frame']-current['start_frame'])/FPS
-                word=next((x for x in words if x['start_ms']<=t*1000<x['start_ms']+140 and any(token in KEYWORDS for token in re.findall(r'[a-z0-9]+',x['word'].lower()))),None)
-                pulse=math.exp(-12*(t-word['start_ms']/1000)) if word else 0
-                transition=next((x for x in transitions if x['frame']-x['duration_frames']//2<=f<x['frame']+x['duration_frames']//2),None)
+                anchor=next((x for x in anchors if x['start_frame']<=f<x['end_frame']),None)
+                label=anchor['text'] if anchor else ''
+                pulse=math.exp(-(f-anchor['start_frame'])*.25) if anchor else 0
+                transition=next((x for x in transitions if x['frame']<=f<x['frame']+x['duration_frames']),None)
                 if transition:
-                    end=transition['frame'];n=transition['duration_frames'];start=end-n//2;i=next(i for i,s in enumerate(shots) if s['start_frame']==end)
+                    end=transition['frame'];n=transition['duration_frames'];start=end;i=next(i for i,s in enumerate(shots) if s['start_frame']==end)
                     old=shots[i-1];new=shots[i]
-                    left=hero.frame(i-1,max(0,(f-old['start_frame'])/FPS),(old['end_frame']-old['start_frame'])/FPS,pulse)
-                    right=hero.frame(i,max(0,(f-new['start_frame'])/FPS),(new['end_frame']-new['start_frame'])/FPS,pulse)
+                    left=hero.frame(i-1,max(0,(f-old['start_frame'])/FPS),(old['end_frame']-old['start_frame'])/FPS,pulse,label)
+                    right=hero.frame(i,max(0,(f-new['start_frame'])/FPS),(new['end_frame']-new['start_frame'])/FPS,pulse,label)
                     left=cv2.resize(left,(w,h),interpolation=cv2.INTER_AREA);right=cv2.resize(right,(w,h),interpolation=cv2.INTER_AREA)
                     raw=physical_transition(left,right,(f-start)/(n-1),transition['kind'])
                 else:
-                    raw=cv2.resize(hero.frame(shot_id,local,length,pulse),(w,h),interpolation=cv2.INTER_AREA)
+                    raw=cv2.resize(hero.frame(shot_id,local,length,pulse,label),(w,h),interpolation=cv2.INTER_AREA)
                 graded=finish_frame(physics.transform(raw,t),rng)
                 proc.stdin.write(graded.tobytes())
             proc.stdin.close(); code=proc.wait()
@@ -150,8 +163,8 @@ def resolution(value):
 
 def main():
     p=argparse.ArgumentParser(description=__doc__)
-    p.add_argument('--showcase',action='store_true',help='15-second documentary showcase with a short, naturally paced narration'); p.add_argument('--preview',action='store_true',help='Use 640x360 and at least 30 seconds for a paced draft'); p.add_argument('--topic',required=True); p.add_argument('--duration',type=float,default=60); p.add_argument('--resolution',type=resolution,default=(1920,1080)); p.add_argument('--output',default='final_video.mp4'); p.add_argument('--whisper-model',default='base.en',help='Faster-Whisper model name or local path (default: base.en)'); p.add_argument('--offline',action='store_true',help='Use offline eSpeak without an online probe'); p.add_argument('--require-online',action='store_true',help='Fail instead of using offline speech if Edge TTS or Whisper fails')
-    a=p.parse_args(); duration=15 if a.showcase else (min(a.duration,30) if a.preview else a.duration); print('Rendered:',render(a.topic,duration,(640,360) if a.preview else a.resolution,a.output,a.whisper_model,a.require_online,a.offline,a.showcase))
+    p.add_argument('--showcase',action='store_true',help='12-second documentary showcase with a short, naturally paced narration'); p.add_argument('--preview',action='store_true',help='Use 640x360 and at least 30 seconds for a paced draft'); p.add_argument('--topic',required=True); p.add_argument('--duration',type=float,default=60); p.add_argument('--resolution',type=resolution,default=(1920,1080)); p.add_argument('--output',default='final_video.mp4'); p.add_argument('--whisper-model',default='base.en',help='Faster-Whisper model name or local path (default: base.en)'); p.add_argument('--offline',action='store_true',help='Use offline eSpeak without an online probe'); p.add_argument('--require-online',action='store_true',help='Fail instead of using offline speech if Edge TTS or Whisper fails')
+    a=p.parse_args(); duration=12 if a.showcase else (min(a.duration,30) if a.preview else a.duration); print('Rendered:',render(a.topic,duration,(640,360) if a.preview else a.resolution,a.output,a.whisper_model,a.require_online,a.offline,a.showcase))
 if __name__=='__main__':
     try: main()
     except Exception as exc:

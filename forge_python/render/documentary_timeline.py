@@ -8,9 +8,20 @@ N_SHOTS=11
 TRANSITIONS=('pillar','portal','whip')
 KEYWORDS={'1971','nixon','closed','gold','banks','dollars','ledgers','debt','trade','2022','dollar','eighty','eight','foreign','exchange'}
 
+def cubic_bezier(t):
+    t=max(0.,min(1.,t));lo=0.;hi=1.
+    for _ in range(16):
+        q=(lo+hi)/2;x=3*(1-q)**2*q*.85+3*(1-q)*q*q*.15+q**3
+        if x<t:lo=q
+        else:hi=q
+    q=(lo+hi)/2
+    return 3*(1-q)*q*q+q**3
+
 def speed_ramp(u,duration):
-    a=min(1,max(0,u/.15));b=max(0,(u-(duration-.15))/.15)
-    return .7*(1-math.exp(-6*a))+.15*max(0,min(1,(u-.15)/max(.01,duration-.30)))+.8*b*b
+    arrive=cubic_bezier(u/.068)
+    glide=max(0.,min(1.,(u-.068)/max(.01,duration-.136)))
+    depart=cubic_bezier((u-(duration-.068))/.068)
+    return .7*arrive+.15*glide+.8*depart
 
 def make_timeline(duration,words=()):
     total=round(duration*FPS); candidates=[round(x['start_ms']*FPS/1000) for x in words if any(token in KEYWORDS for token in re.findall(r'[a-z0-9]+',x.get('word','').lower()))]
@@ -34,7 +45,7 @@ def physical_transition(old,new,progress,kind):
 
     No full-frame alpha cross-dissolve. Inputs are RGB uint8, same shape.
     """
-    h,w=old.shape[:2];p=max(0.,min(1.,progress));ease=p*p*(3-2*p)
+    h,w=old.shape[:2];p=max(0.,min(1.,progress));ease=cubic_bezier(p)
     if kind=='pillar':
         x=round((-0.12+1.24*ease)*w);out=old.copy();out[:,:max(0,min(w,x))]=new[:,:max(0,min(w,x))]
         # Foreground column, lit from one side; directional blur is confined to it.
@@ -61,3 +72,43 @@ def physical_transition(old,new,progress,kind):
         if shift:out[:,:,0]=np.roll(out[:,:,0],shift,axis=1);out[:,:,2]=np.roll(out[:,:,2],-shift,axis=1)
         return out
     raise ValueError(f'unknown transition {kind}')
+
+ANCHOR_DEFINITIONS=(('1971',('1971',)),('CLOSED',('closed',)),('GOLD WINDOW',('gold','window')),('DIGITAL LEDGERS',('digital','ledgers')),('DEBT TOWERS',('debt','towers')),('FOUR HUBS',('four','hubs')),('88%',('eighty','eight','percent')))
+
+def anchor_events(words):
+    """Resolve visible anchors from actual engine/aligner word timestamps."""
+    tokens=[]
+    for item in words:
+        normalized=re.findall(r'[a-z0-9]+',item.get('word','').lower())
+        for token in normalized:tokens.append((token,item))
+    events=[]
+    for label,phrase in ANCHOR_DEFINITIONS:
+        found=None
+        for i in range(len(tokens)):
+            # eSpeak may report only 'eighty' for its hyphenated word.
+            needle=phrase
+            if label=='88%' and i+1<len(tokens) and tokens[i][0]=='eighty' and tokens[i+1][0]=='percent':needle=('eighty','percent')
+            if tuple(x[0] for x in tokens[i:i+len(needle)])==needle:
+                first=tokens[i][1];last=tokens[i+len(needle)-1][1];found=(first,last);break
+        if found:
+            first,last=found
+            start=math.ceil(first['start_ms']*FPS/1000);end=max(start+1,math.ceil(last['end_ms']*FPS/1000))
+            events.append({'text':label,'start_frame':start,'end_frame':end,'source_start_ms':first['start_ms'],'source_end_ms':last['end_ms']})
+    return sorted(events,key=lambda x:x['start_frame'])
+
+def make_v2_timeline(words,duration=12.):
+    """Shots advance at the end of selected spoken anchor phrases."""
+    total=round(duration*FPS);anchors=anchor_events(words)
+    if len(anchors)!=len(ANCHOR_DEFINITIONS):
+        missing=set(a[0] for a in ANCHOR_DEFINITIONS)-set(a['text'] for a in anchors)
+        raise ValueError(f'Cannot time required spoken anchors: {sorted(missing)}')
+    # The final 88% scene begins after the preceding spoken word's syllable.
+    boundary_anchors=anchors[:-1]
+    bounds=[0]+[min(total-1,a['end_frame']) for a in boundary_anchors]
+    final_anchor=anchors[-1]; before=[w for w in words if math.ceil(w['end_ms']*FPS/1000)<=final_anchor['start_frame']]
+    if before:bounds.append(math.ceil(before[-1]['end_ms']*FPS/1000))
+    bounds.append(total)
+    if any(b<=a for a,b in zip(bounds,bounds[1:])):raise ValueError('word-timed shot boundaries overlap')
+    shots=[{'index':i,'start_frame':bounds[i],'end_frame':bounds[i+1]} for i in range(len(bounds)-1)]
+    transitions=[{'frame':bounds[i], 'kind':TRANSITIONS[(i-1)%3], 'duration_frames':4 if TRANSITIONS[(i-1)%3]=='whip' else 5, 'aligned_to':'spoken word end'} for i in range(1,len(bounds)-1)]
+    return shots,transitions,anchors

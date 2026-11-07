@@ -7,7 +7,7 @@ on:
         required: true
         default: The Nixon Shock
       showcase:
-        description: Render the 15-second showcase instead of the longer documentary
+        description: Render the 12-second showcase instead of the longer documentary
         type: boolean
         default: true
       duration:

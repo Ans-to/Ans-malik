@@ -100,6 +100,55 @@ def gatekeep(path,samples=10):
         return reports
     finally: cap.release()
 
+def check_v2(path,data):
+    """Check actual 12-second decode and compare SFX peaks with aligned events.
+
+    Anchor provenance is checked against word timings and the supported labels;
+    this is not optical character recognition or a certified loudness meter.
+    """
+    import subprocess
+    from scipy.signal import butter,sosfilt
+    from forge_python.ffmpeg import get_ffmpeg_exe
+    from forge_python.render.documentary_timeline import anchor_events
+    shots=data.get('shots',[]);transitions=data.get('transitions',[]);anchors=data.get('anchors',[]);events=data.get('audio_events',[])
+    if data.get('typography')!='single spoken anchor only' or anchors!=anchor_events(data.get('word_timestamps',[])):
+        raise ValueError('anchor typography or speech-timing metadata mismatch')
+    if len(anchors)!=7 or len(shots)!=8 or len(transitions)!=7:raise ValueError('incomplete word-locked timeline')
+    if any(t['frame'] not in [x['end_frame'] for x in shots[:-1]] or t['duration_frames'] not in (4,5) for t in transitions):raise ValueError('transition timing mismatch')
+    for a in anchors:
+        if not any(e['kind']=='anchor_click' and e['frame']==a['start_frame'] and e['anchor']==a['text'] for e in events):raise ValueError(f"missing audio click for {a['text']}")
+    for t in transitions:
+        if not any(e['kind']=='transition_thud' and e['frame']==t['frame'] for e in events):raise ValueError(f"missing transition audio at {t['frame']}")
+    cap=cv2.VideoCapture(str(path))
+    try:
+        if not cap.isOpened() or int(cap.get(cv2.CAP_PROP_FRAME_COUNT))!=720 or abs(cap.get(cv2.CAP_PROP_FPS)-60)>.01:raise ValueError('V2 must contain exactly 720 frames at 60fps')
+        changes=[]
+        for t in transitions:
+            samples=[]
+            for idx in (t['frame']-1,t['frame']+t['duration_frames']-1):
+                cap.set(cv2.CAP_PROP_POS_FRAMES,idx);ok,img=cap.read()
+                if not ok:raise ValueError('transition frame cannot be decoded')
+                samples.append(cv2.resize(img,(160,90),interpolation=cv2.INTER_AREA))
+            changes.append(float(np.mean(cv2.absdiff(samples[0],samples[1]))))
+        if min(changes)<1:raise ValueError(f'nonmoving transition: {changes}')
+    finally:cap.release()
+    result=subprocess.run([get_ffmpeg_exe(),'-v','error','-i',str(path),'-map','0:a:0','-ar','24000','-ac','2','-f','f32le','-'],capture_output=True,check=True)
+    audio=np.frombuffer(result.stdout,np.float32).reshape(-1,2).mean(axis=1);sr=24000
+    if len(audio)<sr*11.9 or not np.isfinite(audio).all():raise ValueError('invalid audio stream')
+    bands={'anchor_click':(2500,5500),'transition_thud':(45,100)}
+    filtered={kind:sosfilt(butter(3,band,btype='bandpass',fs=sr,output='sos'),audio) for kind,band in bands.items()}
+    levels=[]
+    for e in events:
+        i=round(e['frame']*sr/60);v=filtered[e['kind']];window=v[i:min(len(v),i+round(.025*sr))]
+        if not len(window):raise ValueError('event outside audio')
+        level=float(np.sqrt(np.mean(window**2)));levels.append(level)
+        if level<.0002:raise ValueError(f"inaudible {e['kind']} at frame {e['frame']}: {level}")
+        prior=v[max(0,i-round(.05*sr)):i]
+        baseline=float(np.sqrt(np.mean(prior**2))) if len(prior) else 0.
+        if baseline>.0002 and level<baseline*1.05:raise ValueError(f"no measurable event-band spike at frame {e['frame']} ({level:.4f} vs {baseline:.4f})")
+    print(f'PASS V2: 720 frames, 8 shots, 7 word-locked anchors and 7 transitions; measured minimum event-band RMS {min(levels):.5f}. Metadata checks do not prove OCR, subjective quality, or exact perceptual sync.')
+    return {'events':events,'event_band_rms':levels,'transitions':changes}
+
 def check_documentary(path):
     """Validate timing/transition provenance plus sampled transition movement.
 
@@ -108,7 +157,9 @@ def check_documentary(path):
     """
     metadata_path=Path(str(path)+'.json')
     if not metadata_path.exists():raise ValueError('documentary timeline metadata is missing')
-    data=json.loads(metadata_path.read_text());shots=data.get('shots',[]);transitions=data.get('transitions',[])
+    data=json.loads(metadata_path.read_text())
+    if data.get('visual_engine','').startswith('V2 '):return check_v2(path,data)
+    shots=data.get('shots',[]);transitions=data.get('transitions',[])
     if len(shots)!=11 or len(transitions)!=10:raise ValueError('expected eleven shots and ten transitions')
     if any(not 72 <= s['end_frame']-s['start_frame'] <=96 for s in shots):raise ValueError('shot outside 1.2–1.6 second range')
     if any(x['kind'] not in ('pillar','portal','whip') or x['duration_frames'] not in (8,10) for x in transitions):raise ValueError('unsupported transition')
