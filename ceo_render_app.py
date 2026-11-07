@@ -20,7 +20,7 @@ MIN_SCENE_SECONDS=6.0
 NARRATION_WPM=190
 VOICE_GAP_SECONDS=0.6
 
-TRAILER_SCRIPT = "In 1971, Nixon closed the gold window. Foreign central banks could no longer swap dollars for gold. Digital ledgers connect debt and currencies. In 2022, dollars appeared in eighty-eight percent of foreign exchange trades."
+TRAILER_SCRIPT = "In 1971, Nixon closed the gold window. Foreign central banks lost dollar-to-gold conversion. Digital ledgers link debt and currencies. In 2022, dollars appeared in eighty-eight percent of foreign exchange trades."
 
 def script_for(topic):
     return [TRAILER_SCRIPT]  # The requested trailer is one naturally delivered act.
@@ -104,6 +104,7 @@ def render(topic,duration,resolution,output,whisper_model="base.en",require_onli
     with tempfile.TemporaryDirectory(prefix='ceo-render-') as directory:
         tmp=Path(directory); requested_duration=duration
         audio,speech,sr,modes,words,duration=prepare_audio(script,duration,tmp,whisper_model,require_online,offline)
+        if showcase and duration>15: raise ValueError(f'Narration needs {duration:.2f}s; shorten the script rather than speeding or truncating it')
         if duration>requested_duration: print(f'Extended duration from {requested_duration:g}s to {duration:g}s to preserve narration pace.',flush=True)
         hero=DocumentaryRenderer(w*2,h*2)
         cycle=max(15., min(duration,17.6))

@@ -141,3 +141,10 @@ def test_whisper_mismatch_uses_edge_word_boundaries(tmp_path, monkeypatch):
     _,_,_,modes,words,_=ceo_render_app.prepare_audio(['hello']*5,30,tmp_path,require_online=True)
     assert modes==['edge-tts-boundaries+faster-whisper']*5
     assert all(item['word']=='hello' and item['end_ms']-item['start_ms']==700 for item in words)
+
+def test_showcase_refuses_to_speed_or_truncate_overlong_voice(tmp_path,monkeypatch):
+    def too_long(script,duration,tmp,whisper_model,require_online,offline):
+        return tmp/'unused.wav',np.zeros(1,dtype=np.float32),24000,['test'],[],15.5
+    monkeypatch.setattr(ceo_render_app,'prepare_audio',too_long)
+    with pytest.raises(ValueError,match='shorten the script'):
+        ceo_render_app.render('test',15,(160,90),tmp_path/'test.mp4',showcase=True)
