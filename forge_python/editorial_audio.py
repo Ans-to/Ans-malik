@@ -10,7 +10,7 @@ from forge_python.audio_mastering.pedalboard_master import master
 from forge_python.render.voice import OfflineVoice
 from forge_python.ffmpeg import get_ffmpeg_exe
 
-AI_SEGMENTS=['AI can sound confident and still be wrong.','It predicts likely words, not facts.','It builds answers from learned patterns.','Confidence is not the same as evidence.','Check the source before you trust the answer.']
+AI_SEGMENTS=['AI can sound confident and be wrong.','It predicts words, not facts.','It builds answers from patterns.','Confidence is not evidence.','Check the source before trusting.']
 
 async def edge_voice(text,path):
     import edge_tts
@@ -64,7 +64,7 @@ def create_document(topic,path):
     c.setStrokeColorRGB(.67,.63,.60);c.line(78,875,682,875)
     c.setFillColorRGB(.1,.09,.11);c.setFont('Helvetica-Bold',48);c.drawString(78,792,'A closer look')
     c.setFont('Helvetica',26);c.setFillColorRGB(.25,.23,.25)
-    lines=['Fluency can create an illusion of certainty.', 'The answer may sound convincing even', 'when the underlying evidence is missing.', '', 'It predicts likely words, not facts.', '', 'Check the source behind the claim.', 'Look for context, dates and limitations.', 'Compare important information with', 'reliable independent evidence.']
+    lines=['Fluency can create an illusion of certainty.', 'The answer may sound convincing even', 'when the underlying evidence is missing.', '', 'It predicts words, not facts.', '', 'Check the source behind the claim.', 'Look for context, dates and limitations.', 'Compare important information with', 'reliable independent evidence.']
     for i,line in enumerate(lines):c.drawString(78,720-i*38,line)
     c.setFont('Helvetica',18);c.drawString(78,150,'EDITORIAL BRIEF  /  ILLUSTRATIVE EXAMPLE');c.showPage();c.save()
     doc=fitz.open(str(pdf));pix=doc[0].get_pixmap(alpha=False);pix.save(str(path));doc.close()
