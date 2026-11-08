@@ -25,7 +25,7 @@ function Composition(){const frame=useCurrentFrame();const {fps}=useVideoConfig(
  .fromTo('.badge',{opacity:0,scale:.65,y:55,rotationY:-30},{opacity:1,scale:1,y:0,rotationY:0,duration:.48,ease:'back.out(1.7)',stagger:.13},1.04)
  .fromTo('.paper',{opacity:0,y:180,x:100,scale:.92},{opacity:1,y:0,x:0,scale:1,duration:.65,ease:'back.out(1.7)',stagger:.15},3.08)
  .fromTo('.paper-stack',{scale:1,x:0},{scale:1.1,x:-40,duration:1.65,ease:'power2.inOut'},4.25)
- .fromTo('.highlight-line',{strokeDashoffset:900},{strokeDashoffset:0,duration:.8,ease:'power2.out'},Math.max(3.9,Math.min(5.1,highlightTime)))
+ .fromTo('.highlight-line',{strokeDashoffset:900},{strokeDashoffset:0,duration:.8,ease:'power2.out'},Math.max(3,Math.min(5.2,highlightTime)))
  .fromTo('.node',{scale:.7,opacity:0,y:55},{scale:1,opacity:1,y:0,duration:.5,ease:'back.out(1.7)',stagger:.22},6.1)
  .fromTo('.flow-path',{strokeDashoffset:1200},{strokeDashoffset:0,duration:1.35,ease:'power2.inOut',stagger:.16},6.4)
  .fromTo('.bento',{opacity:0,y:100,scale:.92},{opacity:1,y:0,scale:1,duration:.65,ease:'back.out(1.7)',stagger:.16},9.05)

@@ -10,7 +10,7 @@ from forge_python.audio_mastering.pedalboard_master import master
 from forge_python.render.voice import OfflineVoice
 from forge_python.ffmpeg import get_ffmpeg_exe
 
-AI_SEGMENTS=['AI can sound confident and still be wrong.','It predicts likely words, not verified facts.','It builds answers from learned patterns.','Confidence is not the same as evidence.','Check the source before you trust the answer.']
+AI_SEGMENTS=['AI can sound confident and still be wrong.','It predicts likely words, not facts.','It builds answers from learned patterns.','Confidence is not the same as evidence.','Check the source before you trust the answer.']
 
 async def edge_voice(text,path):
     import edge_tts
@@ -84,7 +84,7 @@ def ui_score(duration,sr,words):
         q=np.arange(int(.12*sr))/sr;pop=(np.sin(2*np.pi*(690*q-110*q*q))*np.exp(-q*35)*.07 + rng.standard_normal(len(q))*np.exp(-q*90)*.012);add(at,pop,at%1)
     for at in (3.08,3.23,3.38):
         q=np.arange(int(.38*sr))/sr;noise=sosfilt(butter(2,[650,4500],fs=sr,btype='bandpass',output='sos'),rng.standard_normal(len(q)));add(at,noise*np.sin(np.pi*q/.38)**2*.025,at%1)
-    mark=next((w['start_ms']/1000 for w in words if 'predict' in w['word'].lower()),4.4);mark=max(3.9,min(5.1,mark))
+    mark=next((w['start_ms']/1000 for w in words if 'predict' in w['word'].lower()),4.4);mark=max(3.0,min(5.2,mark))
     q=np.arange(int(.65*sr))/sr;noise=sosfilt(butter(2,[500,3000],fs=sr,btype='bandpass',output='sos'),rng.standard_normal(len(q)));add(mark,noise*np.sin(np.pi*q/.65)**2*.024,.4)
     for at in (3.,6.,9.,12.):
         q=np.arange(int(.42*sr))/sr;noise=sosfilt(butter(2,1200,fs=sr,output='sos'),rng.standard_normal(len(q)));add(at,noise*np.sin(np.pi*q/.42)**2*.022,.6)

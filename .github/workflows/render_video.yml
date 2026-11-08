@@ -43,7 +43,7 @@ jobs:
         run: |
           set -o pipefail
           python editorial_render.py --output renders/final_video.mp4 --require-online --whisper-model base.en 2>&1 | tee render.log || {
-            tail -n 15 render.log | while IFS= read -r line; do echo "::error::$line"; done
+            tail -n 3 render.log | while IFS= read -r line; do echo "::error::$line"; done
             exit 1
           }
       - name: Fit complete video under GitHub's file limit
