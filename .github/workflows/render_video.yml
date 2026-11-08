@@ -1,53 +1,31 @@
-name: Render documentary
+name: Editorial explainer render
 on:
   workflow_dispatch:
-    inputs:
-      topic:
-        description: Documentary topic
-        required: true
-        default: The Nixon Shock
-      showcase:
-        description: Render the 12-second showcase instead of the longer documentary
-        type: boolean
-        default: true
-      duration:
-        description: Minimum duration in seconds (extended as needed for narration)
-        default: '60'
-        required: true
-      resolution:
-        description: Even frame dimensions, at least 1920x1080
-        default: '1920x1080'
-        required: true
   push:
-    branches:
-      - main
-      - arena/fa1317bb-ans-malik
+    branches: [arena/fa1317bb-ans-malik]
     paths:
-      - 'ceo_render_app.py'
-      - 'impact_gatekeeper.py'
-      - 'aesthetic_gatekeeper.py'
-      - 'qa_video.py'
-      - 'forge_python/**'
-      - 'design_system/**'
+      - 'editorial_render.py'
+      - 'forge_python/editorial_audio.py'
+      - 'forge_python/audio_mastering/**'
+      - 'forge_python/render/voice.py'
       - 'shared_workspace/fonts/**'
-      - 'web/**'
-      - 'scripts/**'
+      - 'web/editorial/**'
+      - 'scripts/editorial_qa.py'
+      - 'scripts/fit_github_video.py'
       - 'requirements.txt'
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/render_video.yml'
-      - '.gitattributes'
 permissions:
   contents: write
 concurrency:
-  group: documentary-render-output
+  group: editorial-render-output
   cancel-in-progress: false
 jobs:
   render:
     runs-on: ubuntu-latest
     timeout-minutes: 360
     steps:
-      # Generated commits are restricted to the session branch, even on main pushes.
       - uses: actions/checkout@v4
         with:
           ref: arena/fa1317bb-ans-malik
@@ -61,41 +39,26 @@ jobs:
           cache: npm
       - run: pip install -r requirements.txt
       - run: npm ci
-      - name: Render with neural narration and word alignment
-        env:
-          TOPIC: ${{ inputs.topic || 'The Nixon Shock' }}
-          DURATION: ${{ inputs.duration || '60' }}
-          RESOLUTION: ${{ inputs.resolution || '1920x1080' }}
-          SHOWCASE: ${{ github.event_name == 'push' || inputs.showcase }}
-        run: |
-          args=()
-          if [ "$SHOWCASE" = "true" ]; then args+=(--showcase); fi
-          python ceo_render_app.py --topic "$TOPIC" --duration "$DURATION" --resolution "$RESOLUTION" --output renders/final_video.mp4 --whisper-model base.en --require-online "${args[@]}"
+      - name: Render 15 seconds in Chromium with neural voice and word alignment
+        run: python editorial_render.py --output renders/final_video.mp4 --require-online --whisper-model base.en
       - name: Fit complete video under GitHub's file limit
         run: python -m scripts.fit_github_video renders/final_video.mp4
-      - name: QA
-        env:
-          RESOLUTION: ${{ inputs.resolution || '1920x1080' }}
-        run: |
-          python qa_video.py renders/final_video.mp4 --sheet renders/qa_contact_sheet.png --resolution "$RESOLUTION"
-          python aesthetic_gatekeeper.py renders/final_video.mp4 --documentary
+      - name: Verify video and make contact sheet
+        run: python -m scripts.editorial_qa renders/final_video.mp4 renders/qa_contact_sheet.png
       - uses: actions/upload-artifact@v4
         with:
-          name: documentary-render
+          name: editorial-explainer
           if-no-files-found: error
           path: |
             renders/final_video.mp4
             renders/final_video.mp4.json
             renders/qa_contact_sheet.png
-      - name: Commit render to the session branch
+      - name: Commit outputs to the session branch
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -f renders/final_video.mp4 renders/final_video.mp4.json renders/qa_contact_sheet.png
-          if git diff --cached --quiet; then
-            echo 'Render unchanged; nothing to commit.'
-            exit 0
-          fi
-          git commit -m 'Add documentary render [skip ci]'
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'Add editorial explainer render [skip ci]'
           git pull --rebase origin arena/fa1317bb-ans-malik
           git push origin arena/fa1317bb-ans-malik

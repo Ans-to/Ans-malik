@@ -7,3 +7,7 @@ renders/
 node_modules/
 final_video.mp4*
 qa_contact_sheet.png
+
+web/editorial/bundle.js
+web/editorial/bundle.css
+.editorial-*/
