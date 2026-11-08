@@ -39,6 +39,9 @@ jobs:
           cache: npm
       - run: pip install -r requirements.txt
       - run: npm ci
+      - name: Ensure ffprobe is installed
+        run: |
+          if ! command -v ffprobe >/dev/null; then sudo apt-get update && sudo apt-get install -y ffmpeg; fi
       - name: Render 15 seconds in Chromium with neural voice and word alignment
         run: |
           set -o pipefail
@@ -49,7 +52,12 @@ jobs:
       - name: Fit complete video under GitHub's file limit
         run: python -m scripts.fit_github_video renders/final_video.mp4
       - name: Verify video and make contact sheet
-        run: python -m scripts.editorial_qa renders/final_video.mp4 renders/qa_contact_sheet.png
+        run: |
+          set -o pipefail
+          python -m scripts.editorial_qa renders/final_video.mp4 renders/qa_contact_sheet.png 2>&1 | tee qa.log || {
+            tail -n 5 qa.log | while IFS= read -r line; do echo "::error::$line"; done
+            exit 1
+          }
       - uses: actions/upload-artifact@v4
         with:
           name: editorial-explainer

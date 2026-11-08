@@ -7,6 +7,7 @@ def main():
     path=Path(sys.argv[1]);sheet=Path(sys.argv[2]);meta=json.loads(Path(str(path)+'.json').read_text())
     probe=json.loads(subprocess.check_output(['ffprobe','-v','error','-count_frames','-show_streams','-show_format','-of','json',str(path)]))
     video=next(s for s in probe['streams'] if s['codec_type']=='video');audio=next(s for s in probe['streams'] if s['codec_type']=='audio')
+    print('QA details:', json.dumps({'video':video, 'format':probe['format'], 'voice_mode':meta.get('voice_mode'), 'word_timestamps':meta.get('word_timestamps')}), flush=True)
     assert (video['width'],video['height'])==(1920,1080),video
     assert video['r_frame_rate']=='60/1' and int(video['nb_read_frames'])==900,video
     assert video['pix_fmt']=='yuv420p' and abs(float(probe['format']['duration'])-15)<.05
