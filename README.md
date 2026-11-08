@@ -1,20 +1,19 @@
-# The Nixon Shock — V2 documentary renderer
+# Editorial explainer engine
 
-A twelve-second, 60 fps documentary with single, spoken-word anchor typography. The seven captions—1971, CLOSED, GOLD WINDOW, DIGITAL LEDGERS, DEBT TOWERS, FOUR HUBS and 88%—come from actual narration timing; they are visible only over their timed spoken phrase. Selected spoken-word ends trigger physical pillar, portal and whip transitions. The camera and spatial transition curves use cubic-bezier(0.85, 0, 0.15, 1), with shorter transition windows. Exact word boundaries are estimates provided by Faster-Whisper or the speech engine; they are not independently verified forced alignment.
+A 15-second, 1920×1080, 60 fps AI explainer built with React/Remotion, GSAP, SVG, CSS and a Three.js icon. The current composition is intentionally specific to the AI topic; other topics are rejected rather than silently paired with unrelated claims. The confidence/evidence figures are illustrative, not measured statistics.
 
-The 1971 event ended official gold conversion for foreign monetary authorities, not the existence of gold. The 88% refers to foreign-exchange trades in April 2022, not global trade generally. See https://www.federalreservehistory.org/essays/gold-convertibility-ends and https://www.bis.org/press/p221027.htm. The 2025 BIS survey reports 89.2%, so 2022 is spoken in the film: https://www.bis.org/statistics/rpfx25_fx.htm.
+Chromium captures all 900 visual frames. Puppeteer seeks Remotion and GSAP to `frame / 60`, then sends PNG captures through an FFmpeg raw RGB pipe to libx264 (CRF 16, yuv420p). Python prepares only the ReportLab document texture, narration, word timings, audio mix and encoding orchestration. Five separately spoken segments keep each narration phrase within its three-second scene. Faster-Whisper supplies timings when its transcript matches; otherwise exact Edge TTS word-boundary events are used and identified in metadata. Offline eSpeak is for local previews. The yellow marker is timed to “predicts”; final words appear only during their spoken intervals.
 
 ```sh
 python -m venv .venv && . .venv/bin/activate
 pip install -r requirements.txt && npm ci
-python ceo_render_app.py --topic 'The Nixon Shock' --showcase --offline --resolution 1920x1080 --output renders/final_video.mp4
-python qa_video.py renders/final_video.mp4 --sheet renders/qa_contact_sheet.png --resolution 1920x1080
-python aesthetic_gatekeeper.py renders/final_video.mp4 --documentary
-python -m pytest -q && npm test
+python editorial_render.py --offline --output renders/final_video.mp4
+python -m scripts.editorial_qa renders/final_video.mp4 renders/qa_contact_sheet.png
+python -m pytest tests/test_editorial.py -q
 ```
 
-The Three.js scenes include physical-metallic gold with environment reflections and a moving light, projected contact-shadow textures, exponential scene fog, depth-pass bokeh, drifting dust and raised land tiles with thick glowing arcs and hub beacons. Contact shadows and fog are approximations, not ray-traced AO or true volumetric height fog; land plates are instanced sampled tiles. The contact sheet is a limited set of samples and cannot demonstrate every frame or subjective visual quality.
+`--require-online` requires Edge neural speech and Faster-Whisper; the GitHub render workflow uses this mode. The QA script expects `ffprobe` on PATH and deliberately requires neural speech, so offline previews do not pass final-release QA. Use `--samples renders/sample` to inspect five stills without encoding. The workflow generates and commits the MP4, timing metadata and contact sheet; check its run status before treating tracked output files as current. File-size fitting may re-encode if needed for GitHub's limit.
 
-Each anchor pop and cut is accompanied by a frame-scheduled click or stereo whoosh/sub-thud; a filtered 48 Hz drone ramps toward the 88% event. A 3 kHz voice-presence boost is applied. The offline mode uses eSpeak; GitHub Actions requires Edge TTS and Faster-Whisper. The final sentence receives a subtle 0.25-semitone pitch shift without changing its duration; onset alignment remains approximate. The float mastering bus aims for -14 LUFS with a 4× reconstructed -1 dBFS peak check; this is **not** a certified true-peak meter and AAC encoding may change peaks.
+The sound mix uses soft synthetic UI clicks, filtered paper-like textures, marker and whooshes with a low background bed. Mastering targets −14 LUFS; the reconstructed peak estimate is not a certified true-peak measurement and AAC encoding can change it. Speech recognition timing and the contact sheet are useful checks, not proof of perfect audiovisual synchronization or overall visual quality.
 
-V2 QA verifies 720 decoded frames at 60 fps, single-anchor and event metadata, motion at transitions and event-band audio energy at scheduled frames. It is not OCR, cannot prove the absence of every tiny label, and does not independently verify exact lip/word sync or certified dBTP. The workflow re-encodes oversized MP4s to fit GitHub's file limit before QA; this can reduce image quality.
+Older documentary entry points and assets remain in the repository for historical compatibility, but are not used by this workflow or the editorial rendering path.
