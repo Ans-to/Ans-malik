@@ -5,7 +5,7 @@ from forge_python.editorial_audio import prepare_narration,create_document
 def test_narration_word_alignment_and_scene_timing(tmp_path):
     voice,sr,words,mode,text=prepare_narration('Why AI gives wrong answers',15,tmp_path,offline=True)
     assert len(voice)==15*sr
-    assert len(words)>20 and all(w['start_ms']<w['end_ms'] for w in words)
+    assert len(words)>12 and all(w['start_ms']<w['end_ms'] for w in words)
     assert any(3000<=w['start_ms']<6000 and 'predict' in w['word'] for w in words)
     assert any(12000<=w['start_ms']<15000 for w in words)
     assert mode=='offline-espeak'

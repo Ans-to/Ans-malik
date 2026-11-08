@@ -10,7 +10,7 @@ from forge_python.audio_mastering.pedalboard_master import master
 from forge_python.render.voice import OfflineVoice
 from forge_python.ffmpeg import get_ffmpeg_exe
 
-AI_SEGMENTS=['AI can sound confident and be wrong.','It predicts words, not facts.','It builds answers from patterns.','Confidence is not evidence.','Check the source before trusting.']
+AI_SEGMENTS=['AI can be wrong.','It predicts words, not facts.','Answers follow patterns.','Confidence is not evidence.','Check the source.']
 
 async def edge_voice(text,path):
     import edge_tts
