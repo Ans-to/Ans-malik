@@ -399,5 +399,6 @@
   "lead_in_ms": 150,
   "tail_ms": 400,
   "pause_cap_ms": 280,
-  "visual_renderer": "Chromium React Remotion GSAP Three.js"
+  "visual_renderer": "Chromium React Remotion GSAP Three.js / mixed media",
+  "locked_audio_sha256": "SHA256=893a670f3fcd4ab9210366e8d5833c1b5ad1d8f233a6fafdc8eb91c9b0dea378"
 }
