@@ -17,3 +17,7 @@ web/morph/bundle.css
 .morph-*/
 
 .art-*/
+
+web/semantic/bundle.js
+web/semantic/bundle.css
+.semantic-*/
