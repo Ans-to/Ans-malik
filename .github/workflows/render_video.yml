@@ -6,7 +6,7 @@ on:
 permissions:
   contents: write
 concurrency:
-  group: morph-render-output
+  group: mixed-media-visual-v2
   cancel-in-progress: false
 jobs:
   render:
@@ -26,9 +26,6 @@ jobs:
           cache: npm
       - run: pip install -r requirements.txt
       - run: npm ci
-      - name: Ensure ffprobe is installed
-        run: |
-          if ! command -v ffprobe >/dev/null; then sudo apt-get update && sudo apt-get install -y ffmpeg; fi
       - name: Render mixed-media visuals against locked narration
         run: |
           set -o pipefail

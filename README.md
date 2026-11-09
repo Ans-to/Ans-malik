@@ -14,4 +14,4 @@ python art_render.py --source renders/final_video.mp4 --output renders/art-video
 python -m pytest tests/test_art_render.py tests/test_morph.py -q
 ```
 
-The GitHub workflow renders 1080p60 and verifies the audio packet hash, frame count and metadata before committing the MP4 and contact sheet to the session branch. It listens for `main` and session-branch pushes but does not push directly to `main`. Do not treat older outputs as the visual upgrade until its workflow succeeds. Python is used for the ReportLab document texture and FFmpeg orchestration, not drawing animation frames. Narration timing from Faster-Whisper is approximate.
+The GitHub workflow renders 1080p60 and verifies the audio packet hash, frame count and metadata with bundled FFmpeg before committing the MP4 and contact sheet to the session branch. It listens for `main` and session-branch pushes but does not push directly to `main`. Do not treat older outputs as the visual upgrade until its workflow succeeds. Python is used for the ReportLab document texture and FFmpeg orchestration, not drawing animation frames. Narration timing from Faster-Whisper is approximate.
