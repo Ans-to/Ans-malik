@@ -11,3 +11,7 @@ qa_contact_sheet.png
 web/editorial/bundle.js
 web/editorial/bundle.css
 .editorial-*/
+
+web/morph/bundle.js
+web/morph/bundle.css
+.morph-*/

@@ -1,25 +1,12 @@
-name: Editorial explainer render
+name: Continuous morph render
 on:
   workflow_dispatch:
   push:
-    branches: [arena/fa1317bb-ans-malik]
-    paths:
-      - 'editorial_render.py'
-      - 'forge_python/editorial_audio.py'
-      - 'forge_python/audio_mastering/**'
-      - 'forge_python/render/voice.py'
-      - 'shared_workspace/fonts/**'
-      - 'web/editorial/**'
-      - 'scripts/editorial_qa.py'
-      - 'scripts/fit_github_video.py'
-      - 'requirements.txt'
-      - 'package.json'
-      - 'package-lock.json'
-      - '.github/workflows/render_video.yml'
+    branches: [main, arena/fa1317bb-ans-malik]
 permissions:
   contents: write
 concurrency:
-  group: editorial-render-output
+  group: morph-render-output
   cancel-in-progress: false
 jobs:
   render:
@@ -45,7 +32,7 @@ jobs:
       - name: Render 15 seconds in Chromium with neural voice and word alignment
         run: |
           set -o pipefail
-          python editorial_render.py --output renders/final_video.mp4 --require-online --whisper-model base.en 2>&1 | tee render.log || {
+          python morph_render.py --output renders/final_video.mp4 --require-online --whisper-model base.en 2>&1 | tee render.log || {
             tail -n 3 render.log | while IFS= read -r line; do echo "::error::$line"; done
             exit 1
           }
@@ -54,13 +41,13 @@ jobs:
       - name: Verify video and make contact sheet
         run: |
           set -o pipefail
-          python -m scripts.editorial_qa renders/final_video.mp4 renders/qa_contact_sheet.png 2>&1 | tee qa.log || {
+          python -m scripts.morph_qa renders/final_video.mp4 renders/qa_contact_sheet.png 2>&1 | tee qa.log || {
             tail -n 5 qa.log | while IFS= read -r line; do echo "::error::$line"; done
             exit 1
           }
       - uses: actions/upload-artifact@v4
         with:
-          name: editorial-explainer
+          name: continuous-morph-explainer
           if-no-files-found: error
           path: |
             renders/final_video.mp4
@@ -72,6 +59,6 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -f renders/final_video.mp4 renders/final_video.mp4.json renders/qa_contact_sheet.png
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m 'Add editorial explainer render [skip ci]'
+          git commit -m 'Add continuous morph render [skip ci]'
           git pull --rebase origin arena/fa1317bb-ans-malik
           git push origin arena/fa1317bb-ans-malik

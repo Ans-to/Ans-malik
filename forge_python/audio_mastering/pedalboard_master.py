@@ -112,3 +112,26 @@ def main():
     print(f'Mastered integrated loudness: {loudness:.2f} LUFS (target -14 ± 0.5)')
     if not -14.5 <= loudness <= -13.5: print('Warning: peak ceiling prevented the loudness target; adjust the source mix.')
 if __name__ == '__main__': main()
+
+
+def motion_foley(duration, sample_rate, beats, words):
+    """Deterministic low-level UI/paper/portal sounds, scheduled at word beats."""
+    from scipy.signal import butter, sosfilt
+    sr=sample_rate;n=round(duration*sr);out=np.zeros((n,2),np.float32);rng=np.random.default_rng(43)
+    def add(at,sound,pan=.5):
+        i=max(0,round(at*sr));k=min(len(sound),n-i)
+        if k>0:
+            out[i:i+k,0]+=sound[:k]*(1-pan*.5);out[i:i+k,1]+=sound[:k]*(.5+pan*.5)
+    for beat in beats:
+        at=beat['start'];idx=beat['index'];t=np.arange(round(.24*sr))/sr
+        sub=.045*np.sin(2*np.pi*55*t)*np.exp(-t*17);add(at,sub)
+        pop=.025*np.sin(2*np.pi*(850*t-500*t*t))*np.exp(-t*36)+rng.normal(0,.012,len(t))*np.exp(-t*65);add(at,pop,.3 if idx%2 else .7)
+        if idx in (1,2,3):
+            t=np.arange(round(.45*sr))/sr;noise=rng.standard_normal(len(t));noise=sosfilt(butter(2,[500,4500],btype='bandpass',fs=sr,output='sos'),noise)
+            add(at,noise*np.sin(np.pi*t/.45)**2*.022,.6)
+        if idx==2:
+            t=np.arange(round(.8*sr))/sr
+            add(at,.025*np.sin(2*np.pi*(150*t+1000*t*t))*np.sin(np.pi*t/.8)**2,.7)
+    for w in words[:4]:
+        t=np.arange(round(.055*sr))/sr;add(w['start_ms']/1000,rng.normal(0,.025,len(t))*np.exp(-t*90),.35)
+    return out
