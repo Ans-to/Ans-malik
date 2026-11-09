@@ -29,10 +29,10 @@ jobs:
       - name: Ensure ffprobe is installed
         run: |
           if ! command -v ffprobe >/dev/null; then sudo apt-get update && sudo apt-get install -y ffmpeg; fi
-      - name: Render audio-length video in Chromium with natural neural voice
+      - name: Render mixed-media visuals against locked narration
         run: |
           set -o pipefail
-          python morph_render.py --output renders/final_video.mp4 --require-online --whisper-model base.en 2>&1 | tee render.log || {
+          python art_render.py --source renders/final_video.mp4 --output renders/final_video.mp4 2>&1 | tee render.log || {
             tail -n 3 render.log | while IFS= read -r line; do echo "::error::$line"; done
             exit 1
           }

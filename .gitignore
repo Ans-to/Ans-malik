@@ -15,3 +15,5 @@ web/editorial/bundle.css
 web/morph/bundle.js
 web/morph/bundle.css
 .morph-*/
+
+.art-*/
