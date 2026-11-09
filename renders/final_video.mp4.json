@@ -399,6 +399,89 @@
   "lead_in_ms": 150,
   "tail_ms": 400,
   "pause_cap_ms": 280,
-  "visual_renderer": "Chromium React Remotion GSAP Three.js / mixed media",
-  "locked_audio_sha256": "SHA256=893a670f3fcd4ab9210366e8d5833c1b5ad1d8f233a6fafdc8eb91c9b0dea378"
+  "visual_renderer": "Chromium React Remotion GSAP / semantic safe-zone",
+  "locked_audio_sha256": "SHA256=893a670f3fcd4ab9210366e8d5833c1b5ad1d8f233a6fafdc8eb91c9b0dea378",
+  "cues": [
+    {
+      "id": "calendar",
+      "word": "1971,",
+      "word_id": 1,
+      "trigger_ms": 360,
+      "first_frame": 24,
+      "end_frame": 126
+    },
+    {
+      "id": "country",
+      "word": "States",
+      "word_id": 4,
+      "trigger_ms": 2060,
+      "first_frame": 126,
+      "end_frame": 152
+    },
+    {
+      "id": "ended",
+      "word": "ended",
+      "word_id": 5,
+      "trigger_ms": 2480,
+      "first_frame": 152,
+      "end_frame": 198
+    },
+    {
+      "id": "dollar",
+      "word": "dollar",
+      "word_id": 7,
+      "trigger_ms": 3260,
+      "first_frame": 198,
+      "end_frame": 232
+    },
+    {
+      "id": "conversion",
+      "word": "conversion",
+      "word_id": 8,
+      "trigger_ms": 3820,
+      "first_frame": 232,
+      "end_frame": 288
+    },
+    {
+      "id": "gold",
+      "word": "gold.",
+      "word_id": 10,
+      "trigger_ms": 4760,
+      "first_frame": 288,
+      "end_frame": 521
+    },
+    {
+      "id": "year",
+      "word": "2022,",
+      "word_id": 19,
+      "trigger_ms": 8640,
+      "first_frame": 521,
+      "end_frame": 602
+    },
+    {
+      "id": "dollar_later",
+      "word": "dollar",
+      "word_id": 21,
+      "trigger_ms": 9980,
+      "first_frame": 602,
+      "end_frame": 698
+    },
+    {
+      "id": "stat",
+      "word": "88",
+      "word_id": 27,
+      "trigger_ms": 11580,
+      "first_frame": 698,
+      "end_frame": 900
+    }
+  ],
+  "extras": {
+    "percent": 720,
+    "foreign": 770,
+    "exchange": 788,
+    "trades": 803
+  },
+  "audited_frames": 900,
+  "pixel_audited_frames": 900,
+  "audit_error_count": 0
 }
