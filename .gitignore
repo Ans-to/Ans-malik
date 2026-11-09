@@ -21,3 +21,6 @@ web/morph/bundle.css
 web/semantic/bundle.js
 web/semantic/bundle.css
 .semantic-*/
+
+web/clause/bundle.js
+web/clause/bundle.css

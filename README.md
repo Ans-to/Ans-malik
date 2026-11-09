@@ -1,3 +1,9 @@
+# Clause-locked narration and layered visuals
+
+The active workflow uses individually synthesized selected-voice WAV files, exact PCM sample windows, and per-frame scene gating. See [CLAUSE_SYNC.md](CLAUSE_SYNC.md) for reproduction, frame-quantization and factual limitations.
+
+The prior visual workflow is retained below for reference, but is no longer active.
+
 # Style C: layered, audio-remapped motion graphics
 
 The active composition restores the multi-plane archival paper world, dossier and 1.45× loupe, center tear, mechanical vault, Three.js globe and dollar, translucent bento network, 88-node grid, and foreground bokeh. Only the tiny top/bottom corner status text was removed; graphic layers still extend across the frame. Reveals use nested clipping, scale and 3D transforms to unfold planes within the same composition. The loupe and portal are composited motion-graphics approximations, not physically simulated refraction.

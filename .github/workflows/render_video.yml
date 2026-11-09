@@ -26,10 +26,10 @@ jobs:
           cache: npm
       - run: pip install -r requirements.txt
       - run: npm ci
-      - name: Render remapped mixed-media visuals against locked narration
+      - name: Render clause-locked mixed-media visuals
         run: |
           set -o pipefail
-          python art_render.py --source renders/final_video.mp4 --output renders/final_video.mp4 2>&1 | tee render.log || {
+          python clause_render.py --output renders/final_video.mp4 2>&1 | tee render.log || {
             tail -n 3 render.log | while IFS= read -r line; do echo "::error::$line"; done
             exit 1
           }
@@ -38,7 +38,7 @@ jobs:
       - name: Verify video and make contact sheet
         run: |
           set -o pipefail
-          python -m scripts.morph_qa renders/final_video.mp4 renders/qa_contact_sheet.png 2>&1 | tee qa.log || {
+          python qa_inspector.py --clauses renders/final_video.mp4 renders/qa_contact_sheet.png 2>&1 | tee qa.log || {
             tail -n 5 qa.log | while IFS= read -r line; do echo "::error::$line"; done
             exit 1
           }
@@ -49,12 +49,13 @@ jobs:
           path: |
             renders/final_video.mp4
             renders/final_video.mp4.json
+            renders/final_video.mp4.audit.json
             renders/qa_contact_sheet.png
       - name: Commit outputs to the session branch
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -f renders/final_video.mp4 renders/final_video.mp4.json renders/qa_contact_sheet.png
+          git add -f renders/final_video.mp4 renders/final_video.mp4.json renders/final_video.mp4.audit.json renders/qa_contact_sheet.png
           if git diff --cached --quiet; then exit 0; fi
           git commit -m 'Add continuous morph render [skip ci]'
           git pull --rebase origin arena/fa1317bb-ans-malik

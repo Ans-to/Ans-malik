@@ -42,4 +42,8 @@ def audit(meta):
         assert all(frame*1000/60>=c['trigger_ms']+OFFSET_MS for c in active)
     return cues,extras
 
-if __name__=='__main__':audit(json.loads(Path(sys.argv[1]).read_text()))
+if __name__=='__main__':
+    if len(sys.argv)>1 and sys.argv[1]=='--clauses':
+        from scripts.clause_qa import qa
+        qa(sys.argv[2],sys.argv[3])
+    else:audit(json.loads(Path(sys.argv[1]).read_text()))
