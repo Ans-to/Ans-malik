@@ -23,22 +23,22 @@
       "source": "edge-tts+faster-whisper"
     },
     {
-      "word": "right,",
+      "word": "right.",
       "start_ms": 500,
       "end_ms": 660,
       "word_id": 3,
       "source": "edge-tts+faster-whisper"
     },
     {
-      "word": "it",
-      "start_ms": 760,
-      "end_ms": 820,
+      "word": "It",
+      "start_ms": 800,
+      "end_ms": 800,
       "word_id": 4,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word": "predicts",
-      "start_ms": 820,
+      "start_ms": 800,
       "end_ms": 1020,
       "word_id": 5,
       "source": "edge-tts+faster-whisper"
@@ -59,7 +59,7 @@
     },
     {
       "word": "not",
-      "start_ms": 2080,
+      "start_ms": 2060,
       "end_ms": 2180,
       "word_id": 8,
       "source": "edge-tts+faster-whisper"
@@ -72,15 +72,15 @@
       "source": "edge-tts+faster-whisper"
     },
     {
-      "word": "facts,",
+      "word": "facts.",
       "start_ms": 2380,
       "end_ms": 2880,
       "word_id": 10,
       "source": "edge-tts+faster-whisper"
     },
     {
-      "word": "follow",
-      "start_ms": 3200,
+      "word": "Follow",
+      "start_ms": 3220,
       "end_ms": 3380,
       "word_id": 11,
       "source": "edge-tts+faster-whisper"
@@ -88,14 +88,14 @@
     {
       "word": "the",
       "start_ms": 3380,
-      "end_ms": 3520,
+      "end_ms": 3500,
       "word_id": 12,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word": "evidence,",
-      "start_ms": 3520,
-      "end_ms": 3760,
+      "start_ms": 3500,
+      "end_ms": 3740,
       "word_id": 13,
       "source": "edge-tts+faster-whisper"
     },
@@ -123,13 +123,13 @@
     {
       "word": "and",
       "start_ms": 4780,
-      "end_ms": 4800,
+      "end_ms": 4820,
       "word_id": 17,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word": "compare",
-      "start_ms": 4800,
+      "start_ms": 4820,
       "end_ms": 5060,
       "word_id": 18,
       "source": "edge-tts+faster-whisper"
@@ -137,13 +137,13 @@
     {
       "word": "claims",
       "start_ms": 5060,
-      "end_ms": 5360,
+      "end_ms": 5380,
       "word_id": 19,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word": "before",
-      "start_ms": 5360,
+      "start_ms": 5380,
       "end_ms": 5760,
       "word_id": 20,
       "source": "edge-tts+faster-whisper"
@@ -151,20 +151,20 @@
     {
       "word": "you",
       "start_ms": 5760,
-      "end_ms": 5920,
+      "end_ms": 5940,
       "word_id": 21,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word": "trust",
-      "start_ms": 5920,
-      "end_ms": 6120,
+      "start_ms": 5940,
+      "end_ms": 6100,
       "word_id": 22,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word": "an",
-      "start_ms": 6120,
+      "start_ms": 6100,
       "end_ms": 6280,
       "word_id": 23,
       "source": "edge-tts+faster-whisper"
@@ -172,13 +172,13 @@
     {
       "word": "answer.",
       "start_ms": 6280,
-      "end_ms": 6560,
+      "end_ms": 6580,
       "word_id": 24,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word": "Curiosity",
-      "start_ms": 6700,
+      "start_ms": 6720,
       "end_ms": 6880,
       "word_id": 25,
       "source": "edge-tts+faster-whisper"
@@ -193,13 +193,13 @@
     {
       "word": "your",
       "start_ms": 7480,
-      "end_ms": 7580,
+      "end_ms": 7600,
       "word_id": 27,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word": "best",
-      "start_ms": 7580,
+      "start_ms": 7600,
       "end_ms": 7780,
       "word_id": 28,
       "source": "edge-tts+faster-whisper"
@@ -207,20 +207,20 @@
     {
       "word": "filter.",
       "start_ms": 7780,
-      "end_ms": 8160,
+      "end_ms": 8180,
       "word_id": 29,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word": "Even",
       "start_ms": 8340,
-      "end_ms": 8480,
+      "end_ms": 8500,
       "word_id": 30,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word": "fluent",
-      "start_ms": 8480,
+      "start_ms": 8500,
       "end_ms": 8740,
       "word_id": 31,
       "source": "edge-tts+faster-whisper"
@@ -235,20 +235,20 @@
     {
       "word": "need",
       "start_ms": 9120,
-      "end_ms": 9420,
+      "end_ms": 9440,
       "word_id": 33,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word": "careful",
-      "start_ms": 9420,
-      "end_ms": 9740,
+      "start_ms": 9440,
+      "end_ms": 9760,
       "word_id": 34,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word": "checking",
-      "start_ms": 9740,
+      "start_ms": 9760,
       "end_ms": 10100,
       "word_id": 35,
       "source": "edge-tts+faster-whisper"
@@ -256,21 +256,21 @@
     {
       "word": "every",
       "start_ms": 10100,
-      "end_ms": 10500,
+      "end_ms": 10520,
       "word_id": 36,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word": "single",
-      "start_ms": 10500,
-      "end_ms": 10760,
+      "start_ms": 10520,
+      "end_ms": 10780,
       "word_id": 37,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word": "time.",
-      "start_ms": 10760,
-      "end_ms": 11040,
+      "start_ms": 10780,
+      "end_ms": 11060,
       "word_id": 38,
       "source": "edge-tts+faster-whisper"
     }
@@ -283,7 +283,7 @@
         "AI",
         "can",
         "sound",
-        "right,"
+        "right."
       ],
       "word_ids": [
         0,
@@ -291,13 +291,13 @@
         2,
         3
       ],
-      "end": 0.76
+      "end": 0.8
     },
     {
       "index": 1,
-      "start": 0.76,
+      "start": 0.8,
       "words": [
-        "it",
+        "It",
         "predicts",
         "likely",
         "words,"
@@ -308,16 +308,16 @@
         6,
         7
       ],
-      "end": 2.08
+      "end": 2.06
     },
     {
       "index": 2,
-      "start": 2.08,
+      "start": 2.06,
       "words": [
         "not",
         "verified",
-        "facts,",
-        "follow"
+        "facts.",
+        "Follow"
       ],
       "word_ids": [
         8,
@@ -359,11 +359,11 @@
         18,
         19
       ],
-      "end": 5.36
+      "end": 5.38
     },
     {
       "index": 5,
-      "start": 5.36,
+      "start": 5.38,
       "words": [
         "before",
         "you",
@@ -393,11 +393,11 @@
         26,
         27
       ],
-      "end": 7.58
+      "end": 7.6
     },
     {
       "index": 7,
-      "start": 7.58,
+      "start": 7.6,
       "words": [
         "best",
         "filter.",
