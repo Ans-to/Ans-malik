@@ -1,277 +1,235 @@
 {
-  "topic": "Why Your AI Gives You Wrong Answers",
+  "topic": "The dollar, gold, and global foreign exchange",
   "words": [
     {
-      "word": "AI",
+      "word": "In",
       "start_ms": 0,
-      "end_ms": 100,
+      "end_ms": 360,
       "word_id": 0,
       "source": "edge-tts+faster-whisper"
     },
     {
-      "word": "can",
-      "start_ms": 100,
-      "end_ms": 300,
+      "word": "1971,",
+      "start_ms": 360,
+      "end_ms": 1080,
       "word_id": 1,
       "source": "edge-tts+faster-whisper"
     },
     {
-      "word": "sound",
-      "start_ms": 300,
-      "end_ms": 500,
+      "word": "the",
+      "start_ms": 1700,
+      "end_ms": 1860,
       "word_id": 2,
       "source": "edge-tts+faster-whisper"
     },
     {
-      "word": "right.",
-      "start_ms": 500,
-      "end_ms": 660,
+      "word": "United",
+      "start_ms": 1860,
+      "end_ms": 2060,
       "word_id": 3,
       "source": "edge-tts+faster-whisper"
     },
     {
-      "word": "It",
-      "start_ms": 800,
-      "end_ms": 800,
+      "word": "States",
+      "start_ms": 2060,
+      "end_ms": 2480,
       "word_id": 4,
       "source": "edge-tts+faster-whisper"
     },
     {
-      "word": "predicts",
-      "start_ms": 800,
-      "end_ms": 1020,
+      "word": "ended",
+      "start_ms": 2480,
+      "end_ms": 2920,
       "word_id": 5,
       "source": "edge-tts+faster-whisper"
     },
     {
-      "word": "likely",
-      "start_ms": 1020,
-      "end_ms": 1380,
+      "word": "official",
+      "start_ms": 2920,
+      "end_ms": 3260,
       "word_id": 6,
       "source": "edge-tts+faster-whisper"
     },
     {
-      "word": "words,",
-      "start_ms": 1380,
-      "end_ms": 1800,
+      "word": "dollar",
+      "start_ms": 3260,
+      "end_ms": 3820,
       "word_id": 7,
       "source": "edge-tts+faster-whisper"
     },
     {
-      "word": "not",
-      "start_ms": 2060,
-      "end_ms": 2180,
+      "word": "conversion",
+      "start_ms": 3820,
+      "end_ms": 4080,
       "word_id": 8,
       "source": "edge-tts+faster-whisper"
     },
     {
-      "word": "verified",
-      "start_ms": 2180,
-      "end_ms": 2380,
+      "word": "into",
+      "start_ms": 4080,
+      "end_ms": 4760,
       "word_id": 9,
       "source": "edge-tts+faster-whisper"
     },
     {
-      "word": "facts.",
-      "start_ms": 2380,
-      "end_ms": 2880,
+      "word": "gold.",
+      "start_ms": 4760,
+      "end_ms": 5020,
       "word_id": 10,
       "source": "edge-tts+faster-whisper"
     },
     {
-      "word": "Follow",
-      "start_ms": 3220,
-      "end_ms": 3380,
+      "word": "Rules",
+      "start_ms": 5760,
+      "end_ms": 5760,
       "word_id": 11,
       "source": "edge-tts+faster-whisper"
     },
     {
-      "word": "the",
-      "start_ms": 3380,
-      "end_ms": 3500,
+      "word": "changed,",
+      "start_ms": 5760,
+      "end_ms": 6040,
       "word_id": 12,
       "source": "edge-tts+faster-whisper"
     },
     {
-      "word": "evidence,",
-      "start_ms": 3500,
-      "end_ms": 3740,
+      "word": "but",
+      "start_ms": 6660,
+      "end_ms": 6760,
       "word_id": 13,
       "source": "edge-tts+faster-whisper"
     },
     {
-      "word": "check",
-      "start_ms": 4040,
-      "end_ms": 4160,
+      "word": "gold",
+      "start_ms": 6760,
+      "end_ms": 7020,
       "word_id": 14,
       "source": "edge-tts+faster-whisper"
     },
     {
-      "word": "the",
-      "start_ms": 4160,
-      "end_ms": 4260,
+      "word": "did",
+      "start_ms": 7020,
+      "end_ms": 7260,
       "word_id": 15,
       "source": "edge-tts+faster-whisper"
     },
     {
-      "word": "source,",
-      "start_ms": 4260,
-      "end_ms": 4520,
+      "word": "not",
+      "start_ms": 7260,
+      "end_ms": 7460,
       "word_id": 16,
       "source": "edge-tts+faster-whisper"
     },
     {
-      "word": "and",
-      "start_ms": 4780,
-      "end_ms": 4820,
+      "word": "disappear.",
+      "start_ms": 7460,
+      "end_ms": 7840,
       "word_id": 17,
       "source": "edge-tts+faster-whisper"
     },
     {
-      "word": "compare",
-      "start_ms": 4820,
-      "end_ms": 5060,
+      "word": "In",
+      "start_ms": 8580,
+      "end_ms": 8640,
       "word_id": 18,
       "source": "edge-tts+faster-whisper"
     },
     {
-      "word": "claims",
-      "start_ms": 5060,
-      "end_ms": 5380,
+      "word": "2022,",
+      "start_ms": 8640,
+      "end_ms": 9380,
       "word_id": 19,
       "source": "edge-tts+faster-whisper"
     },
     {
-      "word": "before",
-      "start_ms": 5380,
-      "end_ms": 5760,
+      "word": "the",
+      "start_ms": 9820,
+      "end_ms": 9980,
       "word_id": 20,
       "source": "edge-tts+faster-whisper"
     },
     {
-      "word": "you",
-      "start_ms": 5760,
-      "end_ms": 5940,
+      "word": "dollar",
+      "start_ms": 9980,
+      "end_ms": 10200,
       "word_id": 21,
       "source": "edge-tts+faster-whisper"
     },
     {
-      "word": "trust",
-      "start_ms": 5940,
-      "end_ms": 6100,
+      "word": "appeared",
+      "start_ms": 10200,
+      "end_ms": 10500,
       "word_id": 22,
       "source": "edge-tts+faster-whisper"
     },
     {
-      "word": "an",
-      "start_ms": 6100,
-      "end_ms": 6280,
+      "word": "on",
+      "start_ms": 10500,
+      "end_ms": 10820,
       "word_id": 23,
       "source": "edge-tts+faster-whisper"
     },
     {
-      "word": "answer.",
-      "start_ms": 6280,
-      "end_ms": 6580,
+      "word": "one",
+      "start_ms": 10820,
+      "end_ms": 11040,
       "word_id": 24,
       "source": "edge-tts+faster-whisper"
     },
     {
-      "word": "Curiosity",
-      "start_ms": 6720,
-      "end_ms": 6880,
+      "word": "side",
+      "start_ms": 11040,
+      "end_ms": 11460,
       "word_id": 25,
       "source": "edge-tts+faster-whisper"
     },
     {
-      "word": "is",
-      "start_ms": 6880,
-      "end_ms": 7480,
+      "word": "of",
+      "start_ms": 11460,
+      "end_ms": 11580,
       "word_id": 26,
       "source": "edge-tts+faster-whisper"
     },
     {
-      "word": "your",
-      "start_ms": 7480,
-      "end_ms": 7600,
+      "word": "88",
+      "start_ms": 11580,
+      "end_ms": 11960,
       "word_id": 27,
       "source": "edge-tts+faster-whisper"
     },
     {
-      "word": "best",
-      "start_ms": 7600,
-      "end_ms": 7780,
+      "word": "%",
+      "start_ms": 11960,
+      "end_ms": 12560,
       "word_id": 28,
       "source": "edge-tts+faster-whisper"
     },
     {
-      "word": "filter.",
-      "start_ms": 7780,
-      "end_ms": 8180,
+      "word": "of",
+      "start_ms": 12560,
+      "end_ms": 12780,
       "word_id": 29,
       "source": "edge-tts+faster-whisper"
     },
     {
-      "word": "Even",
-      "start_ms": 8340,
-      "end_ms": 8500,
+      "word": "foreign",
+      "start_ms": 12780,
+      "end_ms": 13080,
       "word_id": 30,
       "source": "edge-tts+faster-whisper"
     },
     {
-      "word": "fluent",
-      "start_ms": 8500,
-      "end_ms": 8740,
+      "word": "exchange",
+      "start_ms": 13080,
+      "end_ms": 13340,
       "word_id": 31,
       "source": "edge-tts+faster-whisper"
     },
     {
-      "word": "answers",
-      "start_ms": 8740,
-      "end_ms": 9120,
+      "word": "trades.",
+      "start_ms": 13340,
+      "end_ms": 13940,
       "word_id": 32,
-      "source": "edge-tts+faster-whisper"
-    },
-    {
-      "word": "need",
-      "start_ms": 9120,
-      "end_ms": 9440,
-      "word_id": 33,
-      "source": "edge-tts+faster-whisper"
-    },
-    {
-      "word": "careful",
-      "start_ms": 9440,
-      "end_ms": 9760,
-      "word_id": 34,
-      "source": "edge-tts+faster-whisper"
-    },
-    {
-      "word": "checking",
-      "start_ms": 9760,
-      "end_ms": 10100,
-      "word_id": 35,
-      "source": "edge-tts+faster-whisper"
-    },
-    {
-      "word": "every",
-      "start_ms": 10100,
-      "end_ms": 10520,
-      "word_id": 36,
-      "source": "edge-tts+faster-whisper"
-    },
-    {
-      "word": "single",
-      "start_ms": 10520,
-      "end_ms": 10780,
-      "word_id": 37,
-      "source": "edge-tts+faster-whisper"
-    },
-    {
-      "word": "time.",
-      "start_ms": 10780,
-      "end_ms": 11060,
-      "word_id": 38,
       "source": "edge-tts+faster-whisper"
     }
   ],
@@ -280,10 +238,10 @@
       "index": 0,
       "start": 0,
       "words": [
-        "AI",
-        "can",
-        "sound",
-        "right."
+        "In",
+        "1971,",
+        "the",
+        "United"
       ],
       "word_ids": [
         0,
@@ -291,16 +249,16 @@
         2,
         3
       ],
-      "end": 0.8
+      "end": 2.06
     },
     {
       "index": 1,
-      "start": 0.8,
+      "start": 2.06,
       "words": [
-        "It",
-        "predicts",
-        "likely",
-        "words,"
+        "States",
+        "ended",
+        "official",
+        "dollar"
       ],
       "word_ids": [
         4,
@@ -308,16 +266,16 @@
         6,
         7
       ],
-      "end": 2.06
+      "end": 3.82
     },
     {
       "index": 2,
-      "start": 2.06,
+      "start": 3.82,
       "words": [
-        "not",
-        "verified",
-        "facts.",
-        "Follow"
+        "conversion",
+        "into",
+        "gold.",
+        "Rules"
       ],
       "word_ids": [
         8,
@@ -325,16 +283,16 @@
         10,
         11
       ],
-      "end": 3.38
+      "end": 5.76
     },
     {
       "index": 3,
-      "start": 3.38,
+      "start": 5.76,
       "words": [
-        "the",
-        "evidence,",
-        "check",
-        "the"
+        "changed,",
+        "but",
+        "gold",
+        "did"
       ],
       "word_ids": [
         12,
@@ -342,16 +300,16 @@
         14,
         15
       ],
-      "end": 4.26
+      "end": 7.26
     },
     {
       "index": 4,
-      "start": 4.26,
+      "start": 7.26,
       "words": [
-        "source,",
-        "and",
-        "compare",
-        "claims"
+        "not",
+        "disappear.",
+        "In",
+        "2022,"
       ],
       "word_ids": [
         16,
@@ -359,16 +317,16 @@
         18,
         19
       ],
-      "end": 5.38
+      "end": 9.82
     },
     {
       "index": 5,
-      "start": 5.38,
+      "start": 9.82,
       "words": [
-        "before",
-        "you",
-        "trust",
-        "an"
+        "the",
+        "dollar",
+        "appeared",
+        "on"
       ],
       "word_ids": [
         20,
@@ -376,73 +334,52 @@
         22,
         23
       ],
-      "end": 6.28
+      "end": 10.82
     },
     {
       "index": 6,
-      "start": 6.28,
+      "start": 10.82,
       "words": [
-        "answer.",
-        "Curiosity",
-        "is",
-        "your"
+        "one",
+        "side",
+        "of"
       ],
       "word_ids": [
         24,
         25,
-        26,
-        27
+        26
       ],
-      "end": 7.6
+      "end": 11.58
     },
     {
       "index": 7,
-      "start": 7.6,
+      "start": 11.58,
       "words": [
-        "best",
-        "filter.",
-        "Even",
-        "fluent"
+        "88",
+        "%",
+        "of"
       ],
       "word_ids": [
+        27,
         28,
-        29,
-        30,
-        31
+        29
       ],
-      "end": 8.74
+      "end": 12.78
     },
     {
       "index": 8,
-      "start": 8.74,
+      "start": 12.78,
       "words": [
-        "answers",
-        "need",
-        "careful",
-        "checking"
+        "foreign",
+        "exchange",
+        "trades."
       ],
       "word_ids": [
-        32,
-        33,
-        34,
-        35
+        30,
+        31,
+        32
       ],
-      "end": 10.1
-    },
-    {
-      "index": 9,
-      "start": 10.1,
-      "words": [
-        "every",
-        "single",
-        "time."
-      ],
-      "word_ids": [
-        36,
-        37,
-        38
-      ],
-      "end": 11.383333333333333
+      "end": 15.0
     }
   ],
   "document": "ReportLab PDF texture",
@@ -451,11 +388,16 @@
     "x2": 560,
     "y": 402
   },
-  "frames": 683,
-  "duration": 11.383333333333333,
+  "frames": 900,
+  "duration": 15.0,
   "fps": 60,
   "resolution": "1920x1080",
-  "narration": "AI can sound right. It predicts likely words, not verified facts. Follow the evidence, check the source, and compare claims before you trust an answer. Curiosity is your best filter. Even fluent answers need careful checking, every single time.",
+  "narration": "In nineteen seventy one, the United States ended official dollar conversion into gold. Rules changed, but gold did not disappear. In twenty twenty two, the dollar appeared on one side of eighty eight percent of foreign exchange trades.",
   "voice_mode": "edge-tts+faster-whisper",
+  "neural_voice": "en-US-AndrewNeural",
+  "neural_rate": "+0%",
+  "lead_in_ms": 150,
+  "tail_ms": 400,
+  "pause_cap_ms": 280,
   "visual_renderer": "Chromium React Remotion GSAP Three.js"
 }
