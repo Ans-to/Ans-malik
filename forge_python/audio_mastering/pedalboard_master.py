@@ -135,3 +135,23 @@ def motion_foley(duration, sample_rate, beats, words):
     for w in words[:4]:
         t=np.arange(round(.055*sr))/sr;add(w['start_ms']/1000,rng.normal(0,.025,len(t))*np.exp(-t*90),.35)
     return out
+
+
+def warm_vocal(voice, sample_rate):
+    """Gentle broadcast vocal processing without modifying duration or speed."""
+    from pedalboard import HighpassFilter, LowShelfFilter, PeakFilter, Compressor
+    chain=Pedalboard([
+        HighpassFilter(cutoff_frequency_hz=75),
+        LowShelfFilter(cutoff_frequency_hz=200, gain_db=1.0, q=0.7),
+        PeakFilter(cutoff_frequency_hz=350, gain_db=1.0, q=0.7),
+        Compressor(threshold_db=-16, ratio=2.5, attack_ms=15, release_ms=120),
+    ])
+    return chain(np.asarray(voice,dtype=np.float32),sample_rate)
+
+def limit_foley(foley, voice, below_db=18):
+    """Constrain whole-program Foley RMS relative to the vocal RMS."""
+    foley=np.asarray(foley,dtype=np.float32);voice=np.asarray(voice,dtype=np.float32)
+    vrms=float(np.sqrt(np.mean(voice.astype(np.float64)**2)))
+    frms=float(np.sqrt(np.mean(foley.astype(np.float64)**2)))
+    if frms and vrms:foley=foley*min(1.0,(vrms*10**(-below_db/20))/frms)
+    return foley

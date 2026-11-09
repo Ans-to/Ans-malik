@@ -1,8 +1,10 @@
-# Continuous morph-and-dive explainer
+# Audio-led continuous morph explainer
 
-An AI explainer rendered entirely in headless Chromium at 1920×1080 and 60 fps. React/Remotion supplies the frame clock, Puppeteer seeks GSAP to `frame / 60`, and CSS/SVG/Three.js supply the visual layers. A shared container stretches from prompt to document and chart, opens a globe portal, unfolds a bento grid, and flips into kinetic type. Subsequent word groups reshape the same container while the camera keeps moving. Chart numbers and shapes are illustrative, not measurements.
+A Chromium/React/GSAP/Three.js motion-graphics explainer about the 1971 end of official dollar-to-gold conversion and the dollar's role in foreign exchange. The 88% figure is **not global trade**: the BIS reports that the US dollar was on one side of approximately 88% of foreign-exchange trades in its April 2022 survey. The United States suspended conversion for foreign monetary authorities; gold itself did not disappear. Sources: [Federal Reserve History](https://www.federalreservehistory.org/essays/gold-convertibility-ends) and [BIS 2022 survey](https://www.bis.org/press/p221027.htm).
 
-The narration is a single Edge `en-US-AndrewNeural` take at +12%. A 10 ms RMS envelope compresses silent gaps longer than 70 ms toward 35 ms with cosine crossfades before Faster-Whisper alignment. Three-to-four aligned words form each beat; because actual speech timings are not artificially time-stretched, beat lengths vary with the delivery. Beat timestamps also schedule tactile synthetic Foley. Pedalboard and PyLoudNorm target −14 LUFS, with a 4× oversampled peak ceiling; this is an estimate, not certified true-peak metering, and AAC can change peaks.
+Edge `en-US-AndrewNeural` speaks at +0%, without time-stretching to fit a target. Only interior low-RMS pauses longer than 500 ms are capped at about 280 ms, cutting at the quiet centre; natural short pauses remain untouched. The narration receives 150 ms lead-in and 400 ms tail padding. Faster-Whisper runs after this preparation, and the resulting audio length determines the frame count. Beat grouping follows word timing while camera motion continues independently. Numbers and charts in the visuals are illustrative unless explicitly attributed to the BIS.
+
+A gentle high-pass, low-shelf/peak warmth, and 2.5:1 compressor process the voice. Foley RMS is limited to at least 18 dB below the vocal RMS. Pedalboard/PyLoudNorm target −14 LUFS and a 4× oversampled peak estimate; this is not certified dBTP, and AAC may change peaks. RMS silence detection is conservative, not a guarantee of perfect phoneme boundaries; listen to the neural result when evaluating cadence.
 
 ```sh
 python -m venv .venv && . .venv/bin/activate
@@ -12,6 +14,4 @@ python morph_render.py --offline --output renders/preview.mp4
 python -m pytest tests/test_morph.py -q
 ```
 
-`--offline` uses robotic eSpeak for local previews. GitHub Actions requires online neural TTS and Faster-Whisper; it fails rather than substitute guessed word timings when transcription differs. It renders, fits the video under GitHub's file limit if necessary, verifies it with ffprobe, and creates a ten-beat contact sheet. The workflow listens for `main` and session-branch pushes, and commits output to the session branch; it does not push directly to `main`.
-
-`renders/final_video.mp4` and `renders/qa_contact_sheet.png` are valid only after a successful workflow run. Python is used for audio, alignment, ReportLab texture generation and encoding orchestration, not for drawing video frames. The older documentary/editorial implementations remain for compatibility and are not the active workflow.
+Offline previews use robotic eSpeak and its approximate word events; they do not demonstrate the online voice's cadence. GitHub Actions requires neural Edge TTS and Faster-Whisper, renders 1080p60 in Chromium, checks the video, and produces a beat contact sheet. It listens for `main` and session-branch pushes but commits generated outputs to the session branch, not directly to `main`. Older outputs should not be treated as the new render until the workflow succeeds. Python is used for audio, alignment, the ReportLab document texture, and encoding orchestration, not for drawing video frames.

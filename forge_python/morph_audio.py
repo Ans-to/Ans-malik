@@ -1,56 +1,59 @@
-"""Neural narration, silence stripping, word-aligned kinetic beats and mix."""
+"""Natural neural narration, conservative pause capping, aligned beats and mix."""
 import asyncio, math, re, subprocess
 from pathlib import Path
 import numpy as np
 import soundfile as sf
 from forge_python.ffmpeg import get_ffmpeg_exe
 from forge_python.render.voice import OfflineVoice
-from forge_python.audio_mastering.pedalboard_master import master, motion_foley
+from forge_python.audio_mastering.pedalboard_master import master, motion_foley, warm_vocal, limit_foley
 
-SCRIPT=('AI can sound right. It predicts likely words, not verified facts. '
-        'Follow the evidence, check the source, and compare claims before you trust an answer. '
-        'Curiosity is your best filter. Even fluent answers need careful checking, every single time.')
+SCRIPT=('In nineteen seventy one, the United States ended official dollar conversion into gold. '
+        'Rules changed, but gold did not disappear. '
+        'In twenty twenty two, the dollar appeared on one side of eighty eight percent of foreign exchange trades.')
 
-def strip_dead_air(samples, sr, threshold_db=-40, min_gap_ms=70, target_ms=35, fade_ms=10):
-    """Compress RMS-silent interior gaps and return samples plus old-to-new time map.
+def cap_long_pauses(samples, sr, threshold_db=-50, max_gap_ms=500, target_ms=280):
+    """Cap only interior low-RMS gaps over 500ms; preserve all other samples.
 
-    A retained gap includes two equal-power joins: keep target + two overlap
-    lengths before crossfading, so the resulting gap is approximately target.
+    Cut from the centre of a long silent region so quiet consonant edges are not
+    touched. A 5ms raised-cosine join is confined inside the low-RMS region.
+    The returned map accounts for cuts and supports offline timing remapping.
     """
-    x=np.asarray(samples,dtype=np.float32).reshape(-1); win=max(1,round(sr*.01)); n=len(x)
+    x=np.asarray(samples,dtype=np.float32).reshape(-1);n=len(x);win=max(1,round(sr*.01))
     if not n:return x,lambda t:t
     levels=np.array([np.sqrt(np.mean(x[i:i+win].astype(np.float64)**2)) for i in range(0,n,win)])
-    silent=levels < 10**(threshold_db/20)
-    edges=np.diff(np.r_[False,silent,False].astype(np.int8));starts=np.where(edges==1)[0]*win; ends=np.minimum(np.where(edges==-1)[0]*win,n)
-    fade=round(fade_ms*sr/1000); target=round(target_ms*sr/1000); minimum=round(min_gap_ms*sr/1000)
-    # Keep small regions at either edge of a long gap and crossfade their join.
+    quiet=levels < 10**(threshold_db/20)
+    edges=np.diff(np.r_[False,quiet,False].astype(np.int8));starts=np.where(edges==1)[0]*win;ends=np.minimum(np.where(edges==-1)[0]*win,n)
+    target=round(target_ms*sr/1000);minimum=round(max_gap_ms*sr/1000);fade=round(.005*sr)
     cuts=[]
     for a,b in zip(starts,ends):
-        if b-a<=minimum:continue
-        keep=target
-        if a==0:cuts.append((0,max(0,b-round(.025*sr))))
-        elif b==n:cuts.append((min(n,a+round(.025*sr)),n))
-        elif b-a>keep+2*fade:
-            cuts.append((int(a+(keep+fade)//2),int(b-(keep+fade-(keep+fade)//2))))
-    result=np.empty(0,np.float32); segments=[]; cursor=0
+        if a==0 or b==n or b-a<=minimum:continue
+        # The overlap removes fade samples too, leaving a target-length gap.
+        keep=target+fade;cuts.append((int(a+keep//2),int(b-(keep-keep//2))))
+    out=np.empty(0,np.float32);segments=[];cursor=0
     for a,b in cuts+[(n,n)]:
         part=x[cursor:a]
-        if len(result) and len(part):
-            f=min(fade,len(result),len(part)); old_len=len(result)
-            theta=np.linspace(0,np.pi/2,f,endpoint=True)
-            result[-f:]=result[-f:]*np.cos(theta)+part[:f]*np.sin(theta)
-            segments.append((cursor,cursor+f,old_len-f,old_len))
-            result=np.concatenate((result,part[f:]));segments.append((cursor+f,a,old_len,len(result)))
+        if len(out) and len(part):
+            f=min(fade,len(out),len(part));old=len(out);theta=np.linspace(0,np.pi/2,f)
+            out[-f:]=out[-f:]*np.cos(theta)+part[:f]*np.sin(theta)
+            segments.append((cursor,cursor+f,old-f,old));out=np.concatenate((out,part[f:]));segments.append((cursor+f,a,old,len(out)))
         else:
-            start=len(result);result=np.concatenate((result,part));segments.append((cursor,a,start,len(result)))
+            begin=len(out);out=np.concatenate((out,part));segments.append((cursor,a,begin,len(out)))
         cursor=b
     def remap(seconds):
-        i=max(0,min(n,round(seconds*sr)))
+        sample=max(0,min(n,round(seconds*sr)))
         for a,b,c,d in segments:
-            if a<=i<=b:return (c+min(i-a,d-c))/sr
-        before=[seg for seg in segments if seg[1]<i]
+            if a<=sample<=b:return (c+min(sample-a,d-c))/sr
+        before=[seg for seg in segments if seg[1]<sample]
         return (before[-1][3] if before else 0)/sr
-    return result,remap
+    return out,remap
+
+def canonical(text):
+    """Compare common Whisper numeric spellings without treating them as errors."""
+    text=text.casefold().replace('%',' percent ')
+    text=re.sub(r'\b1971\b','nineteen seventy one',text)
+    text=re.sub(r'\b2022\b','twenty twenty two',text)
+    text=re.sub(r'\b88\b','eighty eight',text)
+    return re.findall(r'[^\W_]+',text,flags=re.UNICODE)
 
 def compile_beats(words,duration):
     """Keep spoken word order intact; distribute into groups of three or four."""
@@ -67,7 +70,7 @@ def compile_beats(words,duration):
 
 async def edge_voice(text,path):
     import edge_tts
-    await asyncio.wait_for(edge_tts.Communicate(text,'en-US-AndrewNeural',rate='+12%',boundary='WordBoundary').save(str(path)),timeout=60)
+    await asyncio.wait_for(edge_tts.Communicate(text,'en-US-AndrewNeural',rate='+0%',boundary='WordBoundary').save(str(path)),timeout=60)
 
 def prepare(tmp,offline=False,require_online=False,model='base.en'):
     sr=24000; mode='edge-tts+faster-whisper'; voice=None
@@ -81,22 +84,25 @@ def prepare(tmp,offline=False,require_online=False,model='base.en'):
             print(f'Using offline voice: {e}',flush=True)
     if voice is None:
         voice,raw_words=OfflineVoice().speak(SCRIPT,sr);mode='offline-espeak'
-    voice,remap=strip_dead_air(voice,sr)
+    voice,remap=cap_long_pauses(voice,sr)
+    lead=round(.150*sr);tail=round(.400*sr)
+    voice=np.pad(voice,(lead,tail))
     if mode=='offline-espeak':
-        words=[{'word':w['word'],'start_ms':round(remap(w['start_ms']/1000)*1000),'end_ms':round(remap(w['end_ms']/1000)*1000)} for w in raw_words]
+        words=[{'word':w['word'],'start_ms':round((remap(w['start_ms']/1000)+.150)*1000),'end_ms':round((remap(w['end_ms']/1000)+.150)*1000)} for w in raw_words]
     else:
         wav=tmp/'trimmed.wav';sf.write(wav,voice,sr,subtype='FLOAT')
         from faster_whisper import WhisperModel
         whisper=WhisperModel(model,device='cpu',compute_type='int8',local_files_only=Path(model).exists())
         segments,_=whisper.transcribe(str(wav),word_timestamps=True)
         words=[{'word':w.word.strip(),'start_ms':round(w.start*1000),'end_ms':round(w.end*1000)} for seg in segments for w in (seg.words or []) if w.word.strip()]
-        canonical=lambda s:re.findall(r'[^\W_]+',s.casefold(),flags=re.UNICODE)
         if canonical(SCRIPT)!=canonical(' '.join(w['word'] for w in words)):raise ValueError('Whisper transcript differs from narration; refusing inaccurate word lock')
     for i,w in enumerate(words):w.update(word_id=i,source=mode)
-    duration=math.ceil((len(voice)/sr+.20)*60)/60;frames=round(duration*60)
+    duration=math.ceil(len(voice)/sr*60)/60;frames=round(duration*60)
     beats=compile_beats(words,duration)
     voice=np.pad(voice,(0,frames*sr//60-len(voice)))
     t=np.arange(len(voice))/sr; bed=(.009*np.sin(2*np.pi*110*t)+.006*np.sin(2*np.pi*165*t)).astype(np.float32)
-    mix=master(bed,voice,sr,sfx=motion_foley(duration,sr,beats,words),voice_presence=True)
+    voice=warm_vocal(voice,sr)
+    foley=limit_foley(motion_foley(duration,sr,beats,words),voice,below_db=18)
+    mix=master(bed,voice,sr,sfx=foley,voice_presence=False)
     path=tmp/'master.wav';sf.write(path,mix,sr,subtype='FLOAT')
     return path,words,beats,mode,SCRIPT,frames
