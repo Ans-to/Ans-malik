@@ -1,131 +1,461 @@
 {
   "topic": "Why Your AI Gives You Wrong Answers",
-  "duration": 15,
-  "fps": 60,
-  "frames": 900,
-  "resolution": "1920x1080",
-  "narration": "AI can be wrong. It predicts words. Answers follow patterns. Confidence is not evidence. Check the source.",
-  "voice_mode": "edge-tts+faster-whisper",
-  "word_timestamps": [
+  "words": [
     {
       "word": "AI",
       "start_ms": 0,
-      "end_ms": 700,
+      "end_ms": 100,
       "word_id": 0,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word": "can",
-      "start_ms": 700,
-      "end_ms": 1120,
+      "start_ms": 100,
+      "end_ms": 300,
       "word_id": 1,
       "source": "edge-tts+faster-whisper"
     },
     {
-      "word": "be",
-      "start_ms": 1120,
-      "end_ms": 1240,
+      "word": "sound",
+      "start_ms": 300,
+      "end_ms": 500,
       "word_id": 2,
       "source": "edge-tts+faster-whisper"
     },
     {
-      "word": "wrong",
-      "start_ms": 1240,
-      "end_ms": 1560,
+      "word": "right,",
+      "start_ms": 500,
+      "end_ms": 660,
       "word_id": 3,
       "source": "edge-tts+faster-whisper"
     },
     {
-      "word": "It",
-      "start_ms": 2940,
-      "end_ms": 3660,
+      "word": "it",
+      "start_ms": 760,
+      "end_ms": 820,
       "word_id": 4,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word": "predicts",
-      "start_ms": 3660,
-      "end_ms": 3840,
+      "start_ms": 820,
+      "end_ms": 1020,
       "word_id": 5,
       "source": "edge-tts+faster-whisper"
     },
     {
-      "word": "words",
-      "start_ms": 3840,
-      "end_ms": 4880,
+      "word": "likely",
+      "start_ms": 1020,
+      "end_ms": 1380,
       "word_id": 6,
       "source": "edge-tts+faster-whisper"
     },
     {
-      "word": "Answers",
-      "start_ms": 5940,
-      "end_ms": 6660,
+      "word": "words,",
+      "start_ms": 1380,
+      "end_ms": 1800,
       "word_id": 7,
       "source": "edge-tts+faster-whisper"
     },
     {
-      "word": "follow",
-      "start_ms": 6660,
-      "end_ms": 7020,
+      "word": "not",
+      "start_ms": 2080,
+      "end_ms": 2180,
       "word_id": 8,
       "source": "edge-tts+faster-whisper"
     },
     {
-      "word": "patterns",
-      "start_ms": 7020,
-      "end_ms": 7540,
+      "word": "verified",
+      "start_ms": 2180,
+      "end_ms": 2380,
       "word_id": 9,
       "source": "edge-tts+faster-whisper"
     },
     {
-      "word": "Confidence",
-      "start_ms": 9080,
-      "end_ms": 9800,
+      "word": "facts,",
+      "start_ms": 2380,
+      "end_ms": 2880,
       "word_id": 10,
       "source": "edge-tts+faster-whisper"
     },
     {
-      "word": "is",
-      "start_ms": 9800,
-      "end_ms": 10000,
+      "word": "follow",
+      "start_ms": 3200,
+      "end_ms": 3380,
       "word_id": 11,
       "source": "edge-tts+faster-whisper"
     },
     {
-      "word": "not",
-      "start_ms": 10000,
-      "end_ms": 10220,
+      "word": "the",
+      "start_ms": 3380,
+      "end_ms": 3520,
       "word_id": 12,
       "source": "edge-tts+faster-whisper"
     },
     {
-      "word": "evidence",
-      "start_ms": 10220,
-      "end_ms": 10540,
+      "word": "evidence,",
+      "start_ms": 3520,
+      "end_ms": 3760,
       "word_id": 13,
       "source": "edge-tts+faster-whisper"
     },
     {
-      "word": "Check",
-      "start_ms": 12080,
-      "end_ms": 12800,
+      "word": "check",
+      "start_ms": 4040,
+      "end_ms": 4160,
       "word_id": 14,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word": "the",
-      "start_ms": 12800,
-      "end_ms": 13020,
+      "start_ms": 4160,
+      "end_ms": 4260,
       "word_id": 15,
       "source": "edge-tts+faster-whisper"
     },
     {
-      "word": "source",
-      "start_ms": 13020,
-      "end_ms": 13320,
+      "word": "source,",
+      "start_ms": 4260,
+      "end_ms": 4520,
       "word_id": 16,
+      "source": "edge-tts+faster-whisper"
+    },
+    {
+      "word": "and",
+      "start_ms": 4780,
+      "end_ms": 4800,
+      "word_id": 17,
+      "source": "edge-tts+faster-whisper"
+    },
+    {
+      "word": "compare",
+      "start_ms": 4800,
+      "end_ms": 5060,
+      "word_id": 18,
+      "source": "edge-tts+faster-whisper"
+    },
+    {
+      "word": "claims",
+      "start_ms": 5060,
+      "end_ms": 5360,
+      "word_id": 19,
+      "source": "edge-tts+faster-whisper"
+    },
+    {
+      "word": "before",
+      "start_ms": 5360,
+      "end_ms": 5760,
+      "word_id": 20,
+      "source": "edge-tts+faster-whisper"
+    },
+    {
+      "word": "you",
+      "start_ms": 5760,
+      "end_ms": 5920,
+      "word_id": 21,
+      "source": "edge-tts+faster-whisper"
+    },
+    {
+      "word": "trust",
+      "start_ms": 5920,
+      "end_ms": 6120,
+      "word_id": 22,
+      "source": "edge-tts+faster-whisper"
+    },
+    {
+      "word": "an",
+      "start_ms": 6120,
+      "end_ms": 6280,
+      "word_id": 23,
+      "source": "edge-tts+faster-whisper"
+    },
+    {
+      "word": "answer.",
+      "start_ms": 6280,
+      "end_ms": 6560,
+      "word_id": 24,
+      "source": "edge-tts+faster-whisper"
+    },
+    {
+      "word": "Curiosity",
+      "start_ms": 6700,
+      "end_ms": 6880,
+      "word_id": 25,
+      "source": "edge-tts+faster-whisper"
+    },
+    {
+      "word": "is",
+      "start_ms": 6880,
+      "end_ms": 7480,
+      "word_id": 26,
+      "source": "edge-tts+faster-whisper"
+    },
+    {
+      "word": "your",
+      "start_ms": 7480,
+      "end_ms": 7580,
+      "word_id": 27,
+      "source": "edge-tts+faster-whisper"
+    },
+    {
+      "word": "best",
+      "start_ms": 7580,
+      "end_ms": 7780,
+      "word_id": 28,
+      "source": "edge-tts+faster-whisper"
+    },
+    {
+      "word": "filter.",
+      "start_ms": 7780,
+      "end_ms": 8160,
+      "word_id": 29,
+      "source": "edge-tts+faster-whisper"
+    },
+    {
+      "word": "Even",
+      "start_ms": 8340,
+      "end_ms": 8480,
+      "word_id": 30,
+      "source": "edge-tts+faster-whisper"
+    },
+    {
+      "word": "fluent",
+      "start_ms": 8480,
+      "end_ms": 8740,
+      "word_id": 31,
+      "source": "edge-tts+faster-whisper"
+    },
+    {
+      "word": "answers",
+      "start_ms": 8740,
+      "end_ms": 9120,
+      "word_id": 32,
+      "source": "edge-tts+faster-whisper"
+    },
+    {
+      "word": "need",
+      "start_ms": 9120,
+      "end_ms": 9420,
+      "word_id": 33,
+      "source": "edge-tts+faster-whisper"
+    },
+    {
+      "word": "careful",
+      "start_ms": 9420,
+      "end_ms": 9740,
+      "word_id": 34,
+      "source": "edge-tts+faster-whisper"
+    },
+    {
+      "word": "checking",
+      "start_ms": 9740,
+      "end_ms": 10100,
+      "word_id": 35,
+      "source": "edge-tts+faster-whisper"
+    },
+    {
+      "word": "every",
+      "start_ms": 10100,
+      "end_ms": 10500,
+      "word_id": 36,
+      "source": "edge-tts+faster-whisper"
+    },
+    {
+      "word": "single",
+      "start_ms": 10500,
+      "end_ms": 10760,
+      "word_id": 37,
+      "source": "edge-tts+faster-whisper"
+    },
+    {
+      "word": "time.",
+      "start_ms": 10760,
+      "end_ms": 11040,
+      "word_id": 38,
       "source": "edge-tts+faster-whisper"
     }
   ],
+  "beats": [
+    {
+      "index": 0,
+      "start": 0,
+      "words": [
+        "AI",
+        "can",
+        "sound",
+        "right,"
+      ],
+      "word_ids": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "end": 0.76
+    },
+    {
+      "index": 1,
+      "start": 0.76,
+      "words": [
+        "it",
+        "predicts",
+        "likely",
+        "words,"
+      ],
+      "word_ids": [
+        4,
+        5,
+        6,
+        7
+      ],
+      "end": 2.08
+    },
+    {
+      "index": 2,
+      "start": 2.08,
+      "words": [
+        "not",
+        "verified",
+        "facts,",
+        "follow"
+      ],
+      "word_ids": [
+        8,
+        9,
+        10,
+        11
+      ],
+      "end": 3.38
+    },
+    {
+      "index": 3,
+      "start": 3.38,
+      "words": [
+        "the",
+        "evidence,",
+        "check",
+        "the"
+      ],
+      "word_ids": [
+        12,
+        13,
+        14,
+        15
+      ],
+      "end": 4.26
+    },
+    {
+      "index": 4,
+      "start": 4.26,
+      "words": [
+        "source,",
+        "and",
+        "compare",
+        "claims"
+      ],
+      "word_ids": [
+        16,
+        17,
+        18,
+        19
+      ],
+      "end": 5.36
+    },
+    {
+      "index": 5,
+      "start": 5.36,
+      "words": [
+        "before",
+        "you",
+        "trust",
+        "an"
+      ],
+      "word_ids": [
+        20,
+        21,
+        22,
+        23
+      ],
+      "end": 6.28
+    },
+    {
+      "index": 6,
+      "start": 6.28,
+      "words": [
+        "answer.",
+        "Curiosity",
+        "is",
+        "your"
+      ],
+      "word_ids": [
+        24,
+        25,
+        26,
+        27
+      ],
+      "end": 7.58
+    },
+    {
+      "index": 7,
+      "start": 7.58,
+      "words": [
+        "best",
+        "filter.",
+        "Even",
+        "fluent"
+      ],
+      "word_ids": [
+        28,
+        29,
+        30,
+        31
+      ],
+      "end": 8.74
+    },
+    {
+      "index": 8,
+      "start": 8.74,
+      "words": [
+        "answers",
+        "need",
+        "careful",
+        "checking"
+      ],
+      "word_ids": [
+        32,
+        33,
+        34,
+        35
+      ],
+      "end": 10.1
+    },
+    {
+      "index": 9,
+      "start": 10.1,
+      "words": [
+        "every",
+        "single",
+        "time."
+      ],
+      "word_ids": [
+        36,
+        37,
+        38
+      ],
+      "end": 11.383333333333333
+    }
+  ],
+  "document": "ReportLab PDF texture",
+  "highlight": {
+    "x1": 78,
+    "x2": 560,
+    "y": 402
+  },
+  "frames": 683,
+  "duration": 11.383333333333333,
+  "fps": 60,
+  "resolution": "1920x1080",
+  "narration": "AI can sound right. It predicts likely words, not verified facts. Follow the evidence, check the source, and compare claims before you trust an answer. Curiosity is your best filter. Even fluent answers need careful checking, every single time.",
+  "voice_mode": "edge-tts+faster-whisper",
   "visual_renderer": "Chromium React Remotion GSAP Three.js"
 }
