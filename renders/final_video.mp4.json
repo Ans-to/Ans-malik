@@ -55,5 +55,7 @@
   ],
   "fps": 60,
   "frames": 1146,
-  "renderer": "Chromium GSAP / per-clause PCM"
+  "renderer": "Chromium GSAP / per-clause PCM",
+  "width": 1920,
+  "height": 1080
 }

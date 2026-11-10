@@ -1,1 +1,12 @@
-{"audited_frames":1146,"method":"per-frame Chromium scene visibility","early_visibility_errors":0}
+{
+  "audited_frames": 1146,
+  "method": "per-frame Chromium scene visibility",
+  "early_visibility_errors": 0,
+  "encoded_motion": {
+    "pairs": 1145,
+    "fraction_above_065": 1.0,
+    "static_three_frame_windows": 0,
+    "duplicate_pairs": 0,
+    "minimum_delta": 2.3504793643951416
+  }
+}
