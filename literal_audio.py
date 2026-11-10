@@ -4,6 +4,7 @@ from pathlib import Path
 import numpy as np
 import soundfile as sf
 from storyboard_compiler import canonical
+from acoustic_onset import estimate_onset
 from forge_python.ffmpeg import get_ffmpeg_exe
 from forge_python.audio_mastering.pedalboard_master import master,warm_vocal,limit_foley
 SR=48000
@@ -48,11 +49,11 @@ def compile_timeline(plan,paths,events,sample_rate=SR,gap=None):
         if len(matches)!=1:raise ValueError(f'Beat {i}: expected exactly one WordBoundary for {b["trigger_word"]!r}, got {len(matches)}')
         e=matches[0];offset=int(e['offset']);offset_sample=round(offset*sample_rate/10_000_000)
         if not 0<=offset_sample<len(audio):raise ValueError(f'Beat {i}: word boundary outside decoded PCM')
-        start=cursor;end=start+len(audio);trigger=start+offset_sample
-        beats.append({**b,'index':i,'start_sample':start,'end_sample':end,'trigger_sample':trigger,'beat_start_ms':start*1000/sample_rate,'beat_end_ms':end*1000/sample_rate,'trigger_word_ms':trigger*1000/sample_rate,'trigger_frame':math.ceil(trigger*60/sample_rate),'word_event_offset_100ns':offset})
+        start=cursor;end=start+len(audio);acoustic=estimate_onset(audio,sample_rate,offset_sample);trigger=start+acoustic['sample']
+        beats.append({**b,'index':i,'start_sample':start,'end_sample':end,'trigger_sample':trigger,'beat_start_ms':start*1000/sample_rate,'beat_end_ms':end*1000/sample_rate,'trigger_word_ms':trigger*1000/sample_rate,'trigger_frame':math.ceil(trigger*60/sample_rate),'word_event_offset_100ns':offset,'edge_offset_sample':offset_sample,'acoustic_onset':acoustic})
         parts.append(audio);parts.append(np.zeros(pauses[i],dtype=np.float32));cursor=end+pauses[i]
     speech=np.concatenate(parts);frames=math.ceil(len(speech)*60/sample_rate)
-    return speech,{'topic':plan['topic'],'requested_duration':plan['requested_duration'],'sample_rate':sample_rate,'total_samples':len(speech),'minimum_gap_samples':gap,'post_beat_silence_samples':pauses,'fps':60,'frames':frames,'beats':beats,'timing_source':'Edge WordBoundary offsets quantized to PCM sample; not independently measured phoneme onsets','duration_policy':'Silence fills requested duration; longer speech extends output without speeding or truncation.'}
+    return speech,{'topic':plan['topic'],'requested_duration':plan['requested_duration'],'sample_rate':sample_rate,'total_samples':len(speech),'minimum_gap_samples':gap,'post_beat_silence_samples':pauses,'fps':60,'frames':frames,'beats':beats,'timing_source':'Edge event with local spectral-flux and RMS peak refinement; not verified phoneme onset','duration_policy':'Silence fills requested duration; longer speech extends output without speeding or truncation.'}
 
 
 def write_master(speech,timeline,path):
@@ -68,5 +69,5 @@ def write_master(speech,timeline,path):
     sf.write(path,mix,sr,subtype='PCM_16')
     import pyloudnorm as pyln
     timeline['measured_lufs']=float(pyln.Meter(sr).integrated_loudness(mix))
-    timeline['foley_policy']='At each Edge word event; whole-program RMS at least 18 dB below voice before mastering.'
+    timeline['foley_policy']='At each acoustic candidate; whole-program RMS at least 18 dB below voice before mastering.'
     timeline['encoded_audio_note']='AAC encoding is lossy and may introduce priming; event timestamps do not certify acoustic onsets.'

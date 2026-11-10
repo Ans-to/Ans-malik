@@ -12,7 +12,7 @@ def test_topic_examples_grow_with_duration(topic):
     assert len(load_plan(topic,60)['beats'])==20
 
 def test_unknown_topic_is_not_silently_misrepresented(tmp_path):
-    with pytest.raises(ValueError,match='--storyboard'):load_plan('Coral reefs',15)
+    auto=load_plan('Coral reefs',15);assert len(auto['beats'])==5 and auto['semantic_review_required']
     p=tmp_path/'custom.json';p.write_text(json.dumps({'beats':[{'spoken_text':'A document links a dollar.','trigger_word':'links','visual_actors':['document','dollar'],'action':'connect','mood':'archival'}]}))
     assert load_plan('Coral reefs',50,p)['topic']=='Coral reefs'
 

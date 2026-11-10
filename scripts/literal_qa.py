@@ -5,13 +5,19 @@ import numpy as np
 from PIL import Image,ImageDraw,ImageFont
 from scripts.motion_qa import video_frames,evaluate_deltas
 from storyboard_compiler import validate_plan
+from acoustic_onset import estimate_onset
+import soundfile as sf
 
 def qa(video,timeline_path,sheet):
     video=Path(video);meta=json.loads(Path(timeline_path).read_text());beats=meta['beats'];validate_plan(meta);assert meta['fps']==60
     audit=json.loads(Path(str(video)+'.audit.json').read_text());assert audit['frames_checked']==meta['frames'] and audit['trigger_mismatches']==0
-    selected=[]
+    raw,sr=sf.read(video.parent/meta['speech_source'],dtype='float32');assert sr==meta['sample_rate'] and len(raw)==meta['total_samples']
+    selected=[];fallbacks=[]
     for b in beats:
         assert b['start_sample']<=b['trigger_sample']<b['end_sample']
+        measured=estimate_onset(raw[b['start_sample']:b['end_sample']],sr,b['edge_offset_sample']);assert measured['sample']+b['start_sample']==b['trigger_sample']
+        if measured['status']=='snapped':assert measured['rms_rise']>0 and measured['flux']>0
+        else:fallbacks.append(b['index'])
         assert b['trigger_frame']==math.ceil(b['trigger_sample']*60/meta['sample_rate'])
         assert b['trigger_frame']/60>=b['trigger_sample']/meta['sample_rate']
         selected.append(min(meta['frames']-1,b['trigger_frame']+round(.4*60)))
@@ -24,7 +30,7 @@ def qa(video,timeline_path,sheet):
         prev=x
     assert count==meta['frames'] and len(images)==len(wanted)
     stats=evaluate_deltas(deltas)
-    audit['encoded_motion']=stats;Path(str(video)+'.audit.json').write_text(json.dumps(audit,indent=2)+'\n')
+    audit['encoded_motion']=stats;audit['acoustic_fallback_beats']=fallbacks;Path(str(video)+'.audit.json').write_text(json.dumps(audit,indent=2)+'\n')
     w,h=480,270;cols=3;rows=math.ceil(len(beats)/cols);canvas=Image.new('RGB',(w*cols,(h+85)*rows),'#111820');draw=ImageDraw.Draw(canvas);font=ImageFont.truetype('shared_workspace/fonts/Inter-ExtraBold.ttf',16);small=ImageFont.truetype('shared_workspace/fonts/JetBrainsMono-Medium.ttf',13)
     for i,(b,n) in enumerate(zip(beats,selected)):
         x=i%cols*w;y=i//cols*(h+85);canvas.paste(Image.fromarray(images[n]).resize((w,h),Image.Resampling.LANCZOS),(x,y))

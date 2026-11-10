@@ -47,6 +47,7 @@ jobs:
             renders/final_video.mp4.audit.json
             renders/timeline.json
             renders/qa_contact_sheet.png
+            renders/final_video.speech.flac
       - name: Render AI topic at 1080p60
         run: |
           set -o pipefail
@@ -58,6 +59,10 @@ jobs:
         run: |
           python -m scripts.fit_github_video renders/ai_video.mp4
           python qa_inspector.py --literal renders/ai_video.mp4 renders/ai_timeline.json renders/ai_qa_contact_sheet.png
+      - name: Test automatic third-topic compilation and render
+        run: |
+          python ceo_render_app.py --topic 'How Microchips Are Built From Sand' --duration 15 --resolution 640x360 --output renders/microchip_video.mp4 --timeline renders/microchip_timeline.json
+          python qa_inspector.py --literal renders/microchip_video.mp4 renders/microchip_timeline.json renders/microchip_qa_contact_sheet.png
       - uses: actions/upload-artifact@v4
         with:
           name: literal-storyboard-examples
@@ -73,11 +78,19 @@ jobs:
             renders/ai_video.mp4.audit.json
             renders/ai_timeline.json
             renders/ai_qa_contact_sheet.png
+            renders/final_video.speech.flac
+            renders/ai_video.speech.flac
+            renders/microchip_video.mp4
+            renders/microchip_video.mp4.json
+            renders/microchip_video.mp4.audit.json
+            renders/microchip_video.speech.flac
+            renders/microchip_timeline.json
+            renders/microchip_qa_contact_sheet.png
       - name: Commit outputs to the session branch
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -f renders/final_video.mp4 renders/final_video.mp4.json renders/final_video.mp4.audit.json renders/timeline.json renders/qa_contact_sheet.png renders/ai_video.mp4 renders/ai_video.mp4.json renders/ai_video.mp4.audit.json renders/ai_timeline.json renders/ai_qa_contact_sheet.png
+          git add -f renders/final_video.mp4 renders/final_video.mp4.json renders/final_video.mp4.audit.json renders/timeline.json renders/qa_contact_sheet.png renders/ai_video.mp4 renders/ai_video.mp4.json renders/ai_video.mp4.audit.json renders/ai_timeline.json renders/ai_qa_contact_sheet.png renders/final_video.speech.flac renders/ai_video.speech.flac renders/microchip_video.mp4 renders/microchip_video.mp4.json renders/microchip_video.mp4.audit.json renders/microchip_video.speech.flac renders/microchip_timeline.json renders/microchip_qa_contact_sheet.png
           if git diff --cached --quiet; then exit 0; fi
           git commit -m 'Add literal storyboard examples [skip ci]'
           git pull --rebase origin arena/fa1317bb-ans-malik
