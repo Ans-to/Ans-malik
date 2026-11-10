@@ -13,7 +13,7 @@ def main():
     meta=concatenate([src/f'clause_{i}.wav' for i in range(6)],wav,sample_rate=sr)
     meta.update(fps=60,frames=math.ceil(meta['total_samples']*60/sr),renderer='Chromium GSAP / per-clause PCM')
     data=out.parent/'clause-render-data.json';data.write_text(json.dumps(meta,indent=2))
-    w,h=map(int,a.resolution.split('x'))
+    w,h=map(int,a.resolution.split('x'));meta.update(width=w,height=h);data.write_text(json.dumps(meta,indent=2))
     cmd=['node','web/morph/render.mjs',f'data={data}',f'audio={wav}',f'ffmpeg={get_ffmpeg_exe()}',f'output={out}',f'width={w}',f'height={h}',f'frames={meta["frames"]}','clauses=1']
     if a.samples:cmd.append(f'samples={a.samples}')
     subprocess.run(cmd,check=True)
