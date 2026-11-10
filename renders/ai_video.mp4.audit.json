@@ -1,0 +1,12 @@
+{
+  "frames_checked": 900,
+  "trigger_mismatches": 0,
+  "method": "Chromium per-frame trigger state",
+  "encoded_motion": {
+    "pairs": 899,
+    "fraction_above_065": 1.0,
+    "static_three_frame_windows": 0,
+    "duplicate_pairs": 0,
+    "minimum_delta": 0.8741165399551392
+  }
+}

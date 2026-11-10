@@ -1,0 +1,121 @@
+{
+  "topic": "Why the US Dollar is the King of Global Finance",
+  "requested_duration": 15.0,
+  "sample_rate": 48000,
+  "total_samples": 720000,
+  "minimum_gap_samples": 8640,
+  "post_beat_silence_samples": [
+    20045,
+    20045,
+    20045,
+    20045,
+    11404
+  ],
+  "fps": 60,
+  "frames": 900,
+  "beats": [
+    {
+      "spoken_text": "The dollar once linked to gold.",
+      "trigger_word": "linked",
+      "visual_actors": [
+        "dollar",
+        "gold"
+      ],
+      "action": "connect",
+      "mood": "archival",
+      "index": 0,
+      "start_sample": 8640,
+      "end_sample": 105408,
+      "trigger_sample": 48240,
+      "beat_start_ms": 180.0,
+      "beat_end_ms": 2196.0,
+      "trigger_word_ms": 1005.0,
+      "trigger_frame": 61,
+      "word_event_offset_100ns": 8250000
+    },
+    {
+      "spoken_text": "In 1971, policy severed that link.",
+      "trigger_word": "severed",
+      "visual_actors": [
+        "dollar",
+        "gold"
+      ],
+      "action": "sever",
+      "mood": "archival",
+      "index": 1,
+      "start_sample": 125453,
+      "end_sample": 291341,
+      "trigger_sample": 225653,
+      "beat_start_ms": 2613.6041666666665,
+      "beat_end_ms": 6069.604166666667,
+      "trigger_word_ms": 4701.104166666667,
+      "trigger_frame": 283,
+      "word_event_offset_100ns": 20875000
+    },
+    {
+      "spoken_text": "Gold remained inside bank vaults.",
+      "trigger_word": "remained",
+      "visual_actors": [
+        "vault",
+        "gold"
+      ],
+      "action": "hold",
+      "mood": "archival",
+      "index": 2,
+      "start_sample": 311386,
+      "end_sample": 430042,
+      "trigger_sample": 325786,
+      "beat_start_ms": 6487.208333333333,
+      "beat_end_ms": 8959.208333333334,
+      "trigger_word_ms": 6787.208333333333,
+      "trigger_frame": 408,
+      "word_event_offset_100ns": 3000000
+    },
+    {
+      "spoken_text": "Banks route dollars between countries.",
+      "trigger_word": "route",
+      "visual_actors": [
+        "dollar",
+        "globe"
+      ],
+      "action": "flow",
+      "mood": "digital",
+      "index": 3,
+      "start_sample": 450087,
+      "end_sample": 559527,
+      "trigger_sample": 467487,
+      "beat_start_ms": 9376.8125,
+      "beat_end_ms": 11656.8125,
+      "trigger_word_ms": 9739.3125,
+      "trigger_frame": 585,
+      "word_event_offset_100ns": 3625000
+    },
+    {
+      "spoken_text": "Traders exchange currencies across borders.",
+      "trigger_word": "exchange",
+      "visual_actors": [
+        "dollar",
+        "globe"
+      ],
+      "action": "exchange",
+      "mood": "digital",
+      "index": 4,
+      "start_sample": 579572,
+      "end_sample": 708596,
+      "trigger_sample": 601772,
+      "beat_start_ms": 12074.416666666666,
+      "beat_end_ms": 14762.416666666666,
+      "trigger_word_ms": 12536.916666666666,
+      "trigger_frame": 753,
+      "word_event_offset_100ns": 4625000
+    }
+  ],
+  "timing_source": "Edge WordBoundary offsets quantized to PCM sample; not independently measured phoneme onsets",
+  "duration_policy": "Silence fills requested duration; longer speech extends output without speeding or truncation.",
+  "width": 1920,
+  "height": 1080,
+  "plan_source": "built-in example: dollar",
+  "measured_lufs": -13.999999955249663,
+  "foley_policy": "At each Edge word event; whole-program RMS at least 18 dB below voice before mastering.",
+  "encoded_audio_note": "AAC encoding is lossy and may introduce priming; event timestamps do not certify acoustic onsets."
+}

@@ -1,10 +1,12 @@
 {
-  "decoded_frames": 1146,
-  "motion_diagnostic": {
-    "pairs": 1145,
-    "fraction_above_065": 0.337117903930131,
-    "static_three_frame_windows": 172,
-    "duplicate_pairs": 0
-  },
-  "audio_hash": "SHA256=aa7e209563dc870fd78822a2b68e6dd0ab2320bd0b5ded550446f96b562b1062"
+  "frames_checked": 900,
+  "trigger_mismatches": 0,
+  "method": "Chromium per-frame trigger state",
+  "encoded_motion": {
+    "pairs": 899,
+    "fraction_above_065": 1.0,
+    "static_three_frame_windows": 0,
+    "duplicate_pairs": 0,
+    "minimum_delta": 0.9546309113502502
+  }
 }

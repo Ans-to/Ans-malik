@@ -1,0 +1,121 @@
+{
+  "topic": "Why Your AI Gives You Wrong Answers",
+  "requested_duration": 15.0,
+  "sample_rate": 48000,
+  "total_samples": 720000,
+  "minimum_gap_samples": 8640,
+  "post_beat_silence_samples": [
+    32948,
+    32947,
+    32947,
+    32947,
+    24307
+  ],
+  "fps": 60,
+  "frames": 900,
+  "beats": [
+    {
+      "spoken_text": "A person asks an AI a question.",
+      "trigger_word": "asks",
+      "visual_actors": [
+        "person",
+        "prompt"
+      ],
+      "action": "connect",
+      "mood": "digital",
+      "index": 0,
+      "start_sample": 8640,
+      "end_sample": 115776,
+      "trigger_sample": 35640,
+      "beat_start_ms": 180.0,
+      "beat_end_ms": 2412.0,
+      "trigger_word_ms": 742.5,
+      "trigger_frame": 45,
+      "word_event_offset_100ns": 5625000
+    },
+    {
+      "spoken_text": "The model predicts the next token.",
+      "trigger_word": "predicts",
+      "visual_actors": [
+        "network",
+        "token"
+      ],
+      "action": "spin",
+      "mood": "digital",
+      "index": 1,
+      "start_sample": 148724,
+      "end_sample": 253556,
+      "trigger_sample": 172724,
+      "beat_start_ms": 3098.4166666666665,
+      "beat_end_ms": 5282.416666666667,
+      "trigger_word_ms": 3598.4166666666665,
+      "trigger_frame": 216,
+      "word_event_offset_100ns": 5000000
+    },
+    {
+      "spoken_text": "Those predictions form a written answer.",
+      "trigger_word": "form",
+      "visual_actors": [
+        "token",
+        "document"
+      ],
+      "action": "flow",
+      "mood": "digital",
+      "index": 2,
+      "start_sample": 286503,
+      "end_sample": 393639,
+      "trigger_sample": 327303,
+      "beat_start_ms": 5968.8125,
+      "beat_end_ms": 8200.8125,
+      "trigger_word_ms": 6818.8125,
+      "trigger_frame": 410,
+      "word_event_offset_100ns": 8500000
+    },
+    {
+      "spoken_text": "A fluent sentence can contain errors.",
+      "trigger_word": "contain",
+      "visual_actors": [
+        "document",
+        "error"
+      ],
+      "action": "reveal",
+      "mood": "digital",
+      "index": 3,
+      "start_sample": 426586,
+      "end_sample": 541786,
+      "trigger_sample": 478186,
+      "beat_start_ms": 8887.208333333334,
+      "beat_end_ms": 11287.208333333334,
+      "trigger_word_ms": 9962.208333333334,
+      "trigger_frame": 598,
+      "word_event_offset_100ns": 10750000
+    },
+    {
+      "spoken_text": "The model guesses when evidence is missing.",
+      "trigger_word": "guesses",
+      "visual_actors": [
+        "network",
+        "error"
+      ],
+      "action": "spin",
+      "mood": "digital",
+      "index": 4,
+      "start_sample": 574733,
+      "end_sample": 695693,
+      "trigger_sample": 597533,
+      "beat_start_ms": 11973.604166666666,
+      "beat_end_ms": 14493.604166666666,
+      "trigger_word_ms": 12448.604166666666,
+      "trigger_frame": 747,
+      "word_event_offset_100ns": 4750000
+    }
+  ],
+  "timing_source": "Edge WordBoundary offsets quantized to PCM sample; not independently measured phoneme onsets",
+  "duration_policy": "Silence fills requested duration; longer speech extends output without speeding or truncation.",
+  "width": 1920,
+  "height": 1080,
+  "plan_source": "built-in example: ai",
+  "measured_lufs": -14.000000015633775,
+  "foley_policy": "At each Edge word event; whole-program RMS at least 18 dB below voice before mastering.",
+  "encoded_audio_note": "AAC encoding is lossy and may introduce priming; event timestamps do not certify acoustic onsets."
+}

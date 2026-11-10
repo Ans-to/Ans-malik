@@ -1,509 +1,121 @@
 {
-  "sample_rate": 44100,
-  "gap_samples": 7938,
-  "lead_samples": 7938,
-  "total_samples": 842252,
-  "clauses": [
-    {
-      "clause_id": 0,
-      "start_sample": 7938,
-      "end_sample": 83202,
-      "start_sec": 0.18,
-      "end_sec": 1.8866666666666667,
-      "spoken_text": "In nineteen seventy-one,"
-    },
-    {
-      "clause_id": 1,
-      "start_sample": 91140,
-      "end_sample": 241668,
-      "start_sec": 2.066666666666667,
-      "end_sec": 5.48,
-      "spoken_text": "the United States quietly rewrote the rules of money."
-    },
-    {
-      "clause_id": 2,
-      "start_sample": 249606,
-      "end_sample": 373510,
-      "start_sec": 5.66,
-      "end_sec": 8.469614512471656,
-      "spoken_text": "Physical gold walked right out of the vault,"
-    },
-    {
-      "clause_id": 3,
-      "start_sample": 381448,
-      "end_sample": 525832,
-      "start_sec": 8.649614512471656,
-      "end_sec": 11.923628117913832,
-      "spoken_text": "and high-speed digital ledgers took its place."
-    },
-    {
-      "clause_id": 4,
-      "start_sample": 533770,
-      "end_sample": 682250,
-      "start_sec": 12.103628117913832,
-      "end_sec": 15.470521541950113,
-      "spoken_text": "Today, one currency still dominates the planet,"
-    },
-    {
-      "clause_id": 5,
-      "start_sample": 690188,
-      "end_sample": 842252,
-      "start_sec": 15.650521541950113,
-      "end_sec": 19.098684807256237,
-      "spoken_text": "powering eighty-eight percent of all global trade."
-    }
+  "topic": "Why the US Dollar is the King of Global Finance",
+  "requested_duration": 15.0,
+  "sample_rate": 48000,
+  "total_samples": 720000,
+  "minimum_gap_samples": 8640,
+  "post_beat_silence_samples": [
+    20045,
+    20045,
+    20045,
+    20045,
+    11404
   ],
   "fps": 60,
-  "frames": 1146,
-  "renderer": "Chromium GSAP / per-clause PCM",
-  "width": 1920,
-  "height": 1080,
-  "words": [
-    {
-      "word": "In",
-      "start_ms": 180,
-      "end_ms": 440,
-      "word_id": 0,
-      "clause_id": 0
-    },
-    {
-      "word": "1971,",
-      "start_ms": 440,
-      "end_ms": 1160,
-      "word_id": 1,
-      "clause_id": 0
-    },
-    {
-      "word": "The",
-      "start_ms": 2067,
-      "end_ms": 2287,
-      "word_id": 2,
-      "clause_id": 1
-    },
-    {
-      "word": "United",
-      "start_ms": 2287,
-      "end_ms": 2567,
-      "word_id": 3,
-      "clause_id": 1
-    },
-    {
-      "word": "States",
-      "start_ms": 2567,
-      "end_ms": 3027,
-      "word_id": 4,
-      "clause_id": 1
-    },
-    {
-      "word": "quietly",
-      "start_ms": 3027,
-      "end_ms": 3467,
-      "word_id": 5,
-      "clause_id": 1
-    },
-    {
-      "word": "rewrote",
-      "start_ms": 3467,
-      "end_ms": 4227,
-      "word_id": 6,
-      "clause_id": 1
-    },
-    {
-      "word": "the",
-      "start_ms": 4227,
-      "end_ms": 4407,
-      "word_id": 7,
-      "clause_id": 1
-    },
-    {
-      "word": "rules",
-      "start_ms": 4407,
-      "end_ms": 4627,
-      "word_id": 8,
-      "clause_id": 1
-    },
-    {
-      "word": "of",
-      "start_ms": 4627,
-      "end_ms": 4887,
-      "word_id": 9,
-      "clause_id": 1
-    },
-    {
-      "word": "money.",
-      "start_ms": 4887,
-      "end_ms": 5107,
-      "word_id": 10,
-      "clause_id": 1
-    },
-    {
-      "word": "Physical",
-      "start_ms": 5660,
-      "end_ms": 6020,
-      "word_id": 11,
-      "clause_id": 2
-    },
-    {
-      "word": "gold",
-      "start_ms": 6020,
-      "end_ms": 6360,
-      "word_id": 12,
-      "clause_id": 2
-    },
-    {
-      "word": "walked",
-      "start_ms": 6360,
-      "end_ms": 6820,
-      "word_id": 13,
-      "clause_id": 2
-    },
-    {
-      "word": "right",
-      "start_ms": 6820,
-      "end_ms": 7240,
-      "word_id": 14,
-      "clause_id": 2
-    },
-    {
-      "word": "out",
-      "start_ms": 7240,
-      "end_ms": 7560,
-      "word_id": 15,
-      "clause_id": 2
-    },
-    {
-      "word": "of",
-      "start_ms": 7560,
-      "end_ms": 7700,
-      "word_id": 16,
-      "clause_id": 2
-    },
-    {
-      "word": "the",
-      "start_ms": 7700,
-      "end_ms": 7800,
-      "word_id": 17,
-      "clause_id": 2
-    },
-    {
-      "word": "vault.",
-      "start_ms": 7800,
-      "end_ms": 8040,
-      "word_id": 18,
-      "clause_id": 2
-    },
-    {
-      "word": "and",
-      "start_ms": 8650,
-      "end_ms": 8870,
-      "word_id": 19,
-      "clause_id": 3
-    },
-    {
-      "word": "high",
-      "start_ms": 8870,
-      "end_ms": 9130,
-      "word_id": 20,
-      "clause_id": 3
-    },
-    {
-      "word": "-speed",
-      "start_ms": 9130,
-      "end_ms": 9450,
-      "word_id": 21,
-      "clause_id": 3
-    },
-    {
-      "word": "digital",
-      "start_ms": 9450,
-      "end_ms": 9910,
-      "word_id": 22,
-      "clause_id": 3
-    },
-    {
-      "word": "ledgers",
-      "start_ms": 9910,
-      "end_ms": 10530,
-      "word_id": 23,
-      "clause_id": 3
-    },
-    {
-      "word": "took",
-      "start_ms": 10530,
-      "end_ms": 10970,
-      "word_id": 24,
-      "clause_id": 3
-    },
-    {
-      "word": "its",
-      "start_ms": 10970,
-      "end_ms": 11150,
-      "word_id": 25,
-      "clause_id": 3
-    },
-    {
-      "word": "place.",
-      "start_ms": 11150,
-      "end_ms": 11450,
-      "word_id": 26,
-      "clause_id": 3
-    },
-    {
-      "word": "Today,",
-      "start_ms": 12104,
-      "end_ms": 12484,
-      "word_id": 27,
-      "clause_id": 4
-    },
-    {
-      "word": "one",
-      "start_ms": 12824,
-      "end_ms": 13164,
-      "word_id": 28,
-      "clause_id": 4
-    },
-    {
-      "word": "currency",
-      "start_ms": 13164,
-      "end_ms": 13424,
-      "word_id": 29,
-      "clause_id": 4
-    },
-    {
-      "word": "still",
-      "start_ms": 13424,
-      "end_ms": 14084,
-      "word_id": 30,
-      "clause_id": 4
-    },
-    {
-      "word": "dominates",
-      "start_ms": 14084,
-      "end_ms": 14324,
-      "word_id": 31,
-      "clause_id": 4
-    },
-    {
-      "word": "the",
-      "start_ms": 14324,
-      "end_ms": 14804,
-      "word_id": 32,
-      "clause_id": 4
-    },
-    {
-      "word": "planet.",
-      "start_ms": 14804,
-      "end_ms": 15064,
-      "word_id": 33,
-      "clause_id": 4
-    },
-    {
-      "word": "powering",
-      "start_ms": 15651,
-      "end_ms": 16091,
-      "word_id": 34,
-      "clause_id": 5
-    },
-    {
-      "word": "88",
-      "start_ms": 16091,
-      "end_ms": 16591,
-      "word_id": 35,
-      "clause_id": 5
-    },
-    {
-      "word": "%",
-      "start_ms": 16591,
-      "end_ms": 17191,
-      "word_id": 36,
-      "clause_id": 5
-    },
-    {
-      "word": "of",
-      "start_ms": 17191,
-      "end_ms": 17611,
-      "word_id": 37,
-      "clause_id": 5
-    },
-    {
-      "word": "all",
-      "start_ms": 17611,
-      "end_ms": 17911,
-      "word_id": 38,
-      "clause_id": 5
-    },
-    {
-      "word": "global",
-      "start_ms": 17911,
-      "end_ms": 18271,
-      "word_id": 39,
-      "clause_id": 5
-    },
-    {
-      "word": "trade.",
-      "start_ms": 18271,
-      "end_ms": 18651,
-      "word_id": 40,
-      "clause_id": 5
-    }
-  ],
+  "frames": 900,
   "beats": [
     {
+      "spoken_text": "The dollar once linked to gold.",
+      "trigger_word": "linked",
+      "visual_actors": [
+        "dollar",
+        "gold"
+      ],
+      "action": "connect",
+      "mood": "archival",
       "index": 0,
-      "start": 0.18,
-      "end": 1.8866666666666667,
-      "words": [
-        "In",
-        "1971,"
-      ],
-      "word_ids": [
-        0,
-        1
-      ]
+      "start_sample": 8640,
+      "end_sample": 105408,
+      "trigger_sample": 48240,
+      "beat_start_ms": 180.0,
+      "beat_end_ms": 2196.0,
+      "trigger_word_ms": 1005.0,
+      "trigger_frame": 61,
+      "word_event_offset_100ns": 8250000
     },
     {
+      "spoken_text": "In 1971, policy severed that link.",
+      "trigger_word": "severed",
+      "visual_actors": [
+        "dollar",
+        "gold"
+      ],
+      "action": "sever",
+      "mood": "archival",
       "index": 1,
-      "start": 2.066666666666667,
-      "end": 5.48,
-      "words": [
-        "The",
-        "United",
-        "States",
-        "quietly",
-        "rewrote",
-        "the",
-        "rules",
-        "of",
-        "money."
-      ],
-      "word_ids": [
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10
-      ]
+      "start_sample": 125453,
+      "end_sample": 291341,
+      "trigger_sample": 225653,
+      "beat_start_ms": 2613.6041666666665,
+      "beat_end_ms": 6069.604166666667,
+      "trigger_word_ms": 4701.104166666667,
+      "trigger_frame": 283,
+      "word_event_offset_100ns": 20875000
     },
     {
+      "spoken_text": "Gold remained inside bank vaults.",
+      "trigger_word": "remained",
+      "visual_actors": [
+        "vault",
+        "gold"
+      ],
+      "action": "hold",
+      "mood": "archival",
       "index": 2,
-      "start": 5.66,
-      "end": 8.469614512471656,
-      "words": [
-        "Physical",
-        "gold",
-        "walked",
-        "right",
-        "out",
-        "of",
-        "the",
-        "vault."
-      ],
-      "word_ids": [
-        11,
-        12,
-        13,
-        14,
-        15,
-        16,
-        17,
-        18
-      ]
+      "start_sample": 311386,
+      "end_sample": 430042,
+      "trigger_sample": 325786,
+      "beat_start_ms": 6487.208333333333,
+      "beat_end_ms": 8959.208333333334,
+      "trigger_word_ms": 6787.208333333333,
+      "trigger_frame": 408,
+      "word_event_offset_100ns": 3000000
     },
     {
+      "spoken_text": "Banks route dollars between countries.",
+      "trigger_word": "route",
+      "visual_actors": [
+        "dollar",
+        "globe"
+      ],
+      "action": "flow",
+      "mood": "digital",
       "index": 3,
-      "start": 8.649614512471656,
-      "end": 11.923628117913832,
-      "words": [
-        "and",
-        "high",
-        "-speed",
-        "digital",
-        "ledgers",
-        "took",
-        "its",
-        "place."
-      ],
-      "word_ids": [
-        19,
-        20,
-        21,
-        22,
-        23,
-        24,
-        25,
-        26
-      ]
+      "start_sample": 450087,
+      "end_sample": 559527,
+      "trigger_sample": 467487,
+      "beat_start_ms": 9376.8125,
+      "beat_end_ms": 11656.8125,
+      "trigger_word_ms": 9739.3125,
+      "trigger_frame": 585,
+      "word_event_offset_100ns": 3625000
     },
     {
+      "spoken_text": "Traders exchange currencies across borders.",
+      "trigger_word": "exchange",
+      "visual_actors": [
+        "dollar",
+        "globe"
+      ],
+      "action": "exchange",
+      "mood": "digital",
       "index": 4,
-      "start": 12.103628117913832,
-      "end": 15.470521541950113,
-      "words": [
-        "Today,",
-        "one",
-        "currency",
-        "still",
-        "dominates",
-        "the",
-        "planet."
-      ],
-      "word_ids": [
-        27,
-        28,
-        29,
-        30,
-        31,
-        32,
-        33
-      ]
-    },
-    {
-      "index": 5,
-      "start": 15.650521541950113,
-      "end": 19.098684807256237,
-      "words": [
-        "powering",
-        "88",
-        "%",
-        "of",
-        "all",
-        "global",
-        "trade."
-      ],
-      "word_ids": [
-        34,
-        35,
-        36,
-        37,
-        38,
-        39,
-        40
-      ]
+      "start_sample": 579572,
+      "end_sample": 708596,
+      "trigger_sample": 601772,
+      "beat_start_ms": 12074.416666666666,
+      "beat_end_ms": 14762.416666666666,
+      "trigger_word_ms": 12536.916666666666,
+      "trigger_frame": 753,
+      "word_event_offset_100ns": 4625000
     }
   ],
-  "cue_times": {
-    "states": 2.6670000000000003,
-    "gold": 6.119999999999999,
-    "digital": 9.549999999999999,
-    "currency": 13.264,
-    "stat": 16.191000000000003
-  },
-  "scene_times": [
-    0,
-    2.8470000000000004,
-    6.369999999999999,
-    13.463999999999999,
-    14.314,
-    16.191000000000003,
-    16.691000000000003,
-    17.191000000000003,
-    18.5
-  ],
-  "locked_audio_sha256": "SHA256=aa7e209563dc870fd78822a2b68e6dd0ab2320bd0b5ded550446f96b562b1062",
-  "visual_renderer": "288d795 restored Chromium React GSAP Three.js",
-  "timing_source": "Faster-Whisper base.en estimated word starts plus 100ms"
+  "timing_source": "Edge WordBoundary offsets quantized to PCM sample; not independently measured phoneme onsets",
+  "duration_policy": "Silence fills requested duration; longer speech extends output without speeding or truncation.",
+  "width": 1920,
+  "height": 1080,
+  "plan_source": "built-in example: dollar",
+  "measured_lufs": -13.999999955249663,
+  "foley_policy": "At each Edge word event; whole-program RMS at least 18 dB below voice before mastering.",
+  "encoded_audio_note": "AAC encoding is lossy and may introduce priming; event timestamps do not certify acoustic onsets."
 }
