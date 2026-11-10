@@ -26,12 +26,21 @@
       "index": 0,
       "start_sample": 8640,
       "end_sample": 105408,
-      "trigger_sample": 48240,
+      "trigger_sample": 43056,
       "beat_start_ms": 180.0,
       "beat_end_ms": 2196.0,
-      "trigger_word_ms": 1005.0,
-      "trigger_frame": 61,
-      "word_event_offset_100ns": 8250000
+      "trigger_word_ms": 897.0,
+      "trigger_frame": 54,
+      "word_event_offset_100ns": 8250000,
+      "edge_offset_sample": 39600,
+      "acoustic_onset": {
+        "sample": 34416,
+        "status": "snapped",
+        "reason": "local joint energy/flux peak; not verified phoneme boundary",
+        "rms_rise": 0.020974179961458977,
+        "flux": 0.022589797317589595,
+        "edge_sample": 39600
+      }
     },
     {
       "spoken_text": "In 1971, policy severed that link.",
@@ -45,12 +54,21 @@
       "index": 1,
       "start_sample": 125453,
       "end_sample": 291341,
-      "trigger_sample": 225653,
+      "trigger_sample": 222005,
       "beat_start_ms": 2613.6041666666665,
       "beat_end_ms": 6069.604166666667,
-      "trigger_word_ms": 4701.104166666667,
-      "trigger_frame": 283,
-      "word_event_offset_100ns": 20875000
+      "trigger_word_ms": 4625.104166666667,
+      "trigger_frame": 278,
+      "word_event_offset_100ns": 20875000,
+      "edge_offset_sample": 100200,
+      "acoustic_onset": {
+        "sample": 96552,
+        "status": "snapped",
+        "reason": "local joint energy/flux peak; not verified phoneme boundary",
+        "rms_rise": 0.04326855013109479,
+        "flux": 0.03386050269156374,
+        "edge_sample": 100200
+      }
     },
     {
       "spoken_text": "Gold remained inside bank vaults.",
@@ -64,12 +82,21 @@
       "index": 2,
       "start_sample": 311386,
       "end_sample": 430042,
-      "trigger_sample": 325786,
+      "trigger_sample": 324346,
       "beat_start_ms": 6487.208333333333,
       "beat_end_ms": 8959.208333333334,
-      "trigger_word_ms": 6787.208333333333,
-      "trigger_frame": 408,
-      "word_event_offset_100ns": 3000000
+      "trigger_word_ms": 6757.208333333333,
+      "trigger_frame": 406,
+      "word_event_offset_100ns": 3000000,
+      "edge_offset_sample": 14400,
+      "acoustic_onset": {
+        "sample": 12960,
+        "status": "snapped",
+        "reason": "local joint energy/flux peak; not verified phoneme boundary",
+        "rms_rise": 0.02450770805966984,
+        "flux": 0.05804346364559919,
+        "edge_sample": 14400
+      }
     },
     {
       "spoken_text": "Banks route dollars between countries.",
@@ -83,12 +110,21 @@
       "index": 3,
       "start_sample": 450087,
       "end_sample": 559527,
-      "trigger_sample": 467487,
+      "trigger_sample": 471327,
       "beat_start_ms": 9376.8125,
       "beat_end_ms": 11656.8125,
-      "trigger_word_ms": 9739.3125,
-      "trigger_frame": 585,
-      "word_event_offset_100ns": 3625000
+      "trigger_word_ms": 9819.3125,
+      "trigger_frame": 590,
+      "word_event_offset_100ns": 3625000,
+      "edge_offset_sample": 17400,
+      "acoustic_onset": {
+        "sample": 21240,
+        "status": "snapped",
+        "reason": "local joint energy/flux peak; not verified phoneme boundary",
+        "rms_rise": 0.05438998887383156,
+        "flux": 0.03828660724575939,
+        "edge_sample": 17400
+      }
     },
     {
       "spoken_text": "Traders exchange currencies across borders.",
@@ -102,20 +138,33 @@
       "index": 4,
       "start_sample": 579572,
       "end_sample": 708596,
-      "trigger_sample": 601772,
+      "trigger_sample": 604460,
       "beat_start_ms": 12074.416666666666,
       "beat_end_ms": 14762.416666666666,
-      "trigger_word_ms": 12536.916666666666,
-      "trigger_frame": 753,
-      "word_event_offset_100ns": 4625000
+      "trigger_word_ms": 12592.916666666666,
+      "trigger_frame": 756,
+      "word_event_offset_100ns": 4625000,
+      "edge_offset_sample": 22200,
+      "acoustic_onset": {
+        "sample": 24888,
+        "status": "snapped",
+        "reason": "local joint energy/flux peak; not verified phoneme boundary",
+        "rms_rise": 0.04436906253007156,
+        "flux": 0.032404971845456154,
+        "edge_sample": 22200
+      }
     }
   ],
-  "timing_source": "Edge WordBoundary offsets quantized to PCM sample; not independently measured phoneme onsets",
+  "timing_source": "Edge event with local spectral-flux and RMS peak refinement; not verified phoneme onset",
   "duration_policy": "Silence fills requested duration; longer speech extends output without speeding or truncation.",
   "width": 1920,
   "height": 1080,
   "plan_source": "built-in example: dollar",
-  "measured_lufs": -13.999999955249663,
-  "foley_policy": "At each Edge word event; whole-program RMS at least 18 dB below voice before mastering.",
-  "encoded_audio_note": "AAC encoding is lossy and may introduce priming; event timestamps do not certify acoustic onsets."
+  "semantic_review_required": false,
+  "icon_matches": [],
+  "icon_definitions": {},
+  "measured_lufs": -14.000000015425474,
+  "foley_policy": "At each acoustic candidate; whole-program RMS at least 18 dB below voice before mastering.",
+  "encoded_audio_note": "AAC encoding is lossy and may introduce priming; event timestamps do not certify acoustic onsets.",
+  "speech_source": "final_video.speech.flac"
 }

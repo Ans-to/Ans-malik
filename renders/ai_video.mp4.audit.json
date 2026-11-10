@@ -7,6 +7,7 @@
     "fraction_above_065": 1.0,
     "static_three_frame_windows": 0,
     "duplicate_pairs": 0,
-    "minimum_delta": 0.8741165399551392
-  }
+    "minimum_delta": 0.8786237835884094
+  },
+  "acoustic_fallback_beats": []
 }
