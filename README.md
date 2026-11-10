@@ -1,3 +1,9 @@
+# Restored historical visual layout
+
+The active workflow restores the visual renderer from commit `288d795` with only edge-label removal and timing adjustments. See [RESTORED_STYLE.md](RESTORED_STYLE.md) for timing and audio details.
+
+The following previous workflow is retained for reference and is no longer active.
+
 # Clause-locked narration and layered visuals
 
 The active workflow uses individually synthesized selected-voice WAV files, exact PCM sample windows, and per-frame scene gating. See [CLAUSE_SYNC.md](CLAUSE_SYNC.md) for reproduction, frame-quantization and factual limitations.

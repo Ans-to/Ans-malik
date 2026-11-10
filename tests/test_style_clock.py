@@ -23,4 +23,4 @@ def test_missing_keyword_is_not_invented():
 def test_no_tiny_corner_status_text():
     app=Path('web/morph/app.jsx').read_text()
     assert 'className="header"' not in app and 'className="foot"' not in app
-    assert 'warpTime' in app
+    assert 'data.scene_times' in app and 'data.cue_times' in app
