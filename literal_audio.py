@@ -15,7 +15,14 @@ async def edge_clips(plan,directory):
     paths=[];events=[]
     for i,beat in enumerate(plan['beats']):
         mp3=directory/f'beat_{i}.mp3';wav=directory/f'beat_{i}.wav';ev=directory/f'beat_{i}.jsonl'
-        await asyncio.wait_for(edge_tts.Communicate(beat['spoken_text'],'en-US-AndrewNeural',rate='+0%',boundary='WordBoundary').save(str(mp3),str(ev)),timeout=120)
+        print(f'Synthesizing beat {i}: {beat["spoken_text"]}',flush=True)
+        for attempt in range(6):
+            try:
+                await asyncio.wait_for(edge_tts.Communicate(beat['spoken_text'],'en-US-AndrewNeural',rate='+0%',boundary='WordBoundary').save(str(mp3),str(ev)),timeout=120)
+                break
+            except Exception as exc:
+                if attempt==5:raise RuntimeError(f'Edge speech failed for beat {i} after six attempts') from exc
+                delay=min(60,5*2**attempt);print(f'Beat {i} synthesis failed ({exc}); retrying in {delay}s',flush=True);await asyncio.sleep(delay)
         subprocess.run([get_ffmpeg_exe(),'-v','error','-y','-i',str(mp3),'-ac','1','-ar',str(SR),'-c:a','pcm_s16le',str(wav)],check=True)
         paths.append(wav);events.append([json.loads(x) for x in ev.read_text().splitlines() if x.strip()]);mp3.unlink()
     return paths,events

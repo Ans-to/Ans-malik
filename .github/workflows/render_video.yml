@@ -37,6 +37,16 @@ jobs:
         run: |
           python -m scripts.fit_github_video renders/final_video.mp4
           python qa_inspector.py --literal renders/final_video.mp4 renders/timeline.json renders/qa_contact_sheet.png
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dollar-verified
+          if-no-files-found: error
+          path: |
+            renders/final_video.mp4
+            renders/final_video.mp4.json
+            renders/final_video.mp4.audit.json
+            renders/timeline.json
+            renders/qa_contact_sheet.png
       - name: Render AI topic at 1080p60
         run: |
           set -o pipefail
