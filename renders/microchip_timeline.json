@@ -192,7 +192,7 @@
       "alias_transform": {}
     }
   },
-  "measured_lufs": -13.99999999454331,
+  "measured_lufs": -14.000000039675168,
   "foley_policy": "At each acoustic candidate; whole-program RMS at least 18 dB below voice before mastering.",
   "encoded_audio_note": "AAC encoding is lossy and may introduce priming; event timestamps do not certify acoustic onsets.",
   "speech_source": "microchip_video.speech.flac"

@@ -65,8 +65,8 @@
         "sample": 96552,
         "status": "snapped",
         "reason": "local joint energy/flux peak; not verified phoneme boundary",
-        "rms_rise": 0.04326855013109479,
-        "flux": 0.03386050269156374,
+        "rms_rise": 0.04326904657935394,
+        "flux": 0.033858732250055604,
         "edge_sample": 100200
       }
     },
@@ -163,7 +163,7 @@
   "semantic_review_required": false,
   "icon_matches": [],
   "icon_definitions": {},
-  "measured_lufs": -14.000000015425474,
+  "measured_lufs": -13.999999962285605,
   "foley_policy": "At each acoustic candidate; whole-program RMS at least 18 dB below voice before mastering.",
   "encoded_audio_note": "AAC encoding is lossy and may introduce priming; event timestamps do not certify acoustic onsets.",
   "speech_source": "final_video.speech.flac"
