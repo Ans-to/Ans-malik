@@ -1,4 +1,4 @@
-name: Continuous morph render
+name: Literal storyboard demonstrations
 on:
   workflow_dispatch:
   push:
@@ -6,7 +6,7 @@ on:
 permissions:
   contents: write
 concurrency:
-  group: mixed-media-visual-v2
+  group: literal-storyboard-render
   cancel-in-progress: false
 jobs:
   render:
@@ -26,37 +26,49 @@ jobs:
           cache: npm
       - run: pip install -r requirements.txt
       - run: npm ci
-      - name: Render restored archival mixed-media visuals
+      - name: Render dollar topic at 1080p60
         run: |
           set -o pipefail
-          python restore_render.py --source renders/final_video.mp4 --output renders/final_video.mp4 2>&1 | tee render.log || {
-            tail -n 3 render.log | while IFS= read -r line; do echo "::error::$line"; done
+          python ceo_render_app.py --topic 'Why the US Dollar is the King of Global Finance' --duration 15 --output renders/final_video.mp4 --timeline renders/timeline.json 2>&1 | tee render-dollar.log || {
+            tail -n 5 render-dollar.log | while IFS= read -r line; do echo "::error::$line"; done
             exit 1
           }
-      - name: Fit complete video under GitHub's file limit
-        run: python -m scripts.fit_github_video renders/final_video.mp4
-      - name: Verify video and make contact sheet
+      - name: Fit and verify dollar topic
+        run: |
+          python -m scripts.fit_github_video renders/final_video.mp4
+          python qa_inspector.py --literal renders/final_video.mp4 renders/timeline.json renders/qa_contact_sheet.png
+      - name: Render AI topic at 1080p60
         run: |
           set -o pipefail
-          python -m scripts.restore_qa renders/final_video.mp4 renders/qa_contact_sheet.png 2>&1 | tee qa.log || {
-            tail -n 5 qa.log | while IFS= read -r line; do echo "::error::$line"; done
+          python ceo_render_app.py --topic 'Why Your AI Gives You Wrong Answers' --duration 15 --output renders/ai_video.mp4 --timeline renders/ai_timeline.json 2>&1 | tee render-ai.log || {
+            tail -n 5 render-ai.log | while IFS= read -r line; do echo "::error::$line"; done
             exit 1
           }
+      - name: Fit and verify AI topic
+        run: |
+          python -m scripts.fit_github_video renders/ai_video.mp4
+          python qa_inspector.py --literal renders/ai_video.mp4 renders/ai_timeline.json renders/ai_qa_contact_sheet.png
       - uses: actions/upload-artifact@v4
         with:
-          name: continuous-morph-explainer
+          name: literal-storyboard-examples
           if-no-files-found: error
           path: |
             renders/final_video.mp4
             renders/final_video.mp4.json
             renders/final_video.mp4.audit.json
+            renders/timeline.json
             renders/qa_contact_sheet.png
+            renders/ai_video.mp4
+            renders/ai_video.mp4.json
+            renders/ai_video.mp4.audit.json
+            renders/ai_timeline.json
+            renders/ai_qa_contact_sheet.png
       - name: Commit outputs to the session branch
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -f renders/final_video.mp4 renders/final_video.mp4.json renders/final_video.mp4.audit.json renders/qa_contact_sheet.png
+          git add -f renders/final_video.mp4 renders/final_video.mp4.json renders/final_video.mp4.audit.json renders/timeline.json renders/qa_contact_sheet.png renders/ai_video.mp4 renders/ai_video.mp4.json renders/ai_video.mp4.audit.json renders/ai_timeline.json renders/ai_qa_contact_sheet.png
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m 'Add continuous morph render [skip ci]'
+          git commit -m 'Add literal storyboard examples [skip ci]'
           git pull --rebase origin arena/fa1317bb-ans-malik
           git push origin arena/fa1317bb-ans-malik

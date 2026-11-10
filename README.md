@@ -1,3 +1,9 @@
+# Literal storyboard compiler (prototype)
+
+The CLI now runs a variable-beat storyboard and Chromium actor engine. It supports two built-in demonstrations and reviewed JSON storyboards for other topics; it is not a universal automatic script generator. See [UNIVERSAL_ENGINE.md](UNIVERSAL_ENGINE.md) for supported actors, timing limits, audio and QA.
+
+Older render pipelines remain available for compatibility.
+
 # Restored historical visual layout
 
 The active workflow restores the visual renderer from commit `288d795` with only edge-label removal and timing adjustments. See [RESTORED_STYLE.md](RESTORED_STYLE.md) for timing and audio details.

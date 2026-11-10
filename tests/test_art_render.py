@@ -14,7 +14,7 @@ def test_renderer_reuses_prior_audio_and_word_timings():
     code=Path('art_render.py').read_text();workflow=Path('.github/workflows/render_video.yml').read_text()
     assert "'-c:a','copy'" in code and 'locked_audio_sha256' in code
     assert "data={**meta" in code
-    assert 'restore_render.py --source' in workflow
+    assert 'ceo_render_app.py --topic' in workflow
     assert 'strip_dead_air' not in code
 
 def test_art_has_metaphors_and_no_global_trade_misstatement():

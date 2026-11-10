@@ -1,0 +1,204 @@
+{
+  "beats": [
+    {
+      "spoken_text": "The dollar once linked to gold.",
+      "trigger_word": "linked",
+      "visual_actors": [
+        "dollar",
+        "gold"
+      ],
+      "action": "connect",
+      "mood": "archival"
+    },
+    {
+      "spoken_text": "In 1971, policy severed that link.",
+      "trigger_word": "severed",
+      "visual_actors": [
+        "dollar",
+        "gold"
+      ],
+      "action": "sever",
+      "mood": "archival"
+    },
+    {
+      "spoken_text": "Gold remained inside bank vaults.",
+      "trigger_word": "remained",
+      "visual_actors": [
+        "vault",
+        "gold"
+      ],
+      "action": "hold",
+      "mood": "archival"
+    },
+    {
+      "spoken_text": "Banks route dollars between countries.",
+      "trigger_word": "route",
+      "visual_actors": [
+        "dollar",
+        "globe"
+      ],
+      "action": "flow",
+      "mood": "digital"
+    },
+    {
+      "spoken_text": "Traders exchange currencies across borders.",
+      "trigger_word": "exchange",
+      "visual_actors": [
+        "dollar",
+        "globe"
+      ],
+      "action": "exchange",
+      "mood": "digital"
+    },
+    {
+      "spoken_text": "Central banks hold dollar reserves.",
+      "trigger_word": "hold",
+      "visual_actors": [
+        "vault",
+        "dollar"
+      ],
+      "action": "hold",
+      "mood": "digital"
+    },
+    {
+      "spoken_text": "Investors buy United States bonds.",
+      "trigger_word": "buy",
+      "visual_actors": [
+        "dollar",
+        "document"
+      ],
+      "action": "exchange",
+      "mood": "digital"
+    },
+    {
+      "spoken_text": "Bond markets connect many investors.",
+      "trigger_word": "connect",
+      "visual_actors": [
+        "document",
+        "globe"
+      ],
+      "action": "connect",
+      "mood": "digital"
+    },
+    {
+      "spoken_text": "Companies price many commodities in dollars.",
+      "trigger_word": "price",
+      "visual_actors": [
+        "gold",
+        "dollar"
+      ],
+      "action": "compare",
+      "mood": "digital"
+    },
+    {
+      "spoken_text": "A dollar payment crosses correspondent banks.",
+      "trigger_word": "crosses",
+      "visual_actors": [
+        "dollar",
+        "server"
+      ],
+      "action": "flow",
+      "mood": "digital"
+    },
+    {
+      "spoken_text": "Those banks record transfers digitally.",
+      "trigger_word": "record",
+      "visual_actors": [
+        "server",
+        "document"
+      ],
+      "action": "write",
+      "mood": "digital"
+    },
+    {
+      "spoken_text": "Traders compare prices on screens.",
+      "trigger_word": "compare",
+      "visual_actors": [
+        "scale",
+        "dollar"
+      ],
+      "action": "compare",
+      "mood": "digital"
+    },
+    {
+      "spoken_text": "Market liquidity helps buyers find sellers.",
+      "trigger_word": "find",
+      "visual_actors": [
+        "dollar",
+        "globe"
+      ],
+      "action": "connect",
+      "mood": "digital"
+    },
+    {
+      "spoken_text": "A central bank controls monetary policy.",
+      "trigger_word": "controls",
+      "visual_actors": [
+        "document",
+        "vault"
+      ],
+      "action": "hold",
+      "mood": "digital"
+    },
+    {
+      "spoken_text": "Inflation reduces the money\u2019s purchasing power.",
+      "trigger_word": "reduces",
+      "visual_actors": [
+        "dollar",
+        "scale"
+      ],
+      "action": "compare",
+      "mood": "digital"
+    },
+    {
+      "spoken_text": "Interest rates change investment decisions.",
+      "trigger_word": "change",
+      "visual_actors": [
+        "scale",
+        "document"
+      ],
+      "action": "compare",
+      "mood": "digital"
+    },
+    {
+      "spoken_text": "Financial networks transmit shocks too.",
+      "trigger_word": "transmit",
+      "visual_actors": [
+        "server",
+        "globe"
+      ],
+      "action": "flow",
+      "mood": "digital"
+    },
+    {
+      "spoken_text": "Other currencies compete for global use.",
+      "trigger_word": "compete",
+      "visual_actors": [
+        "dollar",
+        "coin"
+      ],
+      "action": "compare",
+      "mood": "digital"
+    },
+    {
+      "spoken_text": "The euro also serves international markets.",
+      "trigger_word": "serves",
+      "visual_actors": [
+        "coin",
+        "globe"
+      ],
+      "action": "connect",
+      "mood": "digital"
+    },
+    {
+      "spoken_text": "Dollar dominance depends on many choices.",
+      "trigger_word": "depends",
+      "visual_actors": [
+        "dollar",
+        "scale"
+      ],
+      "action": "compare",
+      "mood": "digital"
+    }
+  ]
+}

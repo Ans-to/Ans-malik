@@ -24,3 +24,6 @@ web/semantic/bundle.css
 
 web/clause/bundle.js
 web/clause/bundle.css
+
+web/literal/bundle.js
+web/literal/bundle.css

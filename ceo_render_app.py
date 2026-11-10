@@ -163,9 +163,9 @@ def resolution(value):
     except ValueError: raise argparse.ArgumentTypeError('expected WIDTHxHEIGHT')
 
 def main():
-    p=argparse.ArgumentParser(description=__doc__)
-    p.add_argument('--showcase',action='store_true',help='12-second documentary showcase with a short, naturally paced narration'); p.add_argument('--preview',action='store_true',help='Use 640x360 and at least 30 seconds for a paced draft'); p.add_argument('--topic',required=True); p.add_argument('--duration',type=float,default=60); p.add_argument('--resolution',type=resolution,default=(1920,1080)); p.add_argument('--output',default='final_video.mp4'); p.add_argument('--whisper-model',default='base.en',help='Faster-Whisper model name or local path (default: base.en)'); p.add_argument('--offline',action='store_true',help='Use offline eSpeak without an online probe'); p.add_argument('--require-online',action='store_true',help='Fail instead of using offline speech if Edge TTS or Whisper fails')
-    a=p.parse_args(); duration=12 if a.showcase else (min(a.duration,30) if a.preview else a.duration); print('Rendered:',render(a.topic,duration,(640,360) if a.preview else a.resolution,a.output,a.whisper_model,a.require_online,a.offline,a.showcase))
+    from literal_pipeline import main as literal_main
+    literal_main()
+
 if __name__=='__main__':
     try: main()
     except Exception as exc:

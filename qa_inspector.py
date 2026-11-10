@@ -43,7 +43,10 @@ def audit(meta):
     return cues,extras
 
 if __name__=='__main__':
-    if len(sys.argv)>1 and sys.argv[1]=='--clauses':
+    if len(sys.argv)>1 and sys.argv[1]=='--literal':
+        from scripts.literal_qa import qa
+        qa(sys.argv[2],sys.argv[3],sys.argv[4])
+    elif len(sys.argv)>1 and sys.argv[1]=='--clauses':
         from scripts.clause_qa import qa
         qa(sys.argv[2],sys.argv[3])
     else:audit(json.loads(Path(sys.argv[1]).read_text()))

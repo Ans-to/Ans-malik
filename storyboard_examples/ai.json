@@ -1,0 +1,204 @@
+{
+  "beats": [
+    {
+      "spoken_text": "A person asks an AI a question.",
+      "trigger_word": "asks",
+      "visual_actors": [
+        "person",
+        "prompt"
+      ],
+      "action": "connect",
+      "mood": "digital"
+    },
+    {
+      "spoken_text": "The model predicts the next token.",
+      "trigger_word": "predicts",
+      "visual_actors": [
+        "network",
+        "token"
+      ],
+      "action": "spin",
+      "mood": "digital"
+    },
+    {
+      "spoken_text": "Those predictions form a written answer.",
+      "trigger_word": "form",
+      "visual_actors": [
+        "token",
+        "document"
+      ],
+      "action": "flow",
+      "mood": "digital"
+    },
+    {
+      "spoken_text": "A fluent sentence can contain errors.",
+      "trigger_word": "contain",
+      "visual_actors": [
+        "document",
+        "error"
+      ],
+      "action": "reveal",
+      "mood": "digital"
+    },
+    {
+      "spoken_text": "The model guesses when evidence is missing.",
+      "trigger_word": "guesses",
+      "visual_actors": [
+        "network",
+        "error"
+      ],
+      "action": "spin",
+      "mood": "digital"
+    },
+    {
+      "spoken_text": "Training data contains patterns and mistakes.",
+      "trigger_word": "contains",
+      "visual_actors": [
+        "database",
+        "error"
+      ],
+      "action": "hold",
+      "mood": "digital"
+    },
+    {
+      "spoken_text": "A question activates learned associations.",
+      "trigger_word": "activates",
+      "visual_actors": [
+        "prompt",
+        "network"
+      ],
+      "action": "connect",
+      "mood": "digital"
+    },
+    {
+      "spoken_text": "Probabilities compete for the next word.",
+      "trigger_word": "compete",
+      "visual_actors": [
+        "token",
+        "scale"
+      ],
+      "action": "compare",
+      "mood": "digital"
+    },
+    {
+      "spoken_text": "A plausible answer may still be wrong.",
+      "trigger_word": "wrong",
+      "visual_actors": [
+        "document",
+        "error"
+      ],
+      "action": "reveal",
+      "mood": "digital"
+    },
+    {
+      "spoken_text": "A model can invent a citation.",
+      "trigger_word": "invent",
+      "visual_actors": [
+        "network",
+        "document"
+      ],
+      "action": "write",
+      "mood": "digital"
+    },
+    {
+      "spoken_text": "A search tool retrieves outside sources.",
+      "trigger_word": "retrieves",
+      "visual_actors": [
+        "database",
+        "document"
+      ],
+      "action": "flow",
+      "mood": "digital"
+    },
+    {
+      "spoken_text": "A cited source can still mislead.",
+      "trigger_word": "mislead",
+      "visual_actors": [
+        "document",
+        "error"
+      ],
+      "action": "reveal",
+      "mood": "digital"
+    },
+    {
+      "spoken_text": "Readers compare claims against evidence.",
+      "trigger_word": "compare",
+      "visual_actors": [
+        "document",
+        "scale"
+      ],
+      "action": "compare",
+      "mood": "digital"
+    },
+    {
+      "spoken_text": "Specific questions constrain possible answers.",
+      "trigger_word": "constrain",
+      "visual_actors": [
+        "prompt",
+        "network"
+      ],
+      "action": "connect",
+      "mood": "digital"
+    },
+    {
+      "spoken_text": "Fresh information changes the context.",
+      "trigger_word": "changes",
+      "visual_actors": [
+        "database",
+        "prompt"
+      ],
+      "action": "flow",
+      "mood": "digital"
+    },
+    {
+      "spoken_text": "Models sometimes confuse similar facts.",
+      "trigger_word": "confuse",
+      "visual_actors": [
+        "token",
+        "error"
+      ],
+      "action": "exchange",
+      "mood": "digital"
+    },
+    {
+      "spoken_text": "A calculator checks numeric work.",
+      "trigger_word": "checks",
+      "visual_actors": [
+        "calculator",
+        "scale"
+      ],
+      "action": "compare",
+      "mood": "digital"
+    },
+    {
+      "spoken_text": "Human reviewers inspect important decisions.",
+      "trigger_word": "inspect",
+      "visual_actors": [
+        "person",
+        "document"
+      ],
+      "action": "connect",
+      "mood": "digital"
+    },
+    {
+      "spoken_text": "Corrections improve the final answer.",
+      "trigger_word": "improve",
+      "visual_actors": [
+        "error",
+        "document"
+      ],
+      "action": "write",
+      "mood": "digital"
+    },
+    {
+      "spoken_text": "Reliable use requires careful verification.",
+      "trigger_word": "requires",
+      "visual_actors": [
+        "document",
+        "scale"
+      ],
+      "action": "compare",
+      "mood": "digital"
+    }
+  ]
+}
