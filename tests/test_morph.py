@@ -42,3 +42,20 @@ def test_offline_alignment_uses_audio_length_and_lead_in(tmp_path):
     assert mode=='offline-espeak' and words[0]['start_ms']>=150
     assert all(w['start_ms']<=w['end_ms'] for w in words)
     assert all(a['start']<b['start'] for a,b in zip(beats,beats[1:]))
+
+def test_speed_a_silence_stripper_and_time_remap():
+    from forge_python.morph_audio import strip_dead_air
+    sr=10000
+    voice=np.r_[np.full(1000,.2),np.zeros(1200),np.full(1000,.2)].astype(np.float32)
+    trimmed,remap=strip_dead_air(voice,sr)
+    assert abs(len(trimmed)/sr-.235)<.002
+    assert abs(remap(.22)-.135)<.002
+    np.testing.assert_array_equal(trimmed[:950],voice[:950])
+    np.testing.assert_array_equal(trimmed[-950:],voice[-950:])
+
+def test_speed_a_preserves_short_and_boundary_silence():
+    from forge_python.morph_audio import strip_dead_air
+    sr=10000
+    voice=np.r_[np.zeros(1000),np.ones(500)*.1,np.zeros(600),np.ones(500)*.1,np.zeros(1000)].astype(np.float32)
+    result,_=strip_dead_air(voice,sr)
+    np.testing.assert_array_equal(result,voice)

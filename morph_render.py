@@ -18,5 +18,5 @@ def main():
         cmd=['node','web/morph/render.mjs',f'data={tmp/"data.json"}',f'audio={audio}',f'ffmpeg={get_ffmpeg_exe()}',f'output={out}',f'width={w}',f'height={h}',f'frames={frames}']
         if a.samples:cmd.append(f'samples={a.samples}')
         subprocess.run(cmd,check=True)
-        if not a.samples:Path(str(out)+'.json').write_text(json.dumps({**data,'document':'ReportLab PDF texture','duration':frames/60,'fps':60,'resolution':a.resolution,'narration':text,'voice_mode':mode,'neural_voice':'en-US-AndrewNeural','neural_rate':'+0%','lead_in_ms':150,'tail_ms':400,'pause_cap_ms':280,'visual_renderer':'Chromium React Remotion GSAP Three.js'},indent=2))
+        if not a.samples:Path(str(out)+'.json').write_text(json.dumps({**data,'document':'ReportLab PDF texture','duration':frames/60,'fps':60,'resolution':a.resolution,'narration':text,'voice_mode':mode,'neural_voice':'en-US-AndrewNeural','neural_rate':'+12%','lead_in_ms':150,'tail_ms':400,'pause_cap_ms':35,'visual_renderer':'Chromium React Remotion GSAP Three.js'},indent=2))
 if __name__=='__main__':main()
