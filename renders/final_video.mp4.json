@@ -4,231 +4,231 @@
     {
       "word": "In",
       "start_ms": 0,
-      "end_ms": 320,
+      "end_ms": 360,
       "word_id": 0,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word": "1971,",
-      "start_ms": 320,
-      "end_ms": 1160,
+      "start_ms": 360,
+      "end_ms": 1080,
       "word_id": 1,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word": "the",
-      "start_ms": 1440,
-      "end_ms": 1480,
+      "start_ms": 1700,
+      "end_ms": 1860,
       "word_id": 2,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word": "United",
-      "start_ms": 1480,
-      "end_ms": 1680,
+      "start_ms": 1860,
+      "end_ms": 2060,
       "word_id": 3,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word": "States",
-      "start_ms": 1680,
-      "end_ms": 2040,
+      "start_ms": 2060,
+      "end_ms": 2480,
       "word_id": 4,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word": "ended",
-      "start_ms": 2040,
-      "end_ms": 2360,
+      "start_ms": 2480,
+      "end_ms": 2920,
       "word_id": 5,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word": "official",
-      "start_ms": 2360,
-      "end_ms": 2660,
+      "start_ms": 2920,
+      "end_ms": 3260,
       "word_id": 6,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word": "dollar",
-      "start_ms": 2660,
-      "end_ms": 3120,
+      "start_ms": 3260,
+      "end_ms": 3820,
       "word_id": 7,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word": "conversion",
-      "start_ms": 3120,
-      "end_ms": 3340,
+      "start_ms": 3820,
+      "end_ms": 4080,
       "word_id": 8,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word": "into",
-      "start_ms": 3340,
-      "end_ms": 3900,
+      "start_ms": 4080,
+      "end_ms": 4760,
       "word_id": 9,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word": "gold.",
-      "start_ms": 3900,
-      "end_ms": 4120,
+      "start_ms": 4760,
+      "end_ms": 5020,
       "word_id": 10,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word": "Rules",
-      "start_ms": 4380,
-      "end_ms": 4460,
+      "start_ms": 5760,
+      "end_ms": 5760,
       "word_id": 11,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word": "changed,",
-      "start_ms": 4460,
-      "end_ms": 4740,
+      "start_ms": 5760,
+      "end_ms": 6040,
       "word_id": 12,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word": "but",
-      "start_ms": 5080,
-      "end_ms": 5120,
+      "start_ms": 6660,
+      "end_ms": 6760,
       "word_id": 13,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word": "gold",
-      "start_ms": 5120,
-      "end_ms": 5340,
+      "start_ms": 6760,
+      "end_ms": 7020,
       "word_id": 14,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word": "did",
-      "start_ms": 5340,
-      "end_ms": 5560,
+      "start_ms": 7020,
+      "end_ms": 7260,
       "word_id": 15,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word": "not",
-      "start_ms": 5560,
-      "end_ms": 5740,
+      "start_ms": 7260,
+      "end_ms": 7460,
       "word_id": 16,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word": "disappear.",
-      "start_ms": 5740,
-      "end_ms": 6140,
+      "start_ms": 7460,
+      "end_ms": 7840,
       "word_id": 17,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word": "In",
-      "start_ms": 6440,
-      "end_ms": 6440,
+      "start_ms": 8580,
+      "end_ms": 8640,
       "word_id": 18,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word": "2022,",
-      "start_ms": 6440,
-      "end_ms": 7020,
+      "start_ms": 8640,
+      "end_ms": 9380,
       "word_id": 19,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word": "the",
-      "start_ms": 7020,
-      "end_ms": 7380,
+      "start_ms": 9820,
+      "end_ms": 9980,
       "word_id": 20,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word": "dollar",
-      "start_ms": 7380,
-      "end_ms": 7600,
+      "start_ms": 9980,
+      "end_ms": 10200,
       "word_id": 21,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word": "appeared",
-      "start_ms": 7600,
-      "end_ms": 7860,
+      "start_ms": 10200,
+      "end_ms": 10500,
       "word_id": 22,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word": "on",
-      "start_ms": 7860,
-      "end_ms": 8140,
+      "start_ms": 10500,
+      "end_ms": 10820,
       "word_id": 23,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word": "one",
-      "start_ms": 8140,
-      "end_ms": 8340,
+      "start_ms": 10820,
+      "end_ms": 11040,
       "word_id": 24,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word": "side",
-      "start_ms": 8340,
-      "end_ms": 8700,
+      "start_ms": 11040,
+      "end_ms": 11460,
       "word_id": 25,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word": "of",
-      "start_ms": 8700,
-      "end_ms": 8820,
+      "start_ms": 11460,
+      "end_ms": 11580,
       "word_id": 26,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word": "88",
-      "start_ms": 8820,
-      "end_ms": 9120,
+      "start_ms": 11580,
+      "end_ms": 11960,
       "word_id": 27,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word": "%",
-      "start_ms": 9120,
-      "end_ms": 9640,
+      "start_ms": 11960,
+      "end_ms": 12560,
       "word_id": 28,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word": "of",
-      "start_ms": 9640,
-      "end_ms": 9820,
+      "start_ms": 12560,
+      "end_ms": 12780,
       "word_id": 29,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word": "foreign",
-      "start_ms": 9820,
-      "end_ms": 10080,
+      "start_ms": 12780,
+      "end_ms": 13080,
       "word_id": 30,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word": "exchange",
-      "start_ms": 10080,
-      "end_ms": 10320,
+      "start_ms": 13080,
+      "end_ms": 13340,
       "word_id": 31,
       "source": "edge-tts+faster-whisper"
     },
     {
       "word": "trades.",
-      "start_ms": 10320,
-      "end_ms": 10860,
+      "start_ms": 13340,
+      "end_ms": 13940,
       "word_id": 32,
       "source": "edge-tts+faster-whisper"
     }
@@ -240,135 +240,135 @@
       "words": [
         "In",
         "1971,",
-        "the"
+        "the",
+        "United"
       ],
       "word_ids": [
         0,
         1,
-        2
+        2,
+        3
       ],
-      "end": 1.48
+      "end": 2.06
     },
     {
       "index": 1,
-      "start": 1.48,
+      "start": 2.06,
       "words": [
-        "United",
         "States",
         "ended",
-        "official"
-      ],
-      "word_ids": [
-        3,
-        4,
-        5,
-        6
-      ],
-      "end": 2.66
-    },
-    {
-      "index": 2,
-      "start": 2.66,
-      "words": [
-        "dollar",
-        "conversion",
-        "into"
-      ],
-      "word_ids": [
-        7,
-        8,
-        9
-      ],
-      "end": 3.9
-    },
-    {
-      "index": 3,
-      "start": 3.9,
-      "words": [
-        "gold.",
-        "Rules",
-        "changed,",
-        "but"
-      ],
-      "word_ids": [
-        10,
-        11,
-        12,
-        13
-      ],
-      "end": 5.12
-    },
-    {
-      "index": 4,
-      "start": 5.12,
-      "words": [
-        "gold",
-        "did",
-        "not",
-        "disappear."
-      ],
-      "word_ids": [
-        14,
-        15,
-        16,
-        17
-      ],
-      "end": 6.44
-    },
-    {
-      "index": 5,
-      "start": 6.44,
-      "words": [
-        "In",
-        "2022,",
-        "the",
+        "official",
         "dollar"
       ],
       "word_ids": [
-        18,
-        19,
-        20,
-        21
+        4,
+        5,
+        6,
+        7
       ],
-      "end": 7.6
+      "end": 3.82
+    },
+    {
+      "index": 2,
+      "start": 3.82,
+      "words": [
+        "conversion",
+        "into",
+        "gold.",
+        "Rules"
+      ],
+      "word_ids": [
+        8,
+        9,
+        10,
+        11
+      ],
+      "end": 5.76
+    },
+    {
+      "index": 3,
+      "start": 5.76,
+      "words": [
+        "changed,",
+        "but",
+        "gold",
+        "did"
+      ],
+      "word_ids": [
+        12,
+        13,
+        14,
+        15
+      ],
+      "end": 7.26
+    },
+    {
+      "index": 4,
+      "start": 7.26,
+      "words": [
+        "not",
+        "disappear.",
+        "In",
+        "2022,"
+      ],
+      "word_ids": [
+        16,
+        17,
+        18,
+        19
+      ],
+      "end": 9.82
+    },
+    {
+      "index": 5,
+      "start": 9.82,
+      "words": [
+        "the",
+        "dollar",
+        "appeared",
+        "on"
+      ],
+      "word_ids": [
+        20,
+        21,
+        22,
+        23
+      ],
+      "end": 10.82
     },
     {
       "index": 6,
-      "start": 7.6,
+      "start": 10.82,
       "words": [
-        "appeared",
-        "on",
         "one",
-        "side"
+        "side",
+        "of"
       ],
       "word_ids": [
-        22,
-        23,
         24,
-        25
+        25,
+        26
       ],
-      "end": 8.7
+      "end": 11.58
     },
     {
       "index": 7,
-      "start": 8.7,
+      "start": 11.58,
       "words": [
-        "of",
         "88",
         "%",
         "of"
       ],
       "word_ids": [
-        26,
         27,
         28,
         29
       ],
-      "end": 9.82
+      "end": 12.78
     },
     {
       "index": 8,
-      "start": 9.82,
+      "start": 12.78,
       "words": [
         "foreign",
         "exchange",
@@ -379,7 +379,7 @@
         31,
         32
       ],
-      "end": 11.866666666666667
+      "end": 15.0
     }
   ],
   "document": "ReportLab PDF texture",
@@ -388,16 +388,17 @@
     "x2": 560,
     "y": 402
   },
-  "frames": 712,
-  "duration": 11.866666666666667,
+  "frames": 900,
+  "duration": 15.0,
   "fps": 60,
   "resolution": "1920x1080",
   "narration": "In nineteen seventy one, the United States ended official dollar conversion into gold. Rules changed, but gold did not disappear. In twenty twenty two, the dollar appeared on one side of eighty eight percent of foreign exchange trades.",
   "voice_mode": "edge-tts+faster-whisper",
   "neural_voice": "en-US-AndrewNeural",
-  "neural_rate": "+12%",
+  "neural_rate": "+0%",
   "lead_in_ms": 150,
   "tail_ms": 400,
-  "pause_cap_ms": 35,
-  "visual_renderer": "Chromium React Remotion GSAP Three.js"
+  "pause_cap_ms": 280,
+  "visual_renderer": "Chromium React Remotion GSAP Three.js / mixed media",
+  "locked_audio_sha256": "SHA256=893a670f3fcd4ab9210366e8d5833c1b5ad1d8f233a6fafdc8eb91c9b0dea378"
 }

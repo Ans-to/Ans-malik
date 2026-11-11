@@ -100,7 +100,7 @@ def test_neural_voice_configuration(monkeypatch,tmp_path):
         async def save(self, path, metadata): pass
     monkeypatch.setitem(sys.modules,'edge_tts',types.SimpleNamespace(Communicate=Communicate))
     asyncio.run(ceo_render_app.synthesize(['A test'],tmp_path/'a.mp3'))
-    assert calls == [('A test','en-US-ChristopherNeural',{'rate':'+12%','pitch':'-2Hz','boundary':'WordBoundary'})]
+    assert calls == [('A test','en-US-ChristopherNeural',{'rate':'+0%','pitch':'-2Hz','boundary':'WordBoundary'})]
 
 def test_online_voice_and_whisper_are_automatic(tmp_path, monkeypatch):
     import sys, types, soundfile as sf

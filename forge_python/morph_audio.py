@@ -11,7 +11,7 @@ SCRIPT=('In nineteen seventy one, the United States ended official dollar conver
         'Rules changed, but gold did not disappear. '
         'In twenty twenty two, the dollar appeared on one side of eighty eight percent of foreign exchange trades.')
 
-def cap_long_pauses(samples, sr, threshold_db=-50, max_gap_ms=500, target_ms=280, fade_ms=5):
+def cap_long_pauses(samples, sr, threshold_db=-50, max_gap_ms=500, target_ms=280):
     """Cap only interior low-RMS gaps over 500ms; preserve all other samples.
 
     Cut from the centre of a long silent region so quiet consonant edges are not
@@ -23,7 +23,7 @@ def cap_long_pauses(samples, sr, threshold_db=-50, max_gap_ms=500, target_ms=280
     levels=np.array([np.sqrt(np.mean(x[i:i+win].astype(np.float64)**2)) for i in range(0,n,win)])
     quiet=levels < 10**(threshold_db/20)
     edges=np.diff(np.r_[False,quiet,False].astype(np.int8));starts=np.where(edges==1)[0]*win;ends=np.minimum(np.where(edges==-1)[0]*win,n)
-    target=round(target_ms*sr/1000);minimum=round(max_gap_ms*sr/1000);fade=round(fade_ms*sr/1000)
+    target=round(target_ms*sr/1000);minimum=round(max_gap_ms*sr/1000);fade=round(.005*sr)
     cuts=[]
     for a,b in zip(starts,ends):
         if a==0 or b==n or b-a<=minimum:continue
@@ -47,15 +47,6 @@ def cap_long_pauses(samples, sr, threshold_db=-50, max_gap_ms=500, target_ms=280
         return (before[-1][3] if before else 0)/sr
     return out,remap
 
-def strip_dead_air(samples, sr):
-    """Compress interior low-RMS runs longer than 70 ms to 35 ms.
-
-    A 10 ms equal-power crossfade joins the retained parts. This aggressive
-    energy heuristic can cut quiet consonants or intentional pauses; it is not
-    a speech-aware edit. Leading and trailing silence are left untouched.
-    """
-    return cap_long_pauses(samples, sr, max_gap_ms=70, target_ms=35, fade_ms=10)
-
 def canonical(text):
     """Compare common Whisper numeric spellings without treating them as errors."""
     text=text.casefold().replace('%',' percent ')
@@ -68,30 +59,18 @@ def compile_beats(words,duration):
     """Keep spoken word order intact; distribute into groups of three or four."""
     count=len(words)
     if count<3:raise ValueError('At least three aligned words required')
-    # Choose 3–4 word groups that best approach 1.15 s without inventing
-    # timestamps or dropping words. Speech rate can make the target impossible.
-    best={count:(0, [])}
-    for i in range(count-1,-1,-1):
-        choices=[]
-        for size in (3,4):
-            j=i+size
-            if j>count or j not in best: continue
-            start=0 if i==0 else words[i]['start_ms']/1000
-            end=duration if j==count else words[j]['start_ms']/1000
-            penalty=(end-start-1.15)**2 + best[j][0]
-            choices.append((penalty,[size]+best[j][1]))
-        if choices:best[i]=min(choices,key=lambda x:x[0])
-    if 0 not in best:raise ValueError('Cannot partition words into 3–4 word groups')
+    groups=math.ceil(count/4);base,extra=divmod(count,groups)
+    if base<3:raise ValueError('Cannot partition words into 3–4 word groups')
     beats=[];i=0
-    for b,size in enumerate(best[0][1]):
-        chunk=words[i:i+size];start=0 if b==0 else chunk[0]['start_ms']/1000
+    for b in range(groups):
+        size=base+(b<extra);chunk=words[i:i+size];start=0 if b==0 else chunk[0]['start_ms']/1000
         beats.append({'index':b,'start':start,'words':[w['word'] for w in chunk],'word_ids':[w['word_id'] for w in chunk]});i+=size
     for i,beat in enumerate(beats):beat['end']=beats[i+1]['start'] if i+1<len(beats) else duration
     return beats
 
 async def edge_voice(text,path):
     import edge_tts
-    await asyncio.wait_for(edge_tts.Communicate(text,'en-US-AndrewNeural',rate='+12%',boundary='WordBoundary').save(str(path)),timeout=60)
+    await asyncio.wait_for(edge_tts.Communicate(text,'en-US-AndrewNeural',rate='+0%',boundary='WordBoundary').save(str(path)),timeout=60)
 
 def prepare(tmp,offline=False,require_online=False,model='base.en'):
     sr=24000; mode='edge-tts+faster-whisper'; voice=None
@@ -105,7 +84,7 @@ def prepare(tmp,offline=False,require_online=False,model='base.en'):
             print(f'Using offline voice: {e}',flush=True)
     if voice is None:
         voice,raw_words=OfflineVoice().speak(SCRIPT,sr);mode='offline-espeak'
-    voice,remap=strip_dead_air(voice,sr)
+    voice,remap=cap_long_pauses(voice,sr)
     lead=round(.150*sr);tail=round(.400*sr)
     voice=np.pad(voice,(lead,tail))
     if mode=='offline-espeak':

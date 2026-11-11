@@ -28,7 +28,7 @@ def script_for(topic):
 
 async def synthesize(script, target):
     import edge_tts
-    await asyncio.wait_for(edge_tts.Communicate(' '.join(script), 'en-US-ChristopherNeural', rate='+12%', pitch='-2Hz', boundary='WordBoundary').save(str(target), str(target)+'.jsonl'), timeout=45)
+    await asyncio.wait_for(edge_tts.Communicate(' '.join(script), 'en-US-ChristopherNeural', rate='+0%', pitch='-2Hz', boundary='WordBoundary').save(str(target), str(target)+'.jsonl'), timeout=45)
 
 def prepare_audio(script, duration, tmp, whisper_model='base.en', require_online=False, offline=False):
     """Synthesize first, then extend the timeline to fit at the original speed.

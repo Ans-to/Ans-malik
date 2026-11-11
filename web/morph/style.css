@@ -10,8 +10,5 @@
 
 .gold3d{position:absolute;left:550px;top:175px;width:315px;height:315px;opacity:0;pointer-events:none}.webgl.gold{transform:scale(.39);transform-origin:top left}
 
-/* Hide only small corner labels. */
+/* Hide only the small outer-corner labels. */
 .header, .foot { visibility: hidden; }
-/* Story surfaces share one continuously animated container. */
-.chart-layer{position:absolute;inset:0;opacity:0;overflow:hidden;background:linear-gradient(150deg,#173b30,#081416)}
-.bento{position:absolute;inset:0;opacity:0;background:#10251e}
